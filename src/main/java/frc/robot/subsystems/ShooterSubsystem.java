@@ -5,23 +5,16 @@ import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
-import frc.robot.constants.ShooterConstants;
-import frc.robot.utils.TunableNumber;
+import frc.robot.constants.ShootingConstants;
 import frc.robot.utils.MathUtils;
 import frc.robot.utils.NetworkTablesUtils;
 
-import static frc.robot.Constants.TARGET_POSE_ROTATION;
-
 public class ShooterSubsystem extends SubsystemBase {
 
-    private final SparkFlex topShooterMotor = new SparkFlex(ShooterConstants.TOP_SHOOTER_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
-    private final SparkFlex bottomShooterMotor = new SparkFlex(ShooterConstants.BOTTOM_SHOOTER_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
+    private final SparkFlex topShooterMotor = new SparkFlex(ShootingConstants.TOP_SHOOTER_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
+    private final SparkFlex bottomShooterMotor = new SparkFlex(ShootingConstants.BOTTOM_SHOOTER_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
     private final DigitalInput shooterLinebreak = new DigitalInput(10);
     NetworkTablesUtils shooterNT = NetworkTablesUtils.getTable("Shooter");
 
@@ -38,13 +31,13 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     private final SimpleMotorFeedforward shooterFF = new SimpleMotorFeedforward(
-        ShooterConstants.SHOOTER_KS,
-        ShooterConstants.SHOOTER_KV,
-        ShooterConstants.SHOOTER_KA
+        ShootingConstants.SHOOTER_KS,
+        ShootingConstants.SHOOTER_KV,
+        ShootingConstants.SHOOTER_KA
     );
 
     private final PIDController shooterPID = new PIDController(
-            ShooterConstants.SHOOTER_P, ShooterConstants.SHOOTER_I, ShooterConstants.SHOOTER_D
+            ShootingConstants.SHOOTER_P, ShootingConstants.SHOOTER_I, ShootingConstants.SHOOTER_D
     );
 
     double setpoint;

@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -20,16 +19,16 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.autonomous.SuperSecretMissileTech;
-import frc.robot.commands.DriveToPointCheesyPoofs;
+import frc.robot.commands.DriveToPoint;
 import frc.robot.commands.ShooterCommand;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.IntakeConstants;
-import frc.robot.constants.ShooterConstants;
+import frc.robot.constants.ShootingConstants;
 import frc.robot.subsystems.*;
 
 import java.io.File;
-import java.util.Set;
+import java.util.Optional;
 
 import frc.robot.utils.NetworkTablesUtils;
 import swervelib.SwerveInputStream;
@@ -48,6 +47,7 @@ public class RobotContainer
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
           "swerve"));
+  BallDetection ballDetection = new BallDetection();
   ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   NetworkTablesUtils NTAuto = NetworkTablesUtils.getTable("Autonomous");
@@ -115,6 +115,7 @@ public class RobotContainer
           .translationHeadingOffset(Rotation2d.fromDegrees(
                   0));
 
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -123,7 +124,6 @@ public class RobotContainer
     // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
-    NamedCommands.registerCommand("test", Commands.print("I EXIST"));
   }
 
   /**
@@ -140,12 +140,8 @@ public class RobotContainer
     // Field Y axis, not driver POV
     Command driveFieldOrientedYAxisLock = drivebase.driveFieldOriented(driveYAxisLock);
     Command driveRobotOrientedAngularVelocity  = drivebase.driveFieldOriented(driveRobotOriented);
-    Command driveSetpointGen = drivebase.driveWithSetpointGeneratorFieldRelative(
-            driveDirectAngle);
     Command driveFieldOrientedDirectAngleKeyboard      = drivebase.driveFieldOriented(driveDirectAngleKeyboard);
     Command driveFieldOrientedAnglularVelocityKeyboard = drivebase.driveFieldOriented(driveAngularVelocityKeyboard);
-    Command driveSetpointGenKeyboard = drivebase.driveWithSetpointGeneratorFieldRelative(
-            driveDirectAngleKeyboard);
 
     primary_controller.options().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3, 3, new Rotation2d()))));
     primary_controller.pov(0).whileTrue(drivebase.sysIdDriveMotorCommand());
@@ -155,13 +151,10 @@ public class RobotContainer
 
 
     secondary_controller.x().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, -IntakeConstants.INTAKING_VOLTAGE));
-    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShooterConstants.TOP_SHOOTER_RPM.get(), ShooterConstants.BOTTOM_SHOOTER_RPM.get()));
+    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShootingConstants.TOP_SHOOTER_RPM.get(), ShootingConstants.BOTTOM_SHOOTER_RPM.get()));
     secondary_controller.a().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, IntakeConstants.INTAKING_VOLTAGE));
 
-
-    //Deferred?
-    primary_controller.L1().whileTrue((Commands.defer(() ->
-            new DriveToPointCheesyPoofs(drivebase, drivebase.getPose(), FieldConstants.SHOOT_BARGE_POINT, 0.7), Set.of(drivebase))));
+    primary_controller.L1().whileTrue(new DriveToPoint(drivebase, drivebase.getLocalizerPose(), ballDetection.getBallPose(), 0.25));
 
     primary_controller.R1().whileTrue(driveFieldOrientedYAxisLock);
 
@@ -207,6 +200,28 @@ public class RobotContainer
 
   }
 
+  public Command getAimAtHubCommand() {
+      Optional<DriverStation.Alliance> allianceOpt = DriverStation.getAlliance();
+
+      if (allianceOpt.isEmpty()) {
+        return Commands.none(); // or some fallback command
+      }
+
+      DriverStation.Alliance alliance = allianceOpt.get();
+      Pose2d targetPose = (alliance == DriverStation.Alliance.Red)
+              ? FieldConstants.RED_HUB_CENTER_POINT
+              : FieldConstants.BLUE_HUB_CENTER_POINT;
+
+      Rotation2d targetAngle = drivebase.getLocalizerPose().minus(targetPose).getRotation();
+      double distance = drivebase.getLocalizerPose().getTranslation().getDistance(targetPose.getTranslation());
+
+      // distance : hood angle map 8" increments
+      double hoodAngle;
+
+      return new ParallelCommandGroup(
+              // set hood, rotate to angle
+      );
+  }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

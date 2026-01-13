@@ -60,4 +60,50 @@ public class VisionConstants {
                     "shooter_cam_adjust_yaw",
                     0.0);
 
+    // Inches
+
+    public static final double BALL_CAM_POSE_X = 0.0;
+    public static final double BALL_CAM_POSE_Y = 0.0;
+    public static final double BALL_CAM_POSE_Z = 0.0;
+
+
+    // Degrees
+
+    public static final double BALL_CAM_POSE_ROLL = 0.0;
+    public static final double BALL_CAM_POSE_PITCH = 0.0;
+    public static final double BALL_CAM_POSE_YAW = 0.0;
+
+    public static TunableNumber BALL_CAM_ADJUST_X =
+            new TunableNumber(
+                    "ball_cam_adjust_x",
+                    0.0);
+
+    public static TunableNumber BALL_CAM_ADJUST_Y =
+            new TunableNumber(
+                    "ball_cam_adjust_y",
+                    0.0);
+
+    public static TunableNumber BALL_CAM_ADJUST_Z =
+            new TunableNumber(
+                    "ball_cam_adjust_z",
+                    0.0);
+
+
+    public static TunableNumber BALL_CAM_ADJUST_ROLL =
+            new TunableNumber(
+                    "ball_cam_adjust_roll",
+                    0.0);
+
+    public static TunableNumber BALL_CAM_ADJUST_PITCH =
+            new TunableNumber(
+                    "ball_cam_adjust_pitch",
+                    0.0);
+
+    public static TunableNumber BALL_CAM_ADJUST_YAW =
+            new TunableNumber(
+                    "ball_cam_adjust_yaw",
+                    0.0);
+
+
+
 }
