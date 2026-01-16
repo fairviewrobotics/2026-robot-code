@@ -31,11 +31,6 @@ public class RobotState {
     }
 
     private SwerveDrivePoseEstimator poseEstimator;
-    private final TimeInterpolatableBuffer<Pose2d> poseBuffer =
-            TimeInterpolatableBuffer.createBuffer(Constants.BUFFER_SIZE_SECONDS);
-
-    private final TimeInterpolatableBuffer<Rotation2d> turretAngleBuffer =
-            TimeInterpolatableBuffer.createBuffer(Constants.BUFFER_SIZE_SECONDS);
 
     public RobotState() {
 
@@ -56,9 +51,7 @@ public class RobotState {
     }
 
     public void addOdometryMeasurement(OdometryMeasurement odometryMeasurement) {
-        Pose2d odometryPose = poseEstimator.update(odometryMeasurement.gyroAngle(), odometryMeasurement.modulePositions());
-        poseEstimator.updateWithTime(odometryMeasurement.timestamp(), odometryMeasurement.gyroAngle(), odometryMeasurement.modulePositions());
-        poseBuffer.addSample(odometryMeasurement.timestamp(), odometryPose);
+        poseEstimator.update(odometryMeasurement.gyroAngle(), odometryMeasurement.modulePositions());
     }
 
     public Pose2d getPose() {
