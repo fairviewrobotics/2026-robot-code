@@ -1,15 +1,13 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
-import frc.robot.subsystems.SwerveLocalizer;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.SwerveSubsystem;
 
 public class RotateToAngle extends Command {
@@ -25,7 +23,7 @@ public class RotateToAngle extends Command {
                     0.02);
 
     private SwerveSubsystem swerveSubsystem;
-    private SwerveLocalizer swerveLocalizer;
+    private Vision vision;
     private Rotation2d currentAngle;
     private double thetaErrorAbs;
     private Rotation2d targetAngle;

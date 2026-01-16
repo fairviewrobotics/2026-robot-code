@@ -4,13 +4,10 @@
 
 package frc.robot.subsystems;
 
-import static edu.wpi.first.math.MathUtil.angleModulus;
 import static edu.wpi.first.units.Units.Meter;
 import static frc.robot.Constants.TARGET_POSE_ROTATION;
 
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -18,42 +15,30 @@ import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
-import frc.robot.subsystems.Vision.Cameras;
+
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import frc.robot.RobotState;
 import frc.robot.utils.Camera;
 import frc.robot.utils.NetworkTablesUtils;
+import frc.robot.utils.OdometryMeasurement;
 import frc.robot.utils.TunableNumber;
 import org.photonvision.PhotonCamera;
-import org.photonvision.targeting.PhotonPipelineResult;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.SwerveDriveTest;
 import swervelib.math.SwerveMath;
-import swervelib.motors.SwerveMotor;
 import swervelib.parser.*;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
@@ -61,16 +46,15 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 public class SwerveSubsystem extends SubsystemBase
 {
   private final NetworkTablesUtils NTDebug = NetworkTablesUtils.getTable("debug");
-  private final SwerveLocalizer swerveLocalizer = new SwerveLocalizer(
-          new PhotonCamera[] {new PhotonCamera(NetworkTableInstance.getDefault(), "shooter_cam")}
-  );
+
   //TODO: add swerve constants
   private final ProfiledPIDController decelerationPID = new ProfiledPIDController(Constants.DrivebaseConstants.DECELERATION_P.get(), 0, Constants.DrivebaseConstants.DECELERATION_P.get(), Constants.DrivebaseConstants.TRANSLATION_ALIGN_CONSTRAINTS);
   private final ProfiledPIDController autoRotationPID = new ProfiledPIDController(Constants.DrivebaseConstants.AUTO_ROTATION_P.get(), 0, Constants.DrivebaseConstants.AUTO_ROTATION_D.get(), Constants.DrivebaseConstants.ROTATION_ALIGN_CONSTRAINTS);
 
   private final SlewRateLimiter magLimiter = new SlewRateLimiter(0);
   private final SlewRateLimiter rotLimiter = new SlewRateLimiter(20);
-  Camera cam1 = new Camera(true, "cam1", new Transform3d(0, 0, 0, new Rotation3d()));
+
+  private final RobotState robotState = RobotState.getInstance();
 
   /**
    * Swerve drive object.
@@ -83,7 +67,6 @@ public class SwerveSubsystem extends SubsystemBase
   /**
    * PhotonVision class to keep an accurate odometry.
    */
-  private       Vision      vision;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -121,7 +104,6 @@ public class SwerveSubsystem extends SubsystemBase
     // swerveDrive.pushOffsetsToEncoders(); // Set the absolute encoder to be used over the internal encoder and push the offsets onto it. Throws warning if not possible
     if (visionDriveTest)
     {
-      setupPhotonVision();
       // Stop the odometry thread if we are using vision that way we can synchronize updates better.
       swerveDrive.stopOdometryThread();
     }
@@ -146,31 +128,20 @@ public class SwerveSubsystem extends SubsystemBase
                                               swerveDrive.setCosineCompensator(false);
   }
 
-  /**
-   * Setup the photon vision class.
-   */
-  public void setupPhotonVision()
-  {
-    vision = new Vision(swerveDrive::getPose, swerveDrive.field);
-  }
-
-  public Pose2d getLocalizerPose() {
-      return swerveLocalizer.getPose();
-  }
 
   @Override
   public void periodic()
   {
 
-        swerveLocalizer.addOdometry(swerveDrive.getGyro().getRawRotation3d().toRotation2d(), swerveDrive.getModulePositions());
+        robotState.addOdometryMeasurement(new OdometryMeasurement(swerveDrive.getGyro().getRawRotation3d().toRotation2d(), swerveDrive.getModulePositions()));
 
         // swerveDrive.updateOdometry();
 
         // Publish to AdvantageScope (X, Y, Rotation in RADIANS)
         poseEntry.set(new Pose2d(
-            swerveLocalizer.getPose().getX(),
-            swerveLocalizer.getPose().getY(),
-            swerveLocalizer.getPose().getRotation()
+            robotState.getPose().getX(),
+            robotState.getPose().getY(),
+            robotState.getPose().getRotation()
             )
         );
 
@@ -187,9 +158,6 @@ public class SwerveSubsystem extends SubsystemBase
           Constants.TARGET_POSE_Y,
           TARGET_POSE_ROTATION
         );
-
-
-        NTDebug.setEntry("Distance", cam1.getDistance());
 
     // updateTuningValues();
 

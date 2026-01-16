@@ -48,6 +48,7 @@ public class RobotContainer
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
           "swerve"));
   BallDetection ballDetection = new BallDetection();
+  RobotState robotState = RobotState.getInstance();
   ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   NetworkTablesUtils NTAuto = NetworkTablesUtils.getTable("Autonomous");
@@ -154,7 +155,7 @@ public class RobotContainer
     secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShootingConstants.TOP_SHOOTER_RPM.get(), ShootingConstants.BOTTOM_SHOOTER_RPM.get()));
     secondary_controller.a().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, IntakeConstants.INTAKING_VOLTAGE));
 
-    primary_controller.L1().whileTrue(new DriveToPoint(drivebase, drivebase.getLocalizerPose(), ballDetection.getBallPose(), 0.25));
+    primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
 
     primary_controller.R1().whileTrue(driveFieldOrientedYAxisLock);
 
@@ -212,8 +213,8 @@ public class RobotContainer
               ? FieldConstants.RED_HUB_CENTER_POINT
               : FieldConstants.BLUE_HUB_CENTER_POINT;
 
-      Rotation2d targetAngle = drivebase.getLocalizerPose().minus(targetPose).getRotation();
-      double distance = drivebase.getLocalizerPose().getTranslation().getDistance(targetPose.getTranslation());
+      Rotation2d targetAngle = robotState.getPose().minus(targetPose).getRotation();
+      double distance = robotState.getPose().getTranslation().getDistance(targetPose.getTranslation());
 
       // distance : hood angle map 8" increments
       double hoodAngle;

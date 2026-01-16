@@ -27,6 +27,7 @@ public final class Constants
   public static final double LOOP_TIME  = 0.13; //s, 20ms + 110ms sprk max velocity lag
   public static final double MAX_SPEED  = Units.feetToMeters(14.5);
   public static final double MAX_ANGULAR_SPEED = 0.5;
+  public static final double BUFFER_SIZE_SECONDS = 2.0;
 
   public static TunableNumber TARGET_POSE_X = new TunableNumber("target_pose_x", 6.0);
   public static TunableNumber TARGET_POSE_Y = new TunableNumber("target_pose_y", 7.0);

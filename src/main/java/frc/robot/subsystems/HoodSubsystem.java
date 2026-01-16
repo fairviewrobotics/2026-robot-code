@@ -22,7 +22,7 @@ import static frc.robot.Constants.TARGET_POSE_ROTATION;
 public class HoodSubsystem extends SubsystemBase {
 
     private final SparkFlex hoodMotor = new SparkFlex(ShootingConstants.TOP_SHOOTER_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
-    NetworkTablesUtils hoodNT = NetworkTablesUtils.getTable("Hood");
+    private NetworkTablesUtils hoodNT = NetworkTablesUtils.getTable("Hood");
 
     private final ProfiledPIDController hoodPID = new ProfiledPIDController(
             ShootingConstants.HOOD_P.get(),
