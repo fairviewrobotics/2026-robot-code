@@ -20,7 +20,7 @@ public class RobotState {
 
 
     private final Vision vision = new Vision(
-            new PhotonCamera[] {new PhotonCamera(NetworkTableInstance.getDefault(), "shooter_cam")}
+            new PhotonCamera[] {new PhotonCamera(NetworkTableInstance.getDefault(), "rev tag cam")}
     );
 
     public static RobotState getInstance() {

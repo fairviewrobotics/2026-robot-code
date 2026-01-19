@@ -47,7 +47,7 @@ public class RobotContainer
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
           "swerve"));
-  BallDetection ballDetection = new BallDetection();
+  // BallDetection ballDetection = new BallDetection();
   RobotState robotState = RobotState.getInstance();
   ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
@@ -155,7 +155,7 @@ public class RobotContainer
     secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShootingConstants.TOP_SHOOTER_RPM.get(), ShootingConstants.BOTTOM_SHOOTER_RPM.get()));
     secondary_controller.a().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, IntakeConstants.INTAKING_VOLTAGE));
 
-    primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
+    // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
 
     primary_controller.R1().whileTrue(driveFieldOrientedYAxisLock);
 
