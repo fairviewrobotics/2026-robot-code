@@ -1,22 +1,20 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.*;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotState;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.utils.MathUtils;
+import swervelib.SwerveDrive;
 
 public class BallDetection extends SubsystemBase {
 
     // better name for this?
     private Pose3d ball;
-    private SwerveSubsystem swerveSubsystem;
-    private final RobotState robotState = RobotState.getInstance();
+    private SwerveDrive swerveDrive;
 
     private final NetworkTable limelight = NetworkTableInstance.getDefault().getTable("limelight");
 
@@ -53,7 +51,7 @@ public class BallDetection extends SubsystemBase {
             double t = (FieldConstants.BALL_HEIGHT_METERS - cameraPose.getZ()) / ballPos.getZ();
             Translation3d ballPoseCamera = MathUtils.getTranslation3dFromPose3d(cameraPose).plus(ballPos.times(t));
             Pose3d ballPoseRobot = new Pose3d(ballPoseCamera, Rotation3d.kZero).transformBy(MathUtils.getTransform3dFromPose3d(cameraPose).inverse());
-            return ball = new Pose3d(robotState.getPose()).transformBy(new Transform3d(ballPoseRobot.getTranslation(), Rotation3d.kZero));
+            return ball = new Pose3d(swerveDrive.getPose()).transformBy(new Transform3d(ballPoseRobot.getTranslation(), Rotation3d.kZero));
         }
 
     }

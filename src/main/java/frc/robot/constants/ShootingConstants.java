@@ -4,24 +4,22 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.robot.utils.TunableNumber;
 
 public class ShootingConstants {
-    //TODO: Update constants and tune values
     public static final int TOP_SHOOTER_MOTOR_ID = 17;
     public static final int BOTTOM_SHOOTER_MOTOR_ID = 16;
     public static final int INDEXER_MOTOR_ID = 22;
-    public static final int HOOD_MOTOR_ID = 0;
+    public static final int HOOD_ACTUATOR_ID = 0;
     public static final int TURRET_MOTOR_ID = 0;
 
-    public static final double SHOOTER_KS = 0.09;
-    public static final double SHOOTER_KV = 0.0165;
-    public static final double SHOOTER_KA = 0;
+    public static final TunableNumber SHOOTER_KS = new TunableNumber("shooter_ks", 0.09);
+    public static final TunableNumber SHOOTER_KV = new TunableNumber("shooter_kv", 0.0165);
+    public static final double SHOOTER_KA = 0.0;
 
-    public static final double SHOOTER_P = 0;
-    public static final double SHOOTER_I = 0;
-    public static final double SHOOTER_D = 0;
+    public static final TunableNumber SHOOTER_P = new TunableNumber("shooter_p", 0.0);
+    public static final double SHOOTER_I = 0.0;
+    public static final TunableNumber SHOOTER_D = new TunableNumber("shooter_d", 0.0);
 
-    public static TunableNumber HOOD_P = new TunableNumber("hood_p", 0.0);
-    public static TunableNumber HOOD_D = new TunableNumber("hood_d", 0.0);
-    public static final TrapezoidProfile.Constraints HOOD_CONSTRAINTS = new TrapezoidProfile.Constraints(Math.PI / 2  ,Math.PI);
+    public static final double HOOD_MAX_ANGLE_DEGREES = 90.0;
+    public static final double HOOD_MIN_ANGLE_DEGREES = 0.0;
 
     public static TunableNumber TURRET_P = new TunableNumber("turret_p", 0.0);
     public static TunableNumber TURRET_D = new TunableNumber("turret_d", 0.0);
@@ -31,9 +29,9 @@ public class ShootingConstants {
     public static TunableNumber TURRET_KV = new TunableNumber("turret_kv", 0.0);
     public static double TURRET_KA = 0.0;
 
-    public static double HOOD_MOTOR_GEAR_RATIO = 0.0;
+    public static final double HOOD_MOTOR_GEAR_RATIO = 0.0;
 
-    public static double TURRET_MOTOR_GEAR_RATIO = 0.0;
+    public static final double TURRET_MOTOR_GEAR_RATIO = 0.0;
 
     // how many ticks per motor rotation
     public static double HOOD_ENCODER_RATIO = 0.0;

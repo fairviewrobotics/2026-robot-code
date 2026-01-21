@@ -47,10 +47,10 @@ public class RobotContainer
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
           "swerve"));
+  private final Vision vision;
   // BallDetection ballDetection = new BallDetection();
-  RobotState robotState = RobotState.getInstance();
-  ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
-  IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  // ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+  // IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   NetworkTablesUtils NTAuto = NetworkTablesUtils.getTable("Autonomous");
 
   public static SuperSecretMissileTech superSecretMissileTech;
@@ -122,6 +122,8 @@ public class RobotContainer
    */
   public RobotContainer()
   {
+    Vision.init(drivebase.getSwerveDrive());
+    this.vision = Vision.getInstance();
     // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
@@ -151,9 +153,9 @@ public class RobotContainer
             () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
 
 
-    secondary_controller.x().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, -IntakeConstants.INTAKING_VOLTAGE));
-    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShootingConstants.TOP_SHOOTER_RPM.get(), ShootingConstants.BOTTOM_SHOOTER_RPM.get()));
-    secondary_controller.a().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, IntakeConstants.INTAKING_VOLTAGE));
+//    secondary_controller.x().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, -IntakeConstants.INTAKING_VOLTAGE));
+//    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShootingConstants.TOP_SHOOTER_RPM.get(), ShootingConstants.BOTTOM_SHOOTER_RPM.get()));
+//    secondary_controller.a().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, IntakeConstants.INTAKING_VOLTAGE));
 
     // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
 
@@ -202,6 +204,7 @@ public class RobotContainer
   }
 
   public Command getAimAtHubCommand() {
+      // RobotState robotState = RobotState.getInstance();
       Optional<DriverStation.Alliance> allianceOpt = DriverStation.getAlliance();
 
       if (allianceOpt.isEmpty()) {
@@ -213,8 +216,8 @@ public class RobotContainer
               ? FieldConstants.RED_HUB_CENTER_POINT
               : FieldConstants.BLUE_HUB_CENTER_POINT;
 
-      Rotation2d targetAngle = robotState.getPose().minus(targetPose).getRotation();
-      double distance = robotState.getPose().getTranslation().getDistance(targetPose.getTranslation());
+      // Rotation2d targetAngle = robotState.getPose().minus(targetPose).getRotation();
+      // double distance = robotState.getPose().getTranslation().getDistance(targetPose.getTranslation());
 
       // distance : hood angle map 8" increments
       double hoodAngle;

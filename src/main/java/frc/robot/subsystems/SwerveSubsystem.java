@@ -8,8 +8,10 @@ import static edu.wpi.first.units.Units.Meter;
 import static frc.robot.Constants.TARGET_POSE_ROTATION;
 
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -29,12 +31,9 @@ import java.util.Arrays;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import frc.robot.RobotState;
-import frc.robot.utils.Camera;
+import frc.robot.constants.VisionConstants;
 import frc.robot.utils.NetworkTablesUtils;
-import frc.robot.utils.OdometryMeasurement;
 import frc.robot.utils.TunableNumber;
-import org.photonvision.PhotonCamera;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.SwerveDriveTest;
@@ -51,10 +50,8 @@ public class SwerveSubsystem extends SubsystemBase
   private final ProfiledPIDController decelerationPID = new ProfiledPIDController(Constants.DrivebaseConstants.DECELERATION_P.get(), 0, Constants.DrivebaseConstants.DECELERATION_P.get(), Constants.DrivebaseConstants.TRANSLATION_ALIGN_CONSTRAINTS);
   private final ProfiledPIDController autoRotationPID = new ProfiledPIDController(Constants.DrivebaseConstants.AUTO_ROTATION_P.get(), 0, Constants.DrivebaseConstants.AUTO_ROTATION_D.get(), Constants.DrivebaseConstants.ROTATION_ALIGN_CONSTRAINTS);
 
-  private final SlewRateLimiter magLimiter = new SlewRateLimiter(0);
-  private final SlewRateLimiter rotLimiter = new SlewRateLimiter(20);
-
-  private final RobotState robotState = RobotState.getInstance();
+  private final SlewRateLimiter xyLimiter = new SlewRateLimiter(0);
+  private final SlewRateLimiter thetaLimiter = new SlewRateLimiter(20);
 
   /**
    * Swerve drive object.
@@ -93,7 +90,7 @@ public class SwerveSubsystem extends SubsystemBase
     {
       throw new RuntimeException(e);
     }
-    swerveDrive.swerveController.addSlewRateLimiters(magLimiter, magLimiter, rotLimiter);
+    swerveDrive.swerveController.addSlewRateLimiters(xyLimiter, xyLimiter, thetaLimiter);
     swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via angle.
     swerveDrive.setCosineCompensator(false);//!SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for simulations since it causes discrepancies not seen in real life.
     swerveDrive.setAngularVelocityCompensation(true,
@@ -110,6 +107,24 @@ public class SwerveSubsystem extends SubsystemBase
     // RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::zeroGyroWithAlliance));
 
     // autoRotationPID.enableContinuousInput(-Math.PI, Math.PI);
+
+    SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
+            swerveDrive.kinematics,
+            swerveDrive.getYaw(),
+            swerveDrive.getModulePositions(),
+            new Pose2d(),
+            VecBuilder.fill(
+                    VisionConstants.ODOMETRY_XY_STD_DEV.get(),
+                    VisionConstants.ODOMETRY_XY_STD_DEV.get(),
+                    VisionConstants.ODOMETRY_THETA_STD_DEV.get()
+            ),
+            VecBuilder.fill(
+                    VisionConstants.BASE_VISION_XY_STD_DEV,
+                    VisionConstants.BASE_VISION_XY_STD_DEV,
+                    VisionConstants.BASE_VISION_THETA_STD_DEV
+            )
+    );
+
   }
 
   /**
@@ -133,15 +148,15 @@ public class SwerveSubsystem extends SubsystemBase
   public void periodic()
   {
 
-        robotState.addOdometryMeasurement(new OdometryMeasurement(swerveDrive.getGyro().getRawRotation3d().toRotation2d(), swerveDrive.getModulePositions())); // TODO: Fix later; timestamp value is a placeholder and may break things
+        // robotState.addOdometryMeasurement(new OdometryMeasurement(swerveDrive.getGyro().getRawRotation3d().toRotation2d(), swerveDrive.getModulePositions()));
 
         // swerveDrive.updateOdometry();
 
         // Publish to AdvantageScope (X, Y, Rotation in RADIANS)
         poseEntry.set(new Pose2d(
-            robotState.getPose().getX(),
-            robotState.getPose().getY(),
-            robotState.getPose().getRotation()
+            swerveDrive.getPose().getX(),
+            swerveDrive.getPose().getY(),
+            swerveDrive.getPose().getRotation()
             )
         );
 

@@ -7,11 +7,17 @@ import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.constants.ShootingConstants;
 import frc.robot.utils.MathUtils;
 import frc.robot.utils.NetworkTablesUtils;
+import frc.robot.utils.TunableNumber;
+
+import static frc.robot.Constants.TARGET_POSE_ROTATION;
 
 public class ShooterSubsystem extends SubsystemBase {
 
@@ -36,13 +42,13 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     private final SimpleMotorFeedforward shooterFF = new SimpleMotorFeedforward(
-        ShootingConstants.SHOOTER_KS,
-        ShootingConstants.SHOOTER_KV,
+        ShootingConstants.SHOOTER_KS.get(),
+        ShootingConstants.SHOOTER_KV.get(),
         ShootingConstants.SHOOTER_KA
     );
 
     private final PIDController shooterPID = new PIDController(
-            ShootingConstants.SHOOTER_P, ShootingConstants.SHOOTER_I, ShootingConstants.SHOOTER_D
+            ShootingConstants.SHOOTER_P.get(), ShootingConstants.SHOOTER_I, ShootingConstants.SHOOTER_D.get()
     );
 
     double setpoint;
@@ -75,7 +81,6 @@ public class ShooterSubsystem extends SubsystemBase {
                 shooterFF.calculate(MathUtils.RPMtoRadians(rpm))
         );
 
-        // indexerMotor.set(rpm/2);
     }
 
     public void stopMotors() {
@@ -94,6 +99,27 @@ public class ShooterSubsystem extends SubsystemBase {
 
 
     public void periodic() {
+
+        TunableNumber.ifChanged(
+                hashCode(),
+                () -> {
+                    shooterFF.setKs(ShootingConstants.SHOOTER_KS.get());
+                    shooterFF.setKv(ShootingConstants.SHOOTER_KV.get());
+                },
+                ShootingConstants.SHOOTER_KS,
+                ShootingConstants.SHOOTER_KV,
+                TARGET_POSE_ROTATION
+        );
+
+        TunableNumber.ifChanged(
+                hashCode(),
+                () -> {
+                    shooterPID.setP(ShootingConstants.SHOOTER_P.get());
+                    shooterPID.setD(ShootingConstants.SHOOTER_D.get());
+                },
+                ShootingConstants.SHOOTER_P,
+                ShootingConstants.SHOOTER_D
+        );
 
         shooterNT.setEntry("shooter error", shooterPID.getError());
         shooterNT.setEntry("shooter setpoint", setpoint);

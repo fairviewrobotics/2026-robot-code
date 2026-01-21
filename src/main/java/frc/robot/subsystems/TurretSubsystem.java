@@ -6,7 +6,6 @@ import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkFlexConfig;
-import dev.doglog.internal.tunable.Tunable;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -19,7 +18,11 @@ import frc.robot.utils.NetworkTablesUtils;
 import frc.robot.utils.TunableNumber;
 
 public class TurretSubsystem extends SubsystemBase {
-    private ProfiledPIDController turretPID = new ProfiledPIDController(ShootingConstants.TURRET_P.get(), 0, ShootingConstants.TURRET_D.get(), ShootingConstants.TURRET_CONSTRAINTS);
+    private ProfiledPIDController turretPID = new ProfiledPIDController(
+            ShootingConstants.TURRET_P.get(),
+            0,
+            ShootingConstants.TURRET_D.get(),
+            ShootingConstants.TURRET_CONSTRAINTS);
     private SparkFlex turretMotor = new SparkFlex(ShootingConstants.TURRET_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
     private NetworkTablesUtils turretNT = NetworkTablesUtils.getTable("Turret");
     private final SimpleMotorFeedforward turretFF = new SimpleMotorFeedforward(
@@ -39,13 +42,10 @@ public class TurretSubsystem extends SubsystemBase {
         double currentAngle = MathUtils.turretEncoderToRadians(
                 turretMotor.getAbsoluteEncoder().getPosition());
 
-        // Run profiled PID
         double pidOutput = turretPID.calculate(currentAngle, angle);
 
-        // Get motion profile setpoint
         var setpoint = turretPID.getSetpoint();
 
-        // Feedforward uses desired velocity
         double ffOutput = turretFF.calculate(setpoint.velocity);
 
         turretMotor.setVoltage(pidOutput + ffOutput);
@@ -54,6 +54,7 @@ public class TurretSubsystem extends SubsystemBase {
     public static double getClosestTurretAngle(double targetAngle, Rotation2d angle, double forwardLimit, double reverseLimit) {
         double currentTotalRadians = (angle.getRotations() * 2 * Math.PI);
         double closestOffset = Units.degreesToRadians(targetAngle) - angle.getRadians();
+
         if (closestOffset > Math.PI) {
             closestOffset -= 2 * Math.PI;
         } else if (closestOffset < -Math.PI) {
@@ -85,6 +86,16 @@ public class TurretSubsystem extends SubsystemBase {
                 () -> {
                     turretPID.setP(ShootingConstants.TURRET_P.get());
                     turretPID.setD(ShootingConstants.TURRET_D.get());
+                },
+                ShootingConstants.TURRET_P,
+                ShootingConstants.TURRET_D
+        );
+
+        TunableNumber.ifChanged(
+                hashCode(),
+                () -> {
+                    turretFF.setKs(ShootingConstants.TURRET_KS.get());
+                    turretFF.setKv(ShootingConstants.TURRET_KV.get());
                 },
                 ShootingConstants.TURRET_P,
                 ShootingConstants.TURRET_D

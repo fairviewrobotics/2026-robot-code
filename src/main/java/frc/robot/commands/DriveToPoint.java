@@ -8,7 +8,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
-import frc.robot.RobotState;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.utils.MathUtils;
 import org.littletonrobotics.junction.Logger;
@@ -27,7 +26,6 @@ public class DriveToPoint extends Command {
                             Constants.MAX_ANGULAR_SPEED/2),
                     0.02);
     private SwerveSubsystem swerveSubsystem;
-    private RobotState robotState = RobotState.getInstance();
     private Pose2d currentPose;
     private double driveErrorAbs;
     private double thetaErrorAbs;
@@ -60,7 +58,7 @@ public class DriveToPoint extends Command {
     public void initialize() {
         // arm center is the same as the robot center when stowed, so can use field to
         // robot
-        Pose2d currentPose = robotState.getPose();
+        Pose2d currentPose = swerveSubsystem.getPose();
 
         driveController.reset(
                 currentPose.getTranslation().getDistance(targetLocation.getTranslation()),

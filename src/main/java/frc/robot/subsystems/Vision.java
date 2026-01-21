@@ -3,23 +3,19 @@ package frc.robot.subsystems;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotState;
-import frc.robot.constants.DriveConstants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.utils.MathUtils;
-import frc.robot.utils.OdometryMeasurement;
 import frc.robot.utils.VisionMeasurement;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
+import swervelib.SwerveDrive;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +24,10 @@ public class Vision extends SubsystemBase {
 
     // This should be 2026 at some point
     // Probably remove IDs 6, 7, 13, 14, 1, 12, 17, 28, 22, 23, 29, 30
+    private static Vision instance;
 
     PhotonCamera[] cameras;
-    RobotState robotState;
+    SwerveDrive swerveDrive;
     AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 
     private final Pose3d[] baseCameraPoses =
@@ -64,14 +61,36 @@ public class Vision extends SubsystemBase {
         };
     }
 
-    public Vision(PhotonCamera[] cameras) {
-        this.cameras = cameras;
+    private Vision(SwerveDrive swerveDrive) {
+        this.swerveDrive = swerveDrive;
+        this.cameras = new PhotonCamera[] {
+                new PhotonCamera("rev tag cam")
+        };
     }
+
+    public static void init(SwerveDrive swerveDrive) {
+        if (instance == null) {
+            instance = new Vision(swerveDrive);
+        }
+    }
+
+    public static Vision getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("Vision must be initialized with init() first");
+        }
+        return instance;
+    }
+
 
     @Override
     public void periodic() {
+        // updatePose()
 
-        Pose3d[] cameraPoses = getAdjustedCameraPoses();
+
+    }
+
+    public void updatePose() {
+                Pose3d[] cameraPoses = getAdjustedCameraPoses();
 
         for (int cameraIndex = 0; cameraIndex < cameraPoses.length; cameraIndex++) {
 
@@ -157,10 +176,9 @@ public class Vision extends SubsystemBase {
             double xyStdDev = VisionConstants.BASE_VISION_XY_STD_DEV * Math.pow(avgDistance, 2.0) / tagPoses.size();
             double thetaStdDev = VisionConstants.BASE_VISION_THETA_STD_DEV * Math.pow(avgDistance, 2.0) / tagPoses.size();
 
-            robotState.addVisionMeasurement(new VisionMeasurement(robotPoseEstimation, timestamp, VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev)));
+            swerveDrive.addVisionMeasurement(robotPoseEstimation, timestamp, VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
 
         }
-
     }
 
 
