@@ -16,6 +16,7 @@ public class MathUtils {
 
     public static double turretEncoderToRadians(double encoderReading) {
         return encoderReading * (2*Math.PI / ShootingConstants.TURRET_ENCODER_RATIO) * (1/ ShootingConstants.TURRET_MOTOR_GEAR_RATIO);
+        // return encoderReading * (ShootingConstants.TURRET_PINION_CIRCUMFERENCE) / (ShootingConstants.TURRET_SPUR_GEAR_RADIUS)
     }
 
     public static final Pose2d zeroPose = new Pose2d(0, 0, new Rotation2d(0));

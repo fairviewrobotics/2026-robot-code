@@ -9,6 +9,9 @@ public class ShootingConstants {
     public static final int INDEXER_MOTOR_ID = 22;
     public static final int HOOD_ACTUATOR_ID = 0;
     public static final int TURRET_MOTOR_ID = 0;
+    public static final double TURRET_GEAR_RATIO = 1/38;
+    public static final double TURRET_PINION_CIRCUMFERENCE = 0.0958;
+    public static final double  TURRET_SPUR_GEAR_RADIUS = 0.1295;
 
     public static final TunableNumber SHOOTER_KS = new TunableNumber("shooter_ks", 0.09);
     public static final TunableNumber SHOOTER_KV = new TunableNumber("shooter_kv", 0.0165);
