@@ -4,11 +4,13 @@ import frc.robot.utils.TunableNumber;
 
 public class VisionConstants {
 
-    public static final double BASE_VISION_XY_STD_DEV = 0.02;
-    public static final double BASE_VISION_THETA_STD_DEV = 0.06;
+    public static TunableNumber BASE_VISION_XY_STD_DEV = new TunableNumber("base-vision-xy-std-dev", 0.02);
+    public static TunableNumber BASE_VISION_THETA_STD_DEV = new TunableNumber("base-vision-theta-std-dev", 0.06);
 
     public static TunableNumber ODOMETRY_XY_STD_DEV = new TunableNumber("odometry-xy-std-dev", 0.05);
     public static TunableNumber ODOMETRY_THETA_STD_DEV = new TunableNumber("odometry-theta-std-dev", 0.05);
+
+    public static TunableNumber SINGLE_TAG_DISTRUST_COEFFICIENT = new TunableNumber("single-tag-distrust-coefficient", 2.0);
 
     // Meters
     public static final double MAX_ACCEPTABLE_TAG_RANGE = 3.0;

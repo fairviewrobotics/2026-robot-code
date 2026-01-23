@@ -108,23 +108,6 @@ public class SwerveSubsystem extends SubsystemBase
 
     // autoRotationPID.enableContinuousInput(-Math.PI, Math.PI);
 
-    SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
-            swerveDrive.kinematics,
-            swerveDrive.getYaw(),
-            swerveDrive.getModulePositions(),
-            new Pose2d(),
-            VecBuilder.fill(
-                    VisionConstants.ODOMETRY_XY_STD_DEV.get(),
-                    VisionConstants.ODOMETRY_XY_STD_DEV.get(),
-                    VisionConstants.ODOMETRY_THETA_STD_DEV.get()
-            ),
-            VecBuilder.fill(
-                    VisionConstants.BASE_VISION_XY_STD_DEV,
-                    VisionConstants.BASE_VISION_XY_STD_DEV,
-                    VisionConstants.BASE_VISION_THETA_STD_DEV
-            )
-    );
-
   }
 
   /**
@@ -148,33 +131,28 @@ public class SwerveSubsystem extends SubsystemBase
   public void periodic()
   {
 
-        // robotState.addOdometryMeasurement(new OdometryMeasurement(swerveDrive.getGyro().getRawRotation3d().toRotation2d(), swerveDrive.getModulePositions()));
-
-        // swerveDrive.updateOdometry();
-
+        swerveDrive.updateOdometry();
         // Publish to AdvantageScope (X, Y, Rotation in RADIANS)
         poseEntry.set(new Pose2d(
-            swerveDrive.getPose().getX(),
-            swerveDrive.getPose().getY(),
-            swerveDrive.getPose().getRotation()
+            swerveDrive.swerveDrivePoseEstimator.getEstimatedPosition().getX(),
+            swerveDrive.swerveDrivePoseEstimator.getEstimatedPosition().getY(),
+            swerveDrive.swerveDrivePoseEstimator.getEstimatedPosition().getRotation()
             )
         );
 
-        TunableNumber.ifChanged(
-          hashCode(),
-          () -> {
-            targetPoseEntry.set(new Pose2d(
-              Constants.TARGET_POSE_X.get(),
-              Constants.TARGET_POSE_Y.get(),
-              Rotation2d.fromDegrees(TARGET_POSE_ROTATION.get())
-            ));
-          },
-          Constants.TARGET_POSE_X,
-          Constants.TARGET_POSE_Y,
-          TARGET_POSE_ROTATION
-        );
-
-    // updateTuningValues();
+//        TunableNumber.ifChanged(
+//          hashCode(),
+//          () -> {
+//            targetPoseEntry.set(new Pose2d(
+//              Constants.TARGET_POSE_X.get(),
+//              Constants.TARGET_POSE_Y.get(),
+//              Rotation2d.fromDegrees(TARGET_POSE_ROTATION.get())
+//            ));
+//          },
+//          Constants.TARGET_POSE_X,
+//          Constants.TARGET_POSE_Y,
+//          TARGET_POSE_ROTATION
+//        );
 
   }
 
