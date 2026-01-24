@@ -20,15 +20,15 @@ public class VisionConstants {
 
     // Inches
 
-    public static final double SHOOTER_CAM_POSE_X = 0.0;
-    public static final double SHOOTER_CAM_POSE_Y = 0.0;
-    public static final double SHOOTER_CAM_POSE_Z = 0.0;
+    public static final double SHOOTER_CAM_POSE_X = 14;
+    public static final double SHOOTER_CAM_POSE_Y = 7.5;
+    public static final double SHOOTER_CAM_POSE_Z = 4.5;
 
 
     // Degrees
 
     public static final double SHOOTER_CAM_POSE_ROLL = 0.0;
-    public static final double SHOOTER_CAM_POSE_PITCH = 0.0;
+    public static final double SHOOTER_CAM_POSE_PITCH = 41;
     public static final double SHOOTER_CAM_POSE_YAW = 0.0;
 
     public static TunableNumber SHOOTER_CAM_ADJUST_X =

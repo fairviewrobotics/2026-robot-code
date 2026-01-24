@@ -24,6 +24,7 @@ import frc.robot.autonomous.SuperSecretMissileTech;
 import frc.robot.commands.DriveToPoint;
 import frc.robot.commands.ShooterCommand;
 import frc.robot.commands.IntakeCommand;
+import frc.robot.commands.TurretTestCommand;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.IntakeConstants;
 import frc.robot.constants.ShootingConstants;
@@ -56,6 +57,7 @@ public class RobotContainer
   NetworkTablesUtils NTAuto = NetworkTablesUtils.getTable("Autonomous");
 
   public static SuperSecretMissileTech superSecretMissileTech;
+  private final TurretSubsystem turretSubsystem = new TurretSubsystem();
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
@@ -171,8 +173,8 @@ public class RobotContainer
     primary_controller.square().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
     primary_controller.options().whileTrue(Commands.none());
     // primary_controller.back().whileTrue(Commands.none());
-    primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-    primary_controller.R1().onTrue(Commands.none());
+    // primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
+    primary_controller.L1().whileTrue(new TurretTestCommand(drivebase, turretSubsystem, new Pose2d(new Translation2d(0, 0), new Rotation2d(0))));
 
     if (RobotBase.isSimulation())
     {

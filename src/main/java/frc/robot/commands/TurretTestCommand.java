@@ -29,7 +29,7 @@ public class TurretTestCommand extends Command {
                 minus(swerveSubsystem.getPose().getTranslation())
                 .getAngle()
                 .minus(swerveSubsystem.getPose().getRotation())
-                .getDegrees();
+                .getRadians();
 
         turretSubsystem.setTurret(targetAngle);
 
@@ -37,7 +37,7 @@ public class TurretTestCommand extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        turretSubsystem.setTurret(0);
+        turretSubsystem.setVoltage(0.0);
     }
 
 }
