@@ -92,8 +92,11 @@ public class AimAtHub extends Command {
         Pose3d relativePose3d = getRelative3d(targetPose, currentPose, robotVelocity, time, 3, vMag);
         double d = distance(relativePose2d);
         time = d/vMag;
-
-        turret.setTurret(angel(relativePose2d) + currentPose.getRotation().getRadians() * -1);
+        double targetAngle = angel(relativePose2d);
+        if(targetAngle < 0){
+            targetAngle = Math.PI*2 + targetAngle;
+        }
+        turret.setTurret(targetAngle + currentPose.getRotation().getRadians() * -1);
         double shooterAngle = shootingAngle(relativePose3d, vMag, time);
     }
 
