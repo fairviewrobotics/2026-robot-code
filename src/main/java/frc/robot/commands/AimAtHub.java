@@ -19,7 +19,7 @@ public class AimAtHub extends Command {
 
 
 
-    public AimAtHub(SwerveSubsystem swerveSubsystem, RobotState robotState, Pose2d currentPose, Pose3d targetPose, Pose2d shooterVelocity, TurretSubsystem turret) {
+    public AimAtHub(SwerveSubsystem swerveSubsystem, Pose2d currentPose, Pose3d targetPose, Pose2d shooterVelocity, TurretSubsystem turret) {
         this.swerveSubsystem = swerveSubsystem;
         this.robotState = robotState;
         this.currentPose = currentPose;
@@ -28,11 +28,11 @@ public class AimAtHub extends Command {
         this.turret = turret;
     }
 
-    public double angel(Pose2d pose) {
+    private double angel(Pose2d pose) {
         return Math.atan2(pose.getX(), pose.getY());
     }
 
-    public double distance(Pose2d pose) {
+    private double distance(Pose2d pose) {
         return Math.hypot(pose.getX(), pose.getY());
     }
 

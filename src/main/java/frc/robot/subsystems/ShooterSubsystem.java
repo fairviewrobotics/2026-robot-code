@@ -32,9 +32,12 @@ public class ShooterSubsystem extends SubsystemBase {
         SparkFlexConfig bottomShooterMotorConfig = new SparkFlexConfig();
 
         topShooterMotorConfig
-                .inverted(true);
+                .inverted(true)
+                .encoder.velocityConversionFactor(ShootingConstants.SHOOTER_VELOCITY_CONVERSION_FACTOR);
+
         bottomShooterMotorConfig
-                .inverted(true);
+                .inverted(true)
+                .encoder.velocityConversionFactor(ShootingConstants.SHOOTER_VELOCITY_CONVERSION_FACTOR);
 
         topShooterMotor.configure(topShooterMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         bottomShooterMotor.configure(bottomShooterMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
