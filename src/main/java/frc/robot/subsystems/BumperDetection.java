@@ -11,14 +11,17 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.VisionConstants;
+import org.photonvision.PhotonCamera;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
+import java.util.List;
 import java.util.Optional;
 
 public class BumperDetection extends SubsystemBase {
 
     private SwerveSubsystem swerveSubsystem;
-
-    private final NetworkTable limelight = NetworkTableInstance.getDefault().getTable("limelight");
+    PhotonCamera camera;
 
     private Pose3d getAdjustedCameraPose() {
         return new Pose3d(
@@ -34,19 +37,35 @@ public class BumperDetection extends SubsystemBase {
 
     }
 
-    public void setPipeline(int pipeline) {
-        limelight.getEntry("pipeline").setDouble(pipeline);
+    public BumperDetection(PhotonCamera camera) {
+        this.camera = camera;
     }
 
-    public boolean seeBumpers() {
+    public void setPipeline(int pipeline) {
+        camera.setPipelineIndex(pipeline);
+    }
 
-        boolean hasTarget = limelight.getEntry("tv").getDouble(0) == 1;
+    private boolean seeBumpers() {
+
         Pose3d cameraPose = getAdjustedCameraPose();
 
-        if (!hasTarget) {
+        List<PhotonPipelineResult> result = camera.getAllUnreadResults();
+        PhotonPipelineResult latestResult = result.get(result.size() - 1);
+
+        if (!latestResult.hasTargets()) {
             return false;
-        } else {
-            Optional<DriverStation.Alliance> allianceOpt = DriverStation.getAlliance();
+        }
+
+        Optional<PhotonTrackedTarget> bumpers = latestResult.getTargets().stream()
+                .filter(target -> target.getDetectedObjectClassID() == 1).findFirst();
+
+        if (bumpers.isEmpty()) {
+            return false;
+        }
+        double tx = bumpers.get().yaw;
+        double ty = bumpers.get().pitch;
+
+        Optional<DriverStation.Alliance> allianceOpt = DriverStation.getAlliance();
 
             if (allianceOpt.isEmpty()) {
                 return false;
@@ -59,11 +78,8 @@ public class BumperDetection extends SubsystemBase {
                     : 1;
 
             this.setPipeline(pipeline);
-            double ty = limelight.getEntry("ty").getDouble(0);
 
-            return ty >= VisionConstants.BUMPER_DETECTION_RETRACT_TY_DEGREES;
-
-        }
+            return ty >= VisionConstants.BUMPER_DETECTION_RETRACT_TY_DEGREES.get();
 
     }
 

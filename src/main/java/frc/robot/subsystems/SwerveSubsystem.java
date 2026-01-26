@@ -8,8 +8,10 @@ import static edu.wpi.first.units.Units.Meter;
 import static frc.robot.Constants.TARGET_POSE_ROTATION;
 
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -29,12 +31,9 @@ import java.util.Arrays;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-import frc.robot.RobotState;
-import frc.robot.utils.Camera;
+import frc.robot.constants.VisionConstants;
 import frc.robot.utils.NetworkTablesUtils;
-import frc.robot.utils.OdometryMeasurement;
 import frc.robot.utils.TunableNumber;
-import org.photonvision.PhotonCamera;
 import swervelib.SwerveController;
 import swervelib.SwerveDrive;
 import swervelib.SwerveDriveTest;
@@ -51,10 +50,8 @@ public class SwerveSubsystem extends SubsystemBase
   private final ProfiledPIDController decelerationPID = new ProfiledPIDController(Constants.DrivebaseConstants.DECELERATION_P.get(), 0, Constants.DrivebaseConstants.DECELERATION_P.get(), Constants.DrivebaseConstants.TRANSLATION_ALIGN_CONSTRAINTS);
   private final ProfiledPIDController autoRotationPID = new ProfiledPIDController(Constants.DrivebaseConstants.AUTO_ROTATION_P.get(), 0, Constants.DrivebaseConstants.AUTO_ROTATION_D.get(), Constants.DrivebaseConstants.ROTATION_ALIGN_CONSTRAINTS);
 
-  private final SlewRateLimiter magLimiter = new SlewRateLimiter(0);
-  private final SlewRateLimiter rotLimiter = new SlewRateLimiter(20);
-
-  private final RobotState robotState = RobotState.getInstance();
+  private final SlewRateLimiter xyLimiter = new SlewRateLimiter(0);
+  private final SlewRateLimiter thetaLimiter = new SlewRateLimiter(20);
 
   /**
    * Swerve drive object.
@@ -77,11 +74,11 @@ public class SwerveSubsystem extends SubsystemBase
   {
     boolean blueAlliance = false;
     Pose2d startingPose = blueAlliance ? new Pose2d(new Translation2d(Meter.of(1),
-                                                                      Meter.of(4)),
-                                                    Rotation2d.fromDegrees(0))
-                                       : new Pose2d(new Translation2d(Meter.of(16),
-                                                                      Meter.of(4)),
-                                                    Rotation2d.fromDegrees(180));
+            Meter.of(4)),
+            Rotation2d.fromDegrees(0))
+            : new Pose2d(new Translation2d(Meter.of(16),
+            Meter.of(4)),
+            Rotation2d.fromDegrees(180));
     // Configure the Telemetry before creating the SwerveDrive to avoid unnecessary objects being created.
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
     try
@@ -93,14 +90,14 @@ public class SwerveSubsystem extends SubsystemBase
     {
       throw new RuntimeException(e);
     }
-    swerveDrive.swerveController.addSlewRateLimiters(magLimiter, magLimiter, rotLimiter);
+    swerveDrive.swerveController.addSlewRateLimiters(xyLimiter, xyLimiter, thetaLimiter);
     swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via angle.
     swerveDrive.setCosineCompensator(false);//!SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for simulations since it causes discrepancies not seen in real life.
     swerveDrive.setAngularVelocityCompensation(true,
-                                               true,
-                                               0.1); //Correct for skew that gets worse as angular velocity increases. Start with a coefficient of 0.1.
+            true,
+            0.1); //Correct for skew that gets worse as angular velocity increases. Start with a coefficient of 0.1.
     swerveDrive.setModuleEncoderAutoSynchronize(false,
-                                                1); // Enable if you want to resynchronize your absolute encoders and motor encoders periodically when they are not moving.
+            1); // Enable if you want to resynchronize your absolute encoders and motor encoders periodically when they are not moving.
     // swerveDrive.pushOffsetsToEncoders(); // Set the absolute encoder to be used over the internal encoder and push the offsets onto it. Throws warning if not possible
     if (visionDriveTest)
     {
@@ -110,6 +107,7 @@ public class SwerveSubsystem extends SubsystemBase
     // RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::zeroGyroWithAlliance));
 
     // autoRotationPID.enableContinuousInput(-Math.PI, Math.PI);
+
   }
 
   /**
@@ -120,12 +118,12 @@ public class SwerveSubsystem extends SubsystemBase
    */
   public SwerveSubsystem(SwerveDriveConfiguration driveCfg, SwerveControllerConfiguration controllerCfg)
   {swerveDrive = new SwerveDrive(driveCfg,
-                                  controllerCfg,
-                                  Constants.MAX_SPEED,
-                                  new Pose2d(new Translation2d(Meter.of(2), Meter.of(0)),
-                                             Rotation2d.fromDegrees(0)));
-                                              swerveDrive.setHeadingCorrection(false);
-                                              swerveDrive.setCosineCompensator(false);
+          controllerCfg,
+          Constants.MAX_SPEED,
+          new Pose2d(new Translation2d(Meter.of(2), Meter.of(0)),
+                  Rotation2d.fromDegrees(0)));
+    swerveDrive.setHeadingCorrection(false);
+    swerveDrive.setCosineCompensator(false);
   }
 
 
@@ -133,33 +131,28 @@ public class SwerveSubsystem extends SubsystemBase
   public void periodic()
   {
 
-        robotState.addOdometryMeasurement(new OdometryMeasurement(swerveDrive.getGyro().getRawRotation3d().toRotation2d(), swerveDrive.getModulePositions()));
-
-        // swerveDrive.updateOdometry();
-
-        // Publish to AdvantageScope (X, Y, Rotation in RADIANS)
-        poseEntry.set(new Pose2d(
-            robotState.getPose().getX(),
-            robotState.getPose().getY(),
-            robotState.getPose().getRotation()
+    swerveDrive.updateOdometry();
+    // Publish to AdvantageScope (X, Y, Rotation in RADIANS)
+    poseEntry.set(new Pose2d(
+                    swerveDrive.swerveDrivePoseEstimator.getEstimatedPosition().getX(),
+                    swerveDrive.swerveDrivePoseEstimator.getEstimatedPosition().getY(),
+                    swerveDrive.swerveDrivePoseEstimator.getEstimatedPosition().getRotation()
             )
-        );
+    );
 
-        TunableNumber.ifChanged(
-          hashCode(),
-          () -> {
-            targetPoseEntry.set(new Pose2d(
-              Constants.TARGET_POSE_X.get(),
-              Constants.TARGET_POSE_Y.get(),
-              Rotation2d.fromDegrees(TARGET_POSE_ROTATION.get())
-            ));
-          },
-          Constants.TARGET_POSE_X,
-          Constants.TARGET_POSE_Y,
-          TARGET_POSE_ROTATION
-        );
-
-    // updateTuningValues();
+//        TunableNumber.ifChanged(
+//          hashCode(),
+//          () -> {
+//            targetPoseEntry.set(new Pose2d(
+//              Constants.TARGET_POSE_X.get(),
+//              Constants.TARGET_POSE_Y.get(),
+//              Rotation2d.fromDegrees(TARGET_POSE_ROTATION.get())
+//            ));
+//          },
+//          Constants.TARGET_POSE_X,
+//          Constants.TARGET_POSE_Y,
+//          TARGET_POSE_ROTATION
+//        );
 
   }
 
@@ -180,10 +173,10 @@ public class SwerveSubsystem extends SubsystemBase
   public Command sysIdDriveMotorCommand()
   {
     return SwerveDriveTest.generateSysIdCommand(
-        SwerveDriveTest.setDriveSysIdRoutine(
-            new Config(),
-            this, swerveDrive, 12, true),
-        3.0, 5.0, 3.0);
+            SwerveDriveTest.setDriveSysIdRoutine(
+                    new Config(),
+                    this, swerveDrive, 12, true),
+            3.0, 5.0, 3.0);
   }
 
   /**
@@ -194,10 +187,10 @@ public class SwerveSubsystem extends SubsystemBase
   public Command sysIdAngleMotorCommand()
   {
     return SwerveDriveTest.generateSysIdCommand(
-        SwerveDriveTest.setAngleSysIdRoutine(
-            new Config(),
-            this, swerveDrive),
-        3.0, 5.0, 3.0);
+            SwerveDriveTest.setAngleSysIdRoutine(
+                    new Config(),
+                    this, swerveDrive),
+            3.0, 5.0, 3.0);
   }
 
   /**
@@ -208,7 +201,7 @@ public class SwerveSubsystem extends SubsystemBase
   public Command centerModulesCommand()
   {
     return run(() -> Arrays.asList(swerveDrive.getModules())
-                           .forEach(it -> it.setAngle(0.0)));
+            .forEach(it -> it.setAngle(0.0)));
   }
 
   /**
@@ -221,8 +214,8 @@ public class SwerveSubsystem extends SubsystemBase
   public Command driveToDistanceCommand(double distanceInMeters, double speedInMetersPerSecond)
   {
     return run(() -> drive(new ChassisSpeeds(speedInMetersPerSecond, 0, 0)))
-        .until(() -> swerveDrive.getPose().getTranslation().getDistance(new Translation2d(0, 0)) >
-                     distanceInMeters);
+            .until(() -> swerveDrive.getPose().getTranslation().getDistance(new Translation2d(0, 0)) >
+                    distanceInMeters);
   }
 
   /**
@@ -250,11 +243,11 @@ public class SwerveSubsystem extends SubsystemBase
     return run(() -> {
       // Make the robot move
       swerveDrive.drive(SwerveMath.scaleTranslation(new Translation2d(
-                            translationX.getAsDouble() * swerveDrive.getMaximumChassisVelocity(),
-                            translationY.getAsDouble() * swerveDrive.getMaximumChassisVelocity()), 0.8),
-                        Math.pow(angularRotationX.getAsDouble(), 3) * swerveDrive.getMaximumChassisAngularVelocity(),
-                        true,
-                        false);
+                      translationX.getAsDouble() * swerveDrive.getMaximumChassisVelocity(),
+                      translationY.getAsDouble() * swerveDrive.getMaximumChassisVelocity()), 0.8),
+              Math.pow(angularRotationX.getAsDouble(), 3) * swerveDrive.getMaximumChassisAngularVelocity(),
+              true,
+              false);
     });
   }
 
@@ -274,14 +267,14 @@ public class SwerveSubsystem extends SubsystemBase
     return run(() -> {
 
       Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX.getAsDouble(),
-                                                                                 translationY.getAsDouble()), 0.8);
+              translationY.getAsDouble()), 0.8);
 
       // Make the robot move
       driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.getX(), scaledInputs.getY(),
-                                                                      headingX.getAsDouble(),
-                                                                      headingY.getAsDouble(),
-                                                                      swerveDrive.getOdometryHeading().getRadians(),
-                                                                      swerveDrive.getMaximumChassisVelocity()));
+              headingX.getAsDouble(),
+              headingY.getAsDouble(),
+              swerveDrive.getOdometryHeading().getRadians(),
+              swerveDrive.getMaximumChassisVelocity()));
     });
   }
 
@@ -302,9 +295,9 @@ public class SwerveSubsystem extends SubsystemBase
   public void drive(Translation2d translation, double rotation, boolean fieldRelative)
   {
     swerveDrive.drive(translation,
-                      rotation,
-                      fieldRelative,
-                      false); // Open loop is disabled since it shouldn't be used most of the time.
+            rotation,
+            fieldRelative,
+            false); // Open loop is disabled since it shouldn't be used most of the time.
   }
 
   /**
@@ -429,24 +422,24 @@ public class SwerveSubsystem extends SubsystemBase
     }
   }
 
-private final StructPublisher<Pose2d> poseEntry = NetworkTableInstance.getDefault()
-  .getTable("Sim")
-  .getStructTopic("Current Pose", Pose2d.struct).publish();
+  private final StructPublisher<Pose2d> poseEntry = NetworkTableInstance.getDefault()
+          .getTable("Sim")
+          .getStructTopic("Current Pose", Pose2d.struct).publish();
 
-private final StructPublisher<Pose2d> targetPoseEntry = NetworkTableInstance.getDefault()
-  .getTable("Sim")
-  .getStructTopic("Target Pose", Pose2d.struct).publish();
+  private final StructPublisher<Pose2d> targetPoseEntry = NetworkTableInstance.getDefault()
+          .getTable("Sim")
+          .getStructTopic("Target Pose", Pose2d.struct).publish();
 
-public boolean driveToPointVectorBased(Pose2d point, double tolerance, double maxVel, double maxRVel, boolean isContinuous) {
+  public boolean driveToPointVectorBased(Pose2d point, double tolerance, double maxVel, double maxRVel, boolean isContinuous) {
 
     NTDebug.setEntry("TRANSLATION_X?", point.getX());
 
     // Use radians consistently
     double yaw = swerveDrive.getYaw().getRadians();
-    double targetYaw = point.getRotation().getRadians();    
+    double targetYaw = point.getRotation().getRadians();
 
     // Ensure PID is using radians
-     // or some small radian tolerance
+    // or some small radian tolerance
 
     decelerationPID.setTolerance(tolerance);
 
@@ -457,11 +450,11 @@ public boolean driveToPointVectorBased(Pose2d point, double tolerance, double ma
     double translationMag;
 
     if (isContinuous) {
-        translationMag = -maxVel;
-        
+      translationMag = -maxVel;
+
     } else {
-        translationMag = Math.min(maxVel, decelerationPID.calculate(Math.abs(distance), 0.0));
-    }   
+      translationMag = Math.min(maxVel, decelerationPID.calculate(Math.abs(distance), 0.0));
+    }
 
     double xVel = translationMag * Math.cos(difference.getAngle().getRadians());
     double yVel = translationMag * Math.sin(difference.getAngle().getRadians());
@@ -469,7 +462,7 @@ public boolean driveToPointVectorBased(Pose2d point, double tolerance, double ma
     NTDebug.setEntry("velocity", translationMag);
     NTDebug.setEntry("drive pid calculation", decelerationPID.calculate(Math.abs(distance), 0.0));
 
-  
+
 
     // Rotation PID: calculate using radians
     double rVel = maxRVel * autoRotationPID.calculate(yaw, targetYaw);
@@ -482,15 +475,15 @@ public boolean driveToPointVectorBased(Pose2d point, double tolerance, double ma
 
     Translation2d driveVals = new Translation2d(xVel, yVel);
     Translation2d driveVelocity =
-          new Pose2d(
-                  0.0,
-                  0.0,
-                  swerveDrive.getPose()
-                          .getTranslation()
-                          .minus(point.getTranslation())
-                          .getAngle())
-                  .transformBy(new Transform2d(translationMag, 0.0, new Rotation2d()))
-                  .getTranslation();
+            new Pose2d(
+                    0.0,
+                    0.0,
+                    swerveDrive.getPose()
+                            .getTranslation()
+                            .minus(point.getTranslation())
+                            .getAngle())
+                    .transformBy(new Transform2d(translationMag, 0.0, new Rotation2d()))
+                    .getTranslation();
 
 
     drive(driveVals, rVel, true);
@@ -501,7 +494,7 @@ public boolean driveToPointVectorBased(Pose2d point, double tolerance, double ma
 
     return  distance<tolerance && autoRotationPID.atSetpoint();
     // return distance < tolerance;
-}
+  }
 
 
   /**
@@ -539,11 +532,11 @@ public boolean driveToPointVectorBased(Pose2d point, double tolerance, double ma
   {
     Translation2d scaledInputs = SwerveMath.cubeTranslation(new Translation2d(xInput, yInput));
     return swerveDrive.swerveController.getTargetSpeeds(scaledInputs.getX(),
-                                                        scaledInputs.getY(),
-                                                        headingX,
-                                                        headingY,
-                                                        getHeading().getRadians(),
-                                                        Constants.MAX_SPEED);
+            scaledInputs.getY(),
+            headingX,
+            headingY,
+            getHeading().getRadians(),
+            Constants.MAX_SPEED);
   }
 
   /**
@@ -560,10 +553,10 @@ public boolean driveToPointVectorBased(Pose2d point, double tolerance, double ma
     Translation2d scaledInputs = SwerveMath.cubeTranslation(new Translation2d(xInput, yInput));
 
     return swerveDrive.swerveController.getTargetSpeeds(scaledInputs.getX(),
-                                                        scaledInputs.getY(),
-                                                        angle.getRadians(),
-                                                        getHeading().getRadians(),
-                                                        Constants.MAX_SPEED);
+            scaledInputs.getY(),
+            angle.getRadians(),
+            getHeading().getRadians(),
+            Constants.MAX_SPEED);
   }
 
   /**

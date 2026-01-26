@@ -1,24 +1,24 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.*;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotState;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.utils.MathUtils;
+import org.photonvision.PhotonCamera;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
+
+import java.util.List;
+import java.util.Optional;
 
 public class BallDetection extends SubsystemBase {
 
     // better name for this?
     private Pose3d ball;
     private SwerveSubsystem swerveSubsystem;
-    private final RobotState robotState = RobotState.getInstance();
-
-    private final NetworkTable limelight = NetworkTableInstance.getDefault().getTable("limelight");
+    PhotonCamera camera;
 
     private Pose3d getAdjustedCameraPose() {
                 return new Pose3d(
@@ -34,28 +34,38 @@ public class BallDetection extends SubsystemBase {
 
     }
 
-    private Pose3d detectBalls() {
+    public BallDetection(PhotonCamera camera) {
+        this.camera = camera;
+    }
 
-        boolean hasTarget = limelight.getEntry("tv").getDouble(0) == 1;
+    private Pose3d detectBalls() {
 
         Pose3d cameraPose = getAdjustedCameraPose();
 
-        if (!hasTarget) {
-            // System.out.println("No targets detected");
-            return null;
-        } else {
-            double tx = limelight.getEntry("tx").getDouble(0);
-            double ty = limelight.getEntry("ty").getDouble(0);
+        List<PhotonPipelineResult> result = camera.getAllUnreadResults();
+        PhotonPipelineResult latestResult = result.get(result.size() - 1);
 
-            Translation3d ballPos = new Translation3d(Math.cos(ty)*Math.cos(tx),
-                    Math.cos(ty)*Math.sin(tx),
-                    Math.sin(ty));
-            double t = (FieldConstants.BALL_HEIGHT_METERS - cameraPose.getZ()) / ballPos.getZ();
-            Translation3d ballPoseCamera = MathUtils.getTranslation3dFromPose3d(cameraPose).plus(ballPos.times(t));
-            Pose3d ballPoseRobot = new Pose3d(ballPoseCamera, Rotation3d.kZero).transformBy(MathUtils.getTransform3dFromPose3d(cameraPose).inverse());
-            return ball = new Pose3d(robotState.getPose()).transformBy(new Transform3d(ballPoseRobot.getTranslation(), Rotation3d.kZero));
+        if (!latestResult.hasTargets()) {
+            return null;
         }
 
+        Optional<PhotonTrackedTarget> balls = latestResult.getTargets().stream()
+                .filter(target -> target.getDetectedObjectClassID() == 1).findFirst();
+
+        if (balls.isEmpty()) {
+            return null;
+        }
+        double tx = balls.get().yaw;
+        double ty = balls.get().pitch;
+
+        Translation3d ballPos = new Translation3d(Math.cos(ty)*Math.cos(tx),
+                Math.cos(ty)*Math.sin(tx),
+                Math.sin(ty));
+
+        double t = (FieldConstants.BALL_HEIGHT_METERS - cameraPose.getZ()) / ballPos.getZ();
+        Translation3d ballPoseCamera = MathUtils.getTranslation3dFromPose3d(cameraPose).plus(ballPos.times(t));
+        Pose3d ballPoseRobot = new Pose3d(ballPoseCamera, Rotation3d.kZero).transformBy(MathUtils.getTransform3dFromPose3d(cameraPose).inverse());
+        return ball = new Pose3d(swerveSubsystem.getPose()).transformBy(new Transform3d(ballPoseRobot.getTranslation(), Rotation3d.kZero));
     }
 
     public void updateBallPose() {

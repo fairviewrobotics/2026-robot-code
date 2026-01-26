@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import dev.doglog.DogLog;
+import dev.doglog.DogLogOptions;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -47,10 +49,10 @@ public class RobotContainer
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
           "swerve"));
-  BallDetection ballDetection = new BallDetection();
-  RobotState robotState = RobotState.getInstance();
-  ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
-  IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  private final Vision vision;
+  // BallDetection ballDetection = new BallDetection();
+  // ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+  // IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   NetworkTablesUtils NTAuto = NetworkTablesUtils.getTable("Autonomous");
 
   public static SuperSecretMissileTech superSecretMissileTech;
@@ -122,9 +124,15 @@ public class RobotContainer
    */
   public RobotContainer()
   {
+    Vision.init(drivebase.getSwerveDrive());
+    this.vision = Vision.getInstance();
     // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
+//    DogLog.setOptions(new DogLogOptions()
+//            .withNtPublish(false)
+//            .withNtTunables(true)
+//    );
   }
 
   /**
@@ -151,11 +159,11 @@ public class RobotContainer
             () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
 
 
-    secondary_controller.x().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, -IntakeConstants.INTAKING_VOLTAGE));
-    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShootingConstants.TOP_SHOOTER_RPM.get(), ShootingConstants.BOTTOM_SHOOTER_RPM.get()));
-    secondary_controller.a().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, IntakeConstants.INTAKING_VOLTAGE));
+//    secondary_controller.x().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, -IntakeConstants.INTAKING_VOLTAGE));
+//    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShootingConstants.TOP_SHOOTER_RPM.get(), ShootingConstants.BOTTOM_SHOOTER_RPM.get()));
+//    secondary_controller.a().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, IntakeConstants.INTAKING_VOLTAGE));
 
-    primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
+    // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
 
     primary_controller.R1().whileTrue(driveFieldOrientedYAxisLock);
 
@@ -202,26 +210,27 @@ public class RobotContainer
   }
 
   public Command getAimAtHubCommand() {
-      Optional<DriverStation.Alliance> allianceOpt = DriverStation.getAlliance();
+    // RobotState robotState = RobotState.getInstance();
+    Optional<DriverStation.Alliance> allianceOpt = DriverStation.getAlliance();
 
-      if (allianceOpt.isEmpty()) {
-        return Commands.none(); // or some fallback command
-      }
+    if (allianceOpt.isEmpty()) {
+      return Commands.none(); // or some fallback command
+    }
 
-      DriverStation.Alliance alliance = allianceOpt.get();
-      Pose2d targetPose = (alliance == DriverStation.Alliance.Red)
-              ? FieldConstants.RED_HUB_CENTER_POINT
-              : FieldConstants.BLUE_HUB_CENTER_POINT;
+    DriverStation.Alliance alliance = allianceOpt.get();
+    Pose2d targetPose = (alliance == DriverStation.Alliance.Red)
+            ? FieldConstants.RED_HUB_CENTER_POINT
+            : FieldConstants.BLUE_HUB_CENTER_POINT;
 
-      Rotation2d targetAngle = robotState.getPose().minus(targetPose).getRotation();
-      double distance = robotState.getPose().getTranslation().getDistance(targetPose.getTranslation());
+    // Rotation2d targetAngle = robotState.getPose().minus(targetPose).getRotation();
+    // double distance = robotState.getPose().getTranslation().getDistance(targetPose.getTranslation());
 
-      // distance : hood angle map 8" increments
-      double hoodAngle;
+    // distance : hood angle map 8" increments
+    double hoodAngle;
 
-      return new ParallelCommandGroup(
-              // set hood, rotate to angle
-      );
+    return new ParallelCommandGroup(
+            // set hood, rotate to angle
+    );
   }
 
   /**

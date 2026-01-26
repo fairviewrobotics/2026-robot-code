@@ -3,165 +3,240 @@ package frc.robot.subsystems;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotState;
-import frc.robot.constants.DriveConstants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.utils.MathUtils;
-import frc.robot.utils.OdometryMeasurement;
-import frc.robot.utils.VisionMeasurement;
+import frc.robot.utils.NetworkTablesUtils;
+import frc.robot.utils.TunableNumber;
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
+import swervelib.SwerveDrive;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Vision extends SubsystemBase {
 
-    // This should be 2026 at some point
-    // Probably remove IDs 6, 7, 13, 14, 1, 12, 17, 28, 22, 23, 29, 30
+    private static Vision instance;
+    private final PhotonCamera[] cameras;
+    private final SwerveDrive swerveDrive;
+    private final AprilTagFieldLayout fieldLayout =
+            AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
 
-    PhotonCamera[] cameras;
-    RobotState robotState;
-    AprilTagFieldLayout fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
-
-    private final Pose3d[] baseCameraPoses =
-            new Pose3d[] {
-                    // Shooter Cam
-                    new Pose3d(
-                            Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_X),
-                            Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_Y),
-                            Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_Z),
-                            new Rotation3d(
-                                    Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_ROLL),
-                                    Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_PITCH),
-                                    Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_YAW))),
-
-            };
+    private final Pose3d[] baseCameraPoses = new Pose3d[] {
+            new Pose3d(
+                    Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_X),
+                    Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_Y),
+                    Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_Z),
+                    new Rotation3d(
+                            Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_ROLL),
+                            Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_PITCH),
+                            Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_YAW))),
+    };
 
     private Pose3d[] getAdjustedCameraPoses() {
         return new Pose3d[] {
-
                 new Pose3d(
-
                         VisionConstants.SHOOTER_CAM_POSE_X + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_X.get()),
                         VisionConstants.SHOOTER_CAM_POSE_Y + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Y.get()),
                         VisionConstants.SHOOTER_CAM_POSE_Z + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Z.get()),
-
                         new Rotation3d(
                                 Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_ROLL + VisionConstants.SHOOTER_CAM_ADJUST_ROLL.get()),
                                 Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_PITCH + VisionConstants.SHOOTER_CAM_ADJUST_PITCH.get()),
                                 Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_YAW + VisionConstants.SHOOTER_CAM_ADJUST_YAW.get()))),
-
         };
     }
 
-    public Vision(PhotonCamera[] cameras) {
-        this.cameras = cameras;
+    Pose3d[] cameraPoses = getAdjustedCameraPoses();
+
+    private Vision(SwerveDrive swerveDrive) {
+        this.swerveDrive = swerveDrive;
+        this.cameras = new PhotonCamera[] {
+                new PhotonCamera("rev tag cam")
+        };
+    }
+
+    public static void init(SwerveDrive swerveDrive) {
+        if (instance == null) {
+            instance = new Vision(swerveDrive);
+        }
+    }
+
+    public static Vision getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("Vision must be initialized with init() first");
+        }
+        return instance;
     }
 
     @Override
     public void periodic() {
+        updatePose();
+    }
 
-        Pose3d[] cameraPoses = getAdjustedCameraPoses();
+
+
+    public void updatePose() {
+
+        frc.robot.utils.TunableNumber.ifChanged(
+                hashCode(),
+                this::getAdjustedCameraPoses,
+                VisionConstants.SHOOTER_CAM_ADJUST_X,
+                VisionConstants.SHOOTER_CAM_ADJUST_Y,
+                VisionConstants.SHOOTER_CAM_ADJUST_Z,
+                VisionConstants.SHOOTER_CAM_ADJUST_ROLL,
+                VisionConstants.SHOOTER_CAM_ADJUST_PITCH,
+                VisionConstants.SHOOTER_CAM_ADJUST_YAW
+        );
+
 
         for (int cameraIndex = 0; cameraIndex < cameraPoses.length; cameraIndex++) {
 
-            Pose3d cameraPoseEstimation;
-            Pose2d robotPoseEstimation;
+            List<PhotonPipelineResult> results = cameras[cameraIndex].getAllUnreadResults();
 
-            List<Pose3d> tagPoses = new ArrayList<>();
+            if (results.isEmpty()) {
+                continue;
+            }
 
-            List<PhotonPipelineResult> result = cameras[cameraIndex].getAllUnreadResults();
-            PhotonPipelineResult latestResult = result.get(result.size() - 1);
+            PhotonPipelineResult latestResult = results.get(results.size() - 1);
 
-            double timestamp = latestResult.getTimestampSeconds();
-
-            boolean rejectPose = false;
-
+            // Check if result has targets
             if (!latestResult.hasTargets()) {
                 continue;
             }
 
-            cameraPoseEstimation = MathUtils.getPose3dFromTransform3d(latestResult.getMultiTagResult().get().estimatedPose.best);
+            double timestamp = latestResult.getTimestampSeconds();
+
+            boolean useMultitag = latestResult.multitagResult.isPresent();
+
+            if (useMultitag) {
+
+                Pose3d cameraPoseEstimation = MathUtils.getPose3dFromTransform3d(
+                        latestResult.getMultiTagResult().get().estimatedPose.best);
 
 
-            // Check the distance to each tag used in the multi-tag solution
-            for (int id : latestResult.getMultiTagResult().get().fiducialIDsUsed) {
+                List<Pose3d> tagPoses = new ArrayList<>();
 
-                // only relevant for custom apriltag layout
-                if (fieldLayout.getTagPose(id).isEmpty()) {
-                    continue;
+                for (int id : latestResult.getMultiTagResult().get().fiducialIDsUsed) {
+
+                    // remove bad tags from the map at some point
+                    if (fieldLayout.getTagPose(id).isEmpty()) {
+                        continue;
+                    }
+
+                    Pose3d tagPose = fieldLayout.getTagPose(id).get();
+                    double distance = tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
+
+                    if (distance < VisionConstants.MAX_ACCEPTABLE_TAG_RANGE) {
+                        tagPoses.add(tagPose);
+                    } else {
+                        return;
+                    }
                 }
 
-
-                Pose3d tagPose = fieldLayout.getTagPose(id).get();
-                double distance = tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
-
-
-                if (distance < VisionConstants.MAX_ACCEPTABLE_TAG_RANGE) {
-                    tagPoses.add(tagPose);
-                } else {
-                    rejectPose = true;
+                if (tagPoses.isEmpty()) {
+                    return;
                 }
 
+                Pose2d robotPoseEstimation = cameraPoseEstimation
+                        .transformBy(MathUtils.getTransform3dFromPose3d(cameraPoses[cameraIndex]).inverse())
+                        .toPose2d();
+
+                Pose3d robotPoseEstimation3d = cameraPoseEstimation
+                        .transformBy(MathUtils.getTransform3dFromPose3d(cameraPoses[cameraIndex]).inverse());
+
+                if (robotPoseEstimation.getX() < -FieldConstants.FIELD_BORDER_MARGIN_METERS
+                        || robotPoseEstimation.getX() > FieldConstants.FIELD_LENGTH_METERS + FieldConstants.FIELD_BORDER_MARGIN_METERS
+                        || robotPoseEstimation.getY() < -FieldConstants.FIELD_BORDER_MARGIN_METERS
+                        || robotPoseEstimation.getY() > FieldConstants.FIELD_WIDTH_METERS + FieldConstants.FIELD_BORDER_MARGIN_METERS) {
+                    return;
+                }
+
+                if (robotPoseEstimation3d.getZ() > VisionConstants.MAX_Z_ERROR) {
+                    return;
+                }
+
+                if (!latestResult.targets.isEmpty()
+                        && latestResult.targets.get(0).getPoseAmbiguity() > VisionConstants.MAX_POSE_AMBIGUITY) {
+                    return;
+                }
+
+                // Calculate average distance to tags
+                double totalDistance = 0.0;
+                for (Pose3d tagPose : tagPoses) {
+                    totalDistance += tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
+                }
+                double avgDistance = totalDistance / tagPoses.size();
+
+                // Calculate dynamic standard deviations
+                double xyStdDev = (VisionConstants.BASE_VISION_XY_STD_DEV.get() * avgDistance / tagPoses.size());
+                double thetaStdDev = VisionConstants.BASE_VISION_THETA_STD_DEV.get() * avgDistance / tagPoses.size();
+
+                double baseXY = 0.005;
+
+                swerveDrive.addVisionMeasurement(
+                        robotPoseEstimation,
+                        timestamp,
+                        VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
+            } else {
+
+                PhotonTrackedTarget target = latestResult.targets.get(0);
+
+                Pose3d singleTagPose = fieldLayout.getTagPose(target.getFiducialId()).get();
+                Pose3d cameraPose = singleTagPose.transformBy(target.getBestCameraToTarget().inverse());
+
+                Pose3d robotPoseEstimation =
+                        cameraPose
+                                .transformBy(MathUtils.getTransform3dFromPose3d(cameraPoses[cameraIndex]).inverse());
+
+                double distance = singleTagPose.getTranslation().getDistance(cameraPose.getTranslation());
+
+                boolean rejectPose =
+                        VisionConstants.MAX_ACCEPTABLE_TAG_RANGE < distance ||
+                                robotPoseEstimation.getX() < -FieldConstants.FIELD_BORDER_MARGIN_METERS
+                                || robotPoseEstimation.getX() > FieldConstants.FIELD_LENGTH_METERS + FieldConstants.FIELD_BORDER_MARGIN_METERS
+                                || robotPoseEstimation.getY() < -FieldConstants.FIELD_BORDER_MARGIN_METERS
+                                || robotPoseEstimation.getY() > FieldConstants.FIELD_WIDTH_METERS + FieldConstants.FIELD_BORDER_MARGIN_METERS ||
+                                robotPoseEstimation.getZ() > VisionConstants.MAX_Z_ERROR;
+
+                if (rejectPose) {
+                    return;
+                }
+
+                double xyStdDev = VisionConstants.SINGLE_TAG_DISTRUST_COEFFICIENT.get() * VisionConstants.BASE_VISION_XY_STD_DEV.get() * Math.pow(distance, 2.0);
+                double thetaStdDev = VisionConstants.SINGLE_TAG_DISTRUST_COEFFICIENT.get() * VisionConstants.BASE_VISION_THETA_STD_DEV.get() * Math.pow(distance, 2.0);
+
+                double baseXY = 0.005;
+
+                swerveDrive.addVisionMeasurement(
+                        robotPoseEstimation.toPose2d(),
+                        timestamp,
+                        VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
+
             }
-
-            if (tagPoses.isEmpty()) {
-                rejectPose = true;
-            }
-
-            robotPoseEstimation =
-                    cameraPoseEstimation.transformBy(MathUtils.getTransform3dFromPose3d(cameraPoses[cameraIndex]).inverse()).toPose2d();
-
-            Pose3d robotPoseEstimation3d = cameraPoseEstimation.transformBy(MathUtils.getTransform3dFromPose3d(cameraPoses[cameraIndex]).inverse());
-
-
-            if (robotPoseEstimation.getX() < -FieldConstants.FIELD_BORDER_MARGIN_METERS
-                    || robotPoseEstimation.getX() > FieldConstants.FIELD_LENGTH_METERS + FieldConstants.FIELD_BORDER_MARGIN_METERS
-                    || robotPoseEstimation.getY() < -FieldConstants.FIELD_BORDER_MARGIN_METERS
-                    || robotPoseEstimation.getY() > FieldConstants.FIELD_WIDTH_METERS + FieldConstants.FIELD_BORDER_MARGIN_METERS)
-
-            {
-                rejectPose = true;
-            }
-
-            if (robotPoseEstimation3d.getZ() > VisionConstants.MAX_Z_ERROR) {
-                rejectPose = true;
-            }
-
-            if (latestResult.targets.get(0).getPoseAmbiguity() > VisionConstants.MAX_POSE_AMBIGUITY) {
-                rejectPose = true;
-            }
-
-            if (rejectPose) {
-                continue;
-            }
-
-            double totalDistance = 0.0;
-
-            for (Pose3d tagPose : tagPoses) {
-                totalDistance += tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
-            }
-
-            double avgDistance = totalDistance / tagPoses.size();
-
-            double xyStdDev = VisionConstants.BASE_VISION_XY_STD_DEV * Math.pow(avgDistance, 2.0) / tagPoses.size();
-            double thetaStdDev = VisionConstants.BASE_VISION_THETA_STD_DEV * Math.pow(avgDistance, 2.0) / tagPoses.size();
-
-            robotState.addVisionMeasurement(new VisionMeasurement(robotPoseEstimation, timestamp, VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev)));
 
         }
 
     }
 
+    /**
+     * Get the current estimated robot pose from YAGSL.
+     */
+    public Pose2d getRobotPose() {
+        return swerveDrive.getPose();
+    }
 
+    /**
+     * Reset the robot pose in YAGSL's pose estimator.
+     */
+    public void resetPose(Pose2d pose) {
+        swerveDrive.resetOdometry(pose);
+    }
 }
