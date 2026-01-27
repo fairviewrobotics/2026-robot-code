@@ -13,6 +13,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ShootingConstants;
 import frc.robot.utils.MathUtils;
@@ -25,7 +26,8 @@ public class TurretSubsystem extends SubsystemBase {
             0.0,
             ShootingConstants.TURRET_D.get(),
             ShootingConstants.TURRET_CONSTRAINTS);
-
+    private boolean isZeroed = false;
+    private DigitalInput turretLinebreak = new DigitalInput(ShootingConstants.TURRET_LINEBREAK_ID);
     private final SparkFlex turretMotor = new SparkFlex(ShootingConstants.TURRET_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
     private final NetworkTablesUtils turretNT = NetworkTablesUtils.getTable("Turret");
     private final SimpleMotorFeedforward turretFF = new SimpleMotorFeedforward(
@@ -46,18 +48,30 @@ public class TurretSubsystem extends SubsystemBase {
                 .reverseSoftLimit(Units.degreesToRotations(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES));
 
         turretMotorConfig
-            .inverted(false)
-            // .apply(turretSoftLimits)
-            .idleMode(SparkBaseConfig.IdleMode.kCoast)
-            .absoluteEncoder.positionConversionFactor(2 * Math.PI);
+                .inverted(false)
+                // .apply(turretSoftLimits)
+                .idleMode(SparkBaseConfig.IdleMode.kCoast)
+                .encoder.positionConversionFactor(ShootingConstants.TURRET_ENCODER_TO_RADIANS_CONVERSION_FACTOR);
 
         turretMotor.configure(turretMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     }
 
-    public void setTurret(double angle) {
+    public void zeroTurret() {
+        if (!turretLinebreak.get()) {
+            this.setVoltage(-1.0);
+        } else {
+            turretMotor.setVoltage(0.0);
+            turretMotor.getEncoder().setPosition(Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES)
+            );
+            turretPID.reset(Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES));
+            isZeroed = true;
+        }
+    }
 
-        double currentAngle = turretMotor.getAbsoluteEncoder().getPosition();
+    public void setTurret(double angle) {
+        if (!isZeroed) return;
+        double currentAngle = turretMotor.getEncoder().getPosition();
 
         double pidOutput = turretPID.calculate(currentAngle, getTurretSetpoint(angle, currentAngle));
 
@@ -67,7 +81,7 @@ public class TurretSubsystem extends SubsystemBase {
 
         turretMotor.setVoltage(pidOutput + ffOutput);
     }
-    
+
     public static double getTurretSetpoint(double targetAngle, double currentAngle) {
 
         double delta = MathUtil.angleModulus(targetAngle - currentAngle);
@@ -113,8 +127,9 @@ public class TurretSubsystem extends SubsystemBase {
                 ShootingConstants.TURRET_KV
         );
 
-        turretNT.setEntry("turret angle", turretMotor.getAbsoluteEncoder().getPosition());
+        turretNT.setEntry("turret angle", turretMotor.getEncoder().getPosition());
         turretNT.setEntry("turret error", turretPID.getPositionError());
+        turretNT.setEntry("turret linebreak", turretLinebreak.get());
     }
 
 }

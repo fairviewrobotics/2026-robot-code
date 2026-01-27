@@ -169,7 +169,8 @@ public class RobotContainer
 
     primary_controller.R1().whileTrue(driveFieldOrientedYAxisLock);
 
-    primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
+    // primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
+    primary_controller.cross().onTrue(new RunCommand(() -> turretSubsystem.zeroTurret()));
     primary_controller.square().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
     primary_controller.options().whileTrue(Commands.none());
     // primary_controller.back().whileTrue(Commands.none());

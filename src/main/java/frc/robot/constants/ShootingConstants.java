@@ -10,6 +10,7 @@ public class ShootingConstants {
     public static final int INDEXER_MOTOR_ID = 22;
     public static final int HOOD_ACTUATOR_ID = 0;
     public static final int TURRET_MOTOR_ID = 14;
+    public static final int TURRET_LINEBREAK_ID = 2;
     public static final double TURRET_GEAR_RATIO = 0.020202; // 1 : 45
     public static final double TURRET_ENCODER_TO_RADIANS_CONVERSION_FACTOR = 2 * Math.PI * TURRET_GEAR_RATIO;
     public static final double TURRET_PINION_CIRCUMFERENCE = 0.0958;
@@ -30,9 +31,9 @@ public class ShootingConstants {
     public static final double HOOD_MAX_ANGLE_DEGREES = 90.0;
     public static final double HOOD_MIN_ANGLE_DEGREES = 0.0;
 
-    public static TunableNumber TURRET_P = new TunableNumber("turret_p", 2.0);
+    public static TunableNumber TURRET_P = new TunableNumber("turret_p", 8.0);
     public static TunableNumber TURRET_D = new TunableNumber("turret_d", 0.0);
-    public static final TrapezoidProfile.Constraints TURRET_CONSTRAINTS = new TrapezoidProfile.Constraints(8 * Math.PI, 16 * Math.PI);
+    public static final TrapezoidProfile.Constraints TURRET_CONSTRAINTS = new TrapezoidProfile.Constraints(8 * Math.PI, 32 * Math.PI);
 
     public static TunableNumber TURRET_KS = new TunableNumber("turret_ks", 0.0);
     public static TunableNumber TURRET_KV = new TunableNumber("turret_kv", 0.0);
