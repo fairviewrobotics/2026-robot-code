@@ -38,8 +38,7 @@ public class SwerveSubsystem extends SubsystemBase {
                     new SwerveModulePosition(),
                     new SwerveModulePosition()
             };
-
-
+    
     public SwerveDrivePoseEstimator poseEstimator =
             new SwerveDrivePoseEstimator(
                     DriveConstants.KINEMATICS,

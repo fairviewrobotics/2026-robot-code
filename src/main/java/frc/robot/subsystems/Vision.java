@@ -27,7 +27,7 @@ public class Vision extends SubsystemBase {
     private final PhotonCamera[] cameras;
     private final SwerveSubsystem swerveSubsystem;
     private final AprilTagFieldLayout fieldLayout =
-            AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+            AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
     private final Pose3d[] baseCameraPoses = new Pose3d[] {
             new Pose3d(
