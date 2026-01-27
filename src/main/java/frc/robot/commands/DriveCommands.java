@@ -33,9 +33,9 @@ public class DriveCommands extends Command {
 
     public DriveCommands(
             SwerveSubsystem swerveSubsystem,
-            DoubleSupplier forwardSupplier,
-            DoubleSupplier sidewaysSupplier,
-            DoubleSupplier rotationSuplier,
+            DoubleSupplier xSupplier,
+            DoubleSupplier ySupplier,
+            DoubleSupplier thetaSupplier,
             boolean fieldRelative) {
         this.swerveSubsystem = swerveSubsystem;
         this.xSupplier = xSupplier;

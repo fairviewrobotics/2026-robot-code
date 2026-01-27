@@ -225,12 +225,4 @@ public class Vision extends SubsystemBase {
 
     }
 
-    /**
-     * Get the current estimated robot pose from YAGSL.
-     */
-
-    public Pose2d getRobotPose() {
-        return swerveSubsystem.poseEstimator.getEstimatedPosition();
-    }
-
 }

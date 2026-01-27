@@ -55,7 +55,6 @@ public class RobotContainer
   // BallDetection ballDetection = new BallDetection();
   // ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   // IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
-  NetworkTablesUtils NTAuto = NetworkTablesUtils.getTable("Autonomous");
 
   public static SuperSecretMissileTech superSecretMissileTech;
 
@@ -66,13 +65,8 @@ public class RobotContainer
   {
     Vision.init(swerveSubsystem);
     this.vision = Vision.getInstance();
-    // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
-//    DogLog.setOptions(new DogLogOptions()
-//            .withNtPublish(false)
-//            .withNtTunables(true)
-//    );
   }
 
   /**
@@ -116,7 +110,7 @@ public class RobotContainer
 
     // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
 
-    primary_controller.cross().onTrue((Commands.runOnce(swerveSubsystem::resetGyro)));
+    primary_controller.cross().onTrue((Commands.runOnce(() -> swerveSubsystem.resetGyro())));
     primary_controller.options().whileTrue(Commands.none());
     // primary_controller.back().whileTrue(Commands.none());
     primary_controller.R1().onTrue(Commands.none());

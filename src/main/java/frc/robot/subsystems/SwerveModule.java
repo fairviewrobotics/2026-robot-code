@@ -24,6 +24,8 @@ import frc.robot.utils.SwerveModuleConfig;
 import frc.robot.utils.TunableNumber;
 import org.littletonrobotics.junction.Logger;
 
+import java.util.Queue;
+
 public class SwerveModule extends SubsystemBase {
 
     int moduleNumber;
@@ -38,31 +40,41 @@ public class SwerveModule extends SubsystemBase {
     private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
     public double[] odometryDrivePositionsRad = new double[] {};
     public Rotation2d[] odometryTurnPositions = new Rotation2d[] {};
+    private final Queue<Double> drivePositionQueue;
+    private final Queue<Double> anglePositionQueue;
+    private final Queue<Double> timestampQueue;
 
     public SwerveModule(SwerveModuleConfig moduleConfig) {
 
         SparkMaxConfig angleConfig = new SparkMaxConfig();
         SparkFlexConfig driveConfig = new SparkFlexConfig();
 
-        angleConfig.absoluteEncoder.positionConversionFactor(DriveConstants.ANGLE_GEAR_RATIO);
         angleConfig.closedLoop.pid(DriveConstants.ANGLE_P.get(), 0.0, DriveConstants.ANGLE_D.get());
+        angleConfig.absoluteEncoder.positionConversionFactor(DriveConstants.ANGLE_POSITION_CONVERSION_FACTOR);
         angleConfig.inverted(moduleConfig.invertAngle());
-        angleConfig.absoluteEncoder.zeroOffset(moduleConfig.absoluteEncoderOffset());
+        angleConfig.absoluteEncoder.zeroOffset(moduleConfig.absoluteEncoderOffset()/360);
+        angleConfig.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
 
         driveConfig.encoder.positionConversionFactor(DriveConstants.DRIVE_POSITION_CONVERSION_FACTOR);
         driveConfig.encoder.velocityConversionFactor(DriveConstants.DRIVE_VELOCITY_CONVERSION_FACTOR);
         driveConfig.closedLoop.pid(DriveConstants.DRIVE_P.get(), 0.0, DriveConstants.DRIVE_D.get());
         driveConfig.inverted(moduleConfig.invertDrive());
 
-        this.driveController = driveMotor.getClosedLoopController();
-        this.angleController = angleMotor.getClosedLoopController();
-
         this.driveMotor = new SparkFlex(moduleConfig.driveID(), SparkLowLevel.MotorType.kBrushless);
         this.angleMotor = new SparkMax(moduleConfig.angleID(), SparkLowLevel.MotorType.kBrushless);
+
+        this.driveController = driveMotor.getClosedLoopController();
+        this.angleController = angleMotor.getClosedLoopController();
 
         driveMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
         angleMotor.configure(angleConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
+        var odometryThread = SparkOdometryThread.getInstance();
+        this.drivePositionQueue = odometryThread.registerSignal(driveMotor, () -> driveMotor.getEncoder().getPosition());
+        this.anglePositionQueue = odometryThread.registerSignal(angleMotor, () -> angleMotor.getAbsoluteEncoder().getPosition());
+        this.timestampQueue = odometryThread.makeTimestampQueue();
+
+        this.moduleOffset = moduleConfig.moduleOffset();
         this.moduleNumber = moduleConfig.moduleNumber();
 
     }
@@ -98,14 +110,14 @@ public class SwerveModule extends SubsystemBase {
         TunableNumber.ifChanged(
                 hashCode(),
                 () -> {
-                    SparkFlexConfig angleUpdateConfig = new SparkFlexConfig();
+                    SparkMaxConfig angleUpdateConfig = new SparkMaxConfig();
 
                     angleUpdateConfig.closedLoop.pid(
-                            DriveConstants.DRIVE_P.get(),
+                            DriveConstants.ANGLE_P.get(),
                             0.0,
-                            DriveConstants.DRIVE_D.get()
+                            DriveConstants.ANGLE_D.get()
                     );
-                    angleUpdateConfig.absoluteEncoder.zeroOffset(DriveConstants.ANGLE_OFFSETS[moduleNumber].get());
+                    angleUpdateConfig.absoluteEncoder.zeroOffset(DriveConstants.ANGLE_OFFSETS[moduleNumber].get()/360);
 
                     angleMotor.configure(
                             angleUpdateConfig,
@@ -118,13 +130,15 @@ public class SwerveModule extends SubsystemBase {
                 DriveConstants.ANGLE_P, DriveConstants.ANGLE_D, DriveConstants.ANGLE_OFFSETS[moduleNumber]
         );
 
-        // Calculate positions for odometry
-        int sampleCount = odometryTimestamps.length; // All signals are sampled together
-        odometryPositions = new SwerveModulePosition[sampleCount];
+        int sampleCount = timestampQueue.size();
+        odometryTimestamps = new double[sampleCount];
+        odometryDrivePositionsRad = new double[sampleCount];
+        odometryTurnPositions = new Rotation2d[sampleCount];
+
         for (int i = 0; i < sampleCount; i++) {
-            double positionMeters = odometryDrivePositionsRad[i] * Units.inchesToMeters(DriveConstants.WHEEL_DIAMETER_INCHES);
-            Rotation2d angle = odometryTurnPositions[i];
-            odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
+            odometryTimestamps[i] = timestampQueue.poll();
+            odometryDrivePositionsRad[i] = drivePositionQueue.poll();
+            odometryTurnPositions[i] = Rotation2d.fromRadians(anglePositionQueue.poll());
         }
     }
 
@@ -137,7 +151,7 @@ public class SwerveModule extends SubsystemBase {
 
     public SwerveModuleState getState() {
         return new SwerveModuleState(
-                driveMotor.getEncoder().getVelocity() * (DriveConstants.WHEEL_DIAMETER_INCHES/2),
+                driveMotor.getEncoder().getVelocity(),
                 new Rotation2d(angleMotor.getAbsoluteEncoder().getPosition()));
     }
 
@@ -147,6 +161,13 @@ public class SwerveModule extends SubsystemBase {
 
     public double[] getOdometryTimestamps() {
         return odometryTimestamps;
+    }
+
+    public SwerveModulePosition getOdometryPosition(int index) {
+        return new SwerveModulePosition(
+                odometryDrivePositionsRad[index],
+                odometryTurnPositions[index]
+        );
     }
 
     public void teleopInit() {

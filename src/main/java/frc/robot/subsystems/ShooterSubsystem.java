@@ -36,13 +36,13 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     private final SimpleMotorFeedforward shooterFF = new SimpleMotorFeedforward(
-        ShootingConstants.SHOOTER_KS,
-        ShootingConstants.SHOOTER_KV,
+        ShootingConstants.SHOOTER_KS.get(),
+        ShootingConstants.SHOOTER_KV.get(),
         ShootingConstants.SHOOTER_KA
     );
 
     private final PIDController shooterPID = new PIDController(
-            ShootingConstants.SHOOTER_P, ShootingConstants.SHOOTER_I, ShootingConstants.SHOOTER_D
+            ShootingConstants.SHOOTER_P.get(), ShootingConstants.SHOOTER_I, ShootingConstants.SHOOTER_D.get()
     );
 
     double setpoint;
