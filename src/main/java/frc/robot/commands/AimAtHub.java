@@ -28,7 +28,7 @@ public class AimAtHub extends Command {
         this.turret = turret;
     }
 
-    private double angel(Pose2d pose) {
+    private double angle(Pose2d pose) {
         return Math.atan2(pose.getX(), pose.getY());
     }
 
@@ -57,6 +57,11 @@ public class AimAtHub extends Command {
         return pose;
     }
 
+    public Pose2d getTurretPose(Pose2d pose, Translation2d turretTranslation) {
+        Translation2d offsetRotated = turretTranslation.rotateBy(pose.getRotation());
+        return new Pose2d(pose.getTranslation().plus(offsetRotated), pose.getRotation());
+    }
+
     private Pose2d subtract(Pose2d pose0, Pose2d pose1) {
         return new Pose2d(new Translation2d(pose0.getX()-pose1.getX(), pose0.getY()-pose1.getY()), pose0.getRotation());
     }
@@ -74,47 +79,48 @@ public class AimAtHub extends Command {
         double x = (d) / (v*t);
         return Math.atan2(x,z);
     }
-    
+
     public double turretAngle(){
-        Pose2d targetPos2d = targetPose.toPose2d();
+        Pose2d targetPose2d = targetPose.toPose2d();
+        Translation2d turretoffset = new Translation2d(0.5, 0.0);//todo get offset from cad
         Pose2d robotVelocity = new Pose2d(
                 new Translation2d(
                         swerveSubsystem.getFieldVelocity().vxMetersPerSecond,
                         swerveSubsystem.getFieldVelocity().vyMetersPerSecond),
                 new Rotation2d(swerveSubsystem.getFieldVelocity().omegaRadiansPerSecond));
-
-        Pose2d horizontalVector = subtract(targetPos2d, currentPose);
+        Pose2d turretPose = getTurretPose(currentPose, turretoffset);
+        Pose2d horizontalVector = subtract(targetPose2d, turretPose);
         double vMag = distance(shooterVelocity);
         double time = distance(horizontalVector)/vMag;
 
-        Pose2d relativePose2d = getRelative2d(targetPos2d, currentPose, robotVelocity , time, 3, vMag);
-        double targetAngle = angel(relativePose2d);
+        Pose2d relativePose2d = getRelative2d(targetPose2d, turretPose, robotVelocity , time, 3, vMag);
+        double targetAngle = angle(relativePose2d);
         if(targetAngle < 0){
             targetAngle = Math.PI*2 + targetAngle;
         }
         return targetAngle;
     }
-    
+
     public double hoodAngle(){
         Pose2d targetPos2d = targetPose.toPose2d();
+        Translation2d turretoffset = new Translation2d(0.5, 0.0);//todo get offset from cad
         Pose2d robotVelocity = new Pose2d(
                 new Translation2d(
                         swerveSubsystem.getFieldVelocity().vxMetersPerSecond,
                         swerveSubsystem.getFieldVelocity().vyMetersPerSecond),
                 new Rotation2d(swerveSubsystem.getFieldVelocity().omegaRadiansPerSecond));
-
-        Pose2d horizontalVector = subtract(targetPos2d, currentPose);
+        Pose2d turretPose = getTurretPose(currentPose, turretoffset);
+        Pose2d horizontalVector = subtract(targetPos2d, turretPose);
         double vMag = distance(shooterVelocity);
         double time = distance(horizontalVector)/vMag;
 
-        Pose2d relativePose2d = getRelative2d(targetPos2d, currentPose, robotVelocity , time, 3, vMag);
-        Pose3d relativePose3d = getRelative3d(targetPose, currentPose, robotVelocity, time, 3, vMag);
+        Pose2d relativePose2d = getRelative2d(targetPos2d, turretPose, robotVelocity , time, 3, vMag);
+        Pose3d relativePose3d = getRelative3d(targetPose, turretPose, robotVelocity, time, 3, vMag);
         double d = distance(relativePose2d);
         time = d/vMag;
         double shooterAngle = shootingAngle(relativePose3d, vMag, time);
         return shooterAngle;
     }
-
 
 }
 
