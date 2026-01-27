@@ -35,8 +35,8 @@ public class Robot extends TimedRobot
   {
     {
     // Logger.recordMetadata("ProjectName", "MyProject"); // Set a metadata value
-    // Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
-    // setUseTiming(false); // Run as fast as possible
+    Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
+    // Logger.setUseTiming(false); // Run as fast as possible
     // String logPath = LogFileUtil.findReplayLog(); // Pull the replay log from AdvantageScope (or prompt the user)
     // Logger.setReplaySource(new WPILOGReader(logPath)); // Read replay log
     // Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim"))); // Save outputs to a new log
@@ -97,7 +97,6 @@ public class Robot extends TimedRobot
   @Override
   public void disabledInit()
   {
-    m_robotContainer.setMotorBrake(true);
     disabledTimer.reset();
     disabledTimer.start();
   }
@@ -107,7 +106,6 @@ public class Robot extends TimedRobot
   {
     if (disabledTimer.hasElapsed(Constants.DrivebaseConstants.WHEEL_LOCK_TIME))
     {
-      m_robotContainer.setMotorBrake(false);
       disabledTimer.stop();
       disabledTimer.reset();
     }
@@ -119,7 +117,6 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousInit()
   {
-    m_robotContainer.setMotorBrake(true);
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command (example)

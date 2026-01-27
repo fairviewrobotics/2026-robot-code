@@ -6,6 +6,7 @@ package frc.robot;
 
 import dev.doglog.DogLog;
 import dev.doglog.DogLogOptions;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -21,9 +22,11 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.autonomous.SuperSecretMissileTech;
+import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveToPoint;
 import frc.robot.commands.ShooterCommand;
 import frc.robot.commands.IntakeCommand;
+import frc.robot.constants.DriveConstants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.IntakeConstants;
 import frc.robot.constants.ShootingConstants;
@@ -47,8 +50,7 @@ public class RobotContainer
   final CommandPS5Controller primary_controller = new CommandPS5Controller(0);
   final CommandXboxController secondary_controller = new CommandXboxController(1);
   // The robot's subsystems and commands are defined here...
-  private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
-          "swerve"));
+  SwerveSubsystem swerveSubsystem = new SwerveSubsystem();
   private final Vision vision;
   // BallDetection ballDetection = new BallDetection();
   // ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
@@ -58,73 +60,11 @@ public class RobotContainer
   public static SuperSecretMissileTech superSecretMissileTech;
 
   /**
-   * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
-   */
-  SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                  () -> primary_controller.getLeftY() * -1,
-                  () -> primary_controller.getLeftX() * -1)
-          .withControllerRotationAxis(() -> primary_controller.getRightX() * -1)
-          .deadband(OperatorConstants.DEADBAND)
-          .scaleTranslation(0.8)
-          .allianceRelativeControl(true);
-
-  SwerveInputStream driveYAxisLock = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                  () -> primary_controller.getLeftY() * 0,
-                  () -> primary_controller.getLeftX() * -1)
-          .withControllerRotationAxis(() -> primary_controller.getRightX() * 0)
-          .deadband(OperatorConstants.DEADBAND)
-          .scaleTranslation(0.8)
-          .allianceRelativeControl(true);
-
-  /**
-   * Clone's the angular velocity input stream and converts it to a fieldRelative input stream.
-   */
-  SwerveInputStream driveDirectAngle = driveAngularVelocity.copy().withControllerHeadingAxis(primary_controller::getRightX,
-                  primary_controller::getRightY)
-          .headingWhile(true);
-
-  /**
-   * Clone's the angular velocity input stream and converts it to a robotRelative input stream.
-   */
-  SwerveInputStream driveRobotOriented = driveAngularVelocity.copy().robotRelative(true)
-          .allianceRelativeControl(false);
-
-  SwerveInputStream driveAngularVelocityKeyboard = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                  () -> -primary_controller.getLeftY(),
-                  () -> -primary_controller.getLeftX())
-          .withControllerRotationAxis(() -> primary_controller.getRawAxis(
-                  2))
-          .deadband(OperatorConstants.DEADBAND)
-          .scaleTranslation(0.8)
-          .allianceRelativeControl(true);
-  // Derive the heading axis with math!
-  SwerveInputStream driveDirectAngleKeyboard     = driveAngularVelocityKeyboard.copy()
-          .withControllerHeadingAxis(() ->
-                          Math.sin(
-                                  primary_controller.getRawAxis(
-                                          2) *
-                                          Math.PI) *
-                                  (Math.PI *
-                                          2),
-                  () ->
-                          Math.cos(
-                                  primary_controller.getRawAxis(
-                                          2) *
-                                          Math.PI) *
-                                  (Math.PI *
-                                          2))
-          .headingWhile(true)
-          .translationHeadingOffset(true)
-          .translationHeadingOffset(Rotation2d.fromDegrees(
-                  0));
-
-
-  /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer()
   {
-    Vision.init(drivebase.getSwerveDrive());
+    Vision.init(swerveSubsystem);
     this.vision = Vision.getInstance();
     // Configure the trigger bindings
     configureBindings();
@@ -144,19 +84,30 @@ public class RobotContainer
    */
   private void configureBindings()
   {
-    Command driveFieldOrientedDirectAngle      = drivebase.driveFieldOriented(driveDirectAngle);
-    Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
-    // Field Y axis, not driver POV
-    Command driveFieldOrientedYAxisLock = drivebase.driveFieldOriented(driveYAxisLock);
-    Command driveRobotOrientedAngularVelocity  = drivebase.driveFieldOriented(driveRobotOriented);
-    Command driveFieldOrientedDirectAngleKeyboard      = drivebase.driveFieldOriented(driveDirectAngleKeyboard);
-    Command driveFieldOrientedAnglularVelocityKeyboard = drivebase.driveFieldOriented(driveAngularVelocityKeyboard);
+    swerveSubsystem.setDefaultCommand(
+            new DriveCommands(
+                    swerveSubsystem,
+                    () ->
+                            -MathUtil.applyDeadband(
+                                    primary_controller.getLeftY(),
+                                    DriveConstants.CONTROLLER_DEADBAND.get())
+                                    * DriveConstants.MAX_XY_SPEED_MPS.get(),
+                    () ->
+                            -MathUtil.applyDeadband(
+                                    primary_controller.getLeftX(),
+                                    DriveConstants.CONTROLLER_DEADBAND.get())
+                                    * DriveConstants.MAX_XY_SPEED_MPS.get(),
+                    () ->
+                            -MathUtil.applyDeadband(
+                                    primary_controller.getRightX(),
+                                    DriveConstants.CONTROLLER_DEADBAND.get())
+                                    * Math.toRadians(DriveConstants.MAX_THETA_SPEED_RAD_PS.get()),
+                    true));
 
-    primary_controller.options().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3, 3, new Rotation2d()))));
-    primary_controller.pov(0).whileTrue(drivebase.sysIdDriveMotorCommand());
-    primary_controller.pov(90).whileTrue(drivebase.sysIdAngleMotorCommand());
-    primary_controller.button(2).whileTrue(Commands.runEnd(() -> driveDirectAngleKeyboard.driveToPoseEnabled(true),
-            () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
+    primary_controller.options().onTrue(Commands.runOnce(() -> swerveSubsystem.resetOdometry(new Pose2d(3, 3, new Rotation2d()))));
+//    primary_controller.pov(0).whileTrue(swerveSubsystem.sysIdDriveMotorCommand());
+//    primary_controller.pov(90).whileTrue(swerveSubsystem.sysIdAngleMotorCommand());
+
 
 
 //    secondary_controller.x().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, -IntakeConstants.INTAKING_VOLTAGE));
@@ -165,49 +116,13 @@ public class RobotContainer
 
     // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
 
-    primary_controller.R1().whileTrue(driveFieldOrientedYAxisLock);
-
-    primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-    primary_controller.square().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
+    primary_controller.cross().onTrue((Commands.runOnce(swerveSubsystem::resetGyro)));
     primary_controller.options().whileTrue(Commands.none());
     // primary_controller.back().whileTrue(Commands.none());
-    primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
     primary_controller.R1().onTrue(Commands.none());
 
-    if (RobotBase.isSimulation())
-    {
-      drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
-    } else
-    {
-      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
     }
 
-    if (Robot.isSimulation())
-    {
-      Pose2d target = new Pose2d(new Translation2d(1, 4),
-              Rotation2d.fromDegrees(90));
-      //drivebase.getSwerveDrive().field.getObject("targetPose").setPose(target);
-      driveDirectAngleKeyboard.driveToPose(() -> target,
-              new ProfiledPIDController(5,
-                      0,
-                      0,
-                      new Constraints(5, 2)),
-              new ProfiledPIDController(5,
-                      0,
-                      0,
-                      new Constraints(Units.degreesToRadians(360),
-                              Units.degreesToRadians(180))
-              ));
-
-
-//      driverXbox.b().whileTrue(
-//          drivebase.driveToPose(
-//              new Pose2d(new Translation2d(4, 4), Rotation2d.fromDegrees(0)))
-//                              );
-
-    }
-
-  }
 
   public Command getAimAtHubCommand() {
     // RobotState robotState = RobotState.getInstance();
@@ -244,10 +159,10 @@ public class RobotContainer
     return superSecretMissileTech.getSelected();
   }
 
-  public void setMotorBrake(boolean brake)
-  {
-    drivebase.setMotorBrake(brake);
-  }
+//  public void setMotorBrake(boolean brake)
+//  {
+//    swerveSubsystem.setMotorBrake(brake);
+//  }
 
 
 

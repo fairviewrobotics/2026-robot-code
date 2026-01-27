@@ -17,7 +17,6 @@ import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
-import swervelib.SwerveDrive;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,9 +25,9 @@ public class Vision extends SubsystemBase {
 
     private static Vision instance;
     private final PhotonCamera[] cameras;
-    private final SwerveDrive swerveDrive;
+    private final SwerveSubsystem swerveSubsystem;
     private final AprilTagFieldLayout fieldLayout =
-            AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+            AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 
     private final Pose3d[] baseCameraPoses = new Pose3d[] {
             new Pose3d(
@@ -56,16 +55,16 @@ public class Vision extends SubsystemBase {
 
     Pose3d[] cameraPoses = getAdjustedCameraPoses();
 
-    private Vision(SwerveDrive swerveDrive) {
-        this.swerveDrive = swerveDrive;
+    private Vision(SwerveSubsystem swerveSubsystem) {
+        this.swerveSubsystem = swerveSubsystem;
         this.cameras = new PhotonCamera[] {
                 new PhotonCamera("rev tag cam")
         };
     }
 
-    public static void init(SwerveDrive swerveDrive) {
+    public static void init(SwerveSubsystem swerveSubsystem) {
         if (instance == null) {
-            instance = new Vision(swerveDrive);
+            instance = new Vision(swerveSubsystem);
         }
     }
 
@@ -181,7 +180,7 @@ public class Vision extends SubsystemBase {
 
                 double baseXY = 0.005;
 
-                swerveDrive.addVisionMeasurement(
+                swerveSubsystem.poseEstimator.addVisionMeasurement(
                         robotPoseEstimation,
                         timestamp,
                         VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
@@ -215,7 +214,7 @@ public class Vision extends SubsystemBase {
 
                 double baseXY = 0.005;
 
-                swerveDrive.addVisionMeasurement(
+                swerveSubsystem.poseEstimator.addVisionMeasurement(
                         robotPoseEstimation.toPose2d(),
                         timestamp,
                         VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
@@ -229,14 +228,9 @@ public class Vision extends SubsystemBase {
     /**
      * Get the current estimated robot pose from YAGSL.
      */
+
     public Pose2d getRobotPose() {
-        return swerveDrive.getPose();
+        return swerveSubsystem.poseEstimator.getEstimatedPosition();
     }
 
-    /**
-     * Reset the robot pose in YAGSL's pose estimator.
-     */
-    public void resetPose(Pose2d pose) {
-        swerveDrive.resetOdometry(pose);
-    }
 }

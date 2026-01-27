@@ -132,12 +132,12 @@ public class DriveToPoint extends Command {
         double xVel = translationMag.getNorm() * Math.cos(translationMag.getAngle().getRadians());
         double yVel = translationMag.getNorm() * Math.sin(translationMag.getAngle().getRadians());
         Translation2d driveVals = new Translation2d(driveVelocity.getX(), driveVelocity.getY());
-        swerveSubsystem.drive(driveVals, thetaVelocity, true);
+        swerveSubsystem.drive(driveVals, thetaVelocity, true, true);
     }
 
     @Override
     public void end(boolean interrupted) {
-        swerveSubsystem.drive(Translation2d.kZero, 0.0, true);
+        swerveSubsystem.drive(Translation2d.kZero, 0.0, true, true);
     }
 
     @Override
