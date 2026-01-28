@@ -82,6 +82,7 @@ public class SwerveSubsystem extends SubsystemBase {
             modules[i].setVelocity(states[i]);
         }
 
+        Logger.recordOutput("swerve/target angle", states[0].angle.getRadians());
         Logger.recordOutput("swerve/CommandedSpeeds", speeds);
     }
 

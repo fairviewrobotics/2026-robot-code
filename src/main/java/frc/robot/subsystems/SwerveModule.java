@@ -49,11 +49,11 @@ public class SwerveModule extends SubsystemBase {
         SparkMaxConfig angleConfig = new SparkMaxConfig();
         SparkFlexConfig driveConfig = new SparkFlexConfig();
 
+        angleConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
         angleConfig.closedLoop.pid(DriveConstants.ANGLE_P.get(), 0.0, DriveConstants.ANGLE_D.get());
         angleConfig.absoluteEncoder.positionConversionFactor(DriveConstants.ANGLE_POSITION_CONVERSION_FACTOR);
         angleConfig.inverted(moduleConfig.invertAngle());
-        angleConfig.absoluteEncoder.zeroOffset(moduleConfig.absoluteEncoderOffset()/360);
-        angleConfig.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
+        angleConfig.absoluteEncoder.zeroOffset(Units.degreesToRotations(moduleConfig.absoluteEncoderOffset()));
 
         driveConfig.encoder.positionConversionFactor(DriveConstants.DRIVE_POSITION_CONVERSION_FACTOR);
         driveConfig.encoder.velocityConversionFactor(DriveConstants.DRIVE_VELOCITY_CONVERSION_FACTOR);
@@ -62,12 +62,13 @@ public class SwerveModule extends SubsystemBase {
 
         this.driveMotor = new SparkFlex(moduleConfig.driveID(), SparkLowLevel.MotorType.kBrushless);
         this.angleMotor = new SparkMax(moduleConfig.angleID(), SparkLowLevel.MotorType.kBrushless);
+        angleMotor.getEncoder().setPosition(angleMotor.getAbsoluteEncoder().getPosition());
 
         this.driveController = driveMotor.getClosedLoopController();
         this.angleController = angleMotor.getClosedLoopController();
 
-        driveMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-        angleMotor.configure(angleConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+        driveMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        angleMotor.configure(angleConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         var odometryThread = SparkOdometryThread.getInstance();
         this.drivePositionQueue = odometryThread.registerSignal(driveMotor, () -> driveMotor.getEncoder().getPosition());
@@ -80,7 +81,7 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public void periodic() {
-
+            Logger.recordOutput("swerve/target angle", angleController.getSetpoint());
             TunableNumber.ifChanged(
                     hashCode(),
                     () -> {
@@ -117,7 +118,7 @@ public class SwerveModule extends SubsystemBase {
                             0.0,
                             DriveConstants.ANGLE_D.get()
                     );
-                    angleUpdateConfig.absoluteEncoder.zeroOffset(DriveConstants.ANGLE_OFFSETS[moduleNumber].get()/360);
+                    angleUpdateConfig.absoluteEncoder.zeroOffset(Units.degreesToRotations(DriveConstants.ANGLE_OFFSETS[moduleNumber].get()));
 
                     angleMotor.configure(
                             angleUpdateConfig,
@@ -179,8 +180,14 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public void setVelocity(SwerveModuleState desiredState) {
-        driveVelocityVoltage(desiredState.speedMetersPerSecond);
-        setAnglePositionVoltage(desiredState.angle.getRadians());
+
+        SwerveModuleState optimizedState = SwerveModuleState.optimize(
+                desiredState,
+                getState().angle
+        );
+
+        driveVelocityVoltage(optimizedState.speedMetersPerSecond);
+        setAnglePositionVoltage(optimizedState.angle.getRadians());
     }
 
     private void driveVelocityVoltage(double speedMetersPerSecond) {
@@ -197,8 +204,12 @@ public class SwerveModule extends SubsystemBase {
     }
 
     private void setAnglePositionVoltage(double radians) {
+        double currentAngle = angleMotor.getAbsoluteEncoder().getPosition();
+        double error = radians - currentAngle;
+        error = Math.IEEEremainder(error, 2 * Math.PI);
+        double optimizedAngle = currentAngle + error;
         angleController.setSetpoint(
-                radians,
+                optimizedAngle,
                 SparkBase.ControlType.kPosition,
                 ClosedLoopSlot.kSlot0
         );
