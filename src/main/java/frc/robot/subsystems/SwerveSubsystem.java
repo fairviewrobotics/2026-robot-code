@@ -72,7 +72,7 @@ public class SwerveSubsystem extends SubsystemBase {
         double vr = slewRates ? thetaSlew.calculate(rotation) : rotation;
 
         ChassisSpeeds speeds = fieldRelative
-                ? ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, vr, this.getPose().getRotation())
+                ? ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, vr, this.gyro.getRotation2d())
                 : new ChassisSpeeds(vx, vy, vr);
 
         SwerveModuleState[] states = DriveConstants.KINEMATICS.toSwerveModuleStates(speeds);

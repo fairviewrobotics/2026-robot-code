@@ -27,7 +27,7 @@ public class DriveConstants {
     public static TunableNumber MAX_XY_SPEED_MPS = new TunableNumber("max-module-speed", 3.0);
     public static TunableNumber MAX_THETA_SPEED_RAD_PS = new TunableNumber("max-module-theta", Math.PI);
 
-    public static TunableNumber DRIVE_P = new TunableNumber("drive-p", 0.0020645);
+    public static TunableNumber DRIVE_P = new TunableNumber("drive-p", 0.20645);
     public static TunableNumber DRIVE_D = new TunableNumber("drive-d", 0.0);
     public static TunableNumber DRIVE_KS = new TunableNumber("drive-ks", 0.0);
     public static TunableNumber DRIVE_KV = new TunableNumber("drive-kv", 0.0);

@@ -36,7 +36,6 @@ import java.io.File;
 import java.util.Optional;
 
 import frc.robot.utils.NetworkTablesUtils;
-import swervelib.SwerveInputStream;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very

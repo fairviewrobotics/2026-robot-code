@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.utils.MathUtils;
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
@@ -77,6 +78,7 @@ public class BallDetection extends SubsystemBase {
     @Override
     public void periodic() {
         updateBallPose();
+        Logger.recordOutput("Ball Pose", getBallPose());
     }
 
     public Pose2d getBallPose() {
