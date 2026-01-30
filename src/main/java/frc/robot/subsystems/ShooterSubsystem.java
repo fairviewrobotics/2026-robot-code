@@ -1,5 +1,11 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfigurator;
+import com.ctre.phoenix6.hardware.DeviceIdentifier;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkFlex;
@@ -21,27 +27,27 @@ import static frc.robot.Constants.TARGET_POSE_ROTATION;
 
 public class ShooterSubsystem extends SubsystemBase {
 
-    private final SparkFlex topShooterMotor = new SparkFlex(ShootingConstants.TOP_SHOOTER_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
-    private final SparkFlex bottomShooterMotor = new SparkFlex(ShootingConstants.BOTTOM_SHOOTER_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
+    private final TalonFX topShooterMotor = new TalonFX(ShootingConstants.TOP_SHOOTER_MOTOR_ID);
+    private final TalonFX bottomShooterMotor = new TalonFX(ShootingConstants.BOTTOM_SHOOTER_MOTOR_ID);
+    private final TalonFXConfigurator topShooterMotorConfig;
+    private final TalonFXConfigurator bottomShooterMotorConfig;
     private final DigitalInput shooterLinebreak = new DigitalInput(10);
     NetworkTablesUtils shooterNT = NetworkTablesUtils.getTable("Shooter");
 
     public ShooterSubsystem() {
-
-        SparkFlexConfig topShooterMotorConfig = new SparkFlexConfig();
-        SparkFlexConfig bottomShooterMotorConfig = new SparkFlexConfig();
-
+        topShooterMotorConfig = topShooterMotor.getConfigurator();
+        bottomShooterMotorConfig = bottomShooterMotor.getConfigurator();
+        MotorOutputConfigs newConfigs = new MotorOutputConfigs();
+        newConfigs.Inverted = InvertedValue.Clockwise_Positive;
         topShooterMotorConfig
-                .inverted(true)
-                .encoder.velocityConversionFactor(ShootingConstants.SHOOTER_VELOCITY_CONVERSION_FACTOR);
+                .apply(newConfigs);
+        //topShooterMotorConfig
+                //.velocityConversionFactor(ShootingConstants.SHOOTER_VELOCITY_CONVERSION_FACTOR); TODO: Add velocity conversion factor
 
         bottomShooterMotorConfig
-                .inverted(true)
-                .encoder.velocityConversionFactor(ShootingConstants.SHOOTER_VELOCITY_CONVERSION_FACTOR);
-
-        topShooterMotor.configure(topShooterMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        bottomShooterMotor.configure(bottomShooterMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
+                .apply(newConfigs);
+        //bottomShooterMotorConfig
+                //.encoder.velocityConversionFactor(ShootingConstants.SHOOTER_VELOCITY_CONVERSION_FACTOR);
     }
 
     private final SimpleMotorFeedforward shooterFF = new SimpleMotorFeedforward(
@@ -59,7 +65,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public void setTopMotorRPM(double rpm) {
         this.setpoint = rpm;
         topShooterMotor.setVoltage(
-                shooterPID.calculate(MathUtils.RPMtoRadians(topShooterMotor.getEncoder().getVelocity()), MathUtils.RPMtoRadians(rpm)) +
+                shooterPID.calculate(topShooterMotor.getVelocity().getValueAsDouble(), MathUtils.RPMtoRadians(rpm)) +
                         shooterFF.calculate(MathUtils.RPMtoRadians(rpm))
         );
     }
@@ -67,7 +73,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public void setBottomMotorRPM(double rpm) {
         this.setpoint = rpm;
         bottomShooterMotor.setVoltage(
-                shooterPID.calculate(MathUtils.RPMtoRadians(bottomShooterMotor.getEncoder().getVelocity()), MathUtils.RPMtoRadians(rpm)) +
+                shooterPID.calculate(bottomShooterMotor.getVelocity().getValueAsDouble(), MathUtils.RPMtoRadians(rpm)) +
                         shooterFF.calculate(MathUtils.RPMtoRadians(rpm))
         );
     }
@@ -75,12 +81,12 @@ public class ShooterSubsystem extends SubsystemBase {
     public void setMotorRPM(double rpm) {
         this.setpoint = rpm;
         topShooterMotor.setVoltage(
-                shooterPID.calculate(MathUtils.RPMtoRadians(topShooterMotor.getEncoder().getVelocity()), MathUtils.RPMtoRadians(rpm)) + 
+                shooterPID.calculate(topShooterMotor.getVelocity().getValueAsDouble(), MathUtils.RPMtoRadians(rpm)) +
                 shooterFF.calculate(MathUtils.RPMtoRadians(rpm))
         );
 
         bottomShooterMotor.setVoltage(
-                shooterPID.calculate(MathUtils.RPMtoRadians(bottomShooterMotor.getEncoder().getVelocity()), MathUtils.RPMtoRadians(rpm)) + 
+                shooterPID.calculate(bottomShooterMotor.getVelocity().getValueAsDouble(), MathUtils.RPMtoRadians(rpm)) +
                 shooterFF.calculate(MathUtils.RPMtoRadians(rpm))
         );
 
@@ -126,7 +132,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
         shooterNT.setEntry("shooter error", shooterPID.getError());
         shooterNT.setEntry("shooter setpoint", setpoint);
-        shooterNT.setEntry("shooter velocity", MathUtils.RPMtoRadians(topShooterMotor.getEncoder().getVelocity()));
+        shooterNT.setEntry("shooter velocity", topShooterMotor.getVelocity().getValueAsDouble());
 
     }
 
