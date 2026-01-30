@@ -4,10 +4,12 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.PersistMode;
+import com.revrobotics.REVLibError;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.*;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -52,27 +54,70 @@ public class SwerveModule extends SubsystemBase {
         SparkMaxConfig angleConfig = new SparkMaxConfig();
         SparkFlexConfig driveConfig = new SparkFlexConfig();
 
-        angleConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
-        angleConfig.absoluteEncoder.positionConversionFactor(DriveConstants.ANGLE_POSITION_CONVERSION_FACTOR);
-        angleConfig.closedLoop.positionWrappingEnabled(true);
-        angleConfig.closedLoop.positionWrappingInputRange(0, 2 * Math.PI);
-        angleConfig.closedLoop.pid(DriveConstants.ANGLE_P.get(), 0.0, DriveConstants.ANGLE_D.get());
-        angleConfig.inverted(moduleConfig.invertAngle());
-        angleConfig.absoluteEncoder.zeroOffset(Units.degreesToRotations(moduleConfig.absoluteEncoderOffset()));
+        angleConfig
+                .idleMode(IdleMode.kBrake)
+                .smartCurrentLimit(30)
+                .inverted(moduleConfig.invertInternalAngle())
+                .voltageCompensation(12.0);
 
-        driveConfig.encoder.positionConversionFactor(DriveConstants.DRIVE_POSITION_CONVERSION_FACTOR);
-        driveConfig.encoder.velocityConversionFactor(DriveConstants.DRIVE_VELOCITY_CONVERSION_FACTOR);
-        driveConfig.closedLoop.pid(DriveConstants.DRIVE_P.get(), 0.0, DriveConstants.DRIVE_D.get());
+        angleConfig.absoluteEncoder
+                .positionConversionFactor(DriveConstants.ANGLE_POSITION_CONVERSION_FACTOR)
+                .zeroOffset(Units.degreesToRotations(moduleConfig.absoluteEncoderOffset()))
+                .inverted(moduleConfig.invertAngle())
+                .averageDepth(2);
+
+        angleConfig.closedLoop
+                .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
+                .pid(DriveConstants.ANGLE_P.get(), 0.0, DriveConstants.ANGLE_D.get())
+                .outputRange(-1, 1)
+                .positionWrappingEnabled(true)
+                .positionWrappingInputRange(0, 2 * Math.PI);  // Wrapping range in radians
+
+        angleConfig.signals
+                .absoluteEncoderPositionAlwaysOn(true)
+                .absoluteEncoderPositionPeriodMs((int) (1000.0 / DriveConstants.ODOMETRY_FREQUENCY))
+                .absoluteEncoderVelocityAlwaysOn(true)
+                .absoluteEncoderVelocityPeriodMs(20)
+                .appliedOutputPeriodMs(20)
+                .busVoltagePeriodMs(20)
+                .outputCurrentPeriodMs(20);
+
+        driveConfig
+                .idleMode(IdleMode.kBrake)
+                .smartCurrentLimit(40)
+                .voltageCompensation(12.0);
+
+        driveConfig.encoder
+                .positionConversionFactor(DriveConstants.DRIVE_POSITION_CONVERSION_FACTOR)
+                .velocityConversionFactor(DriveConstants.DRIVE_VELOCITY_CONVERSION_FACTOR)
+                .uvwMeasurementPeriod(10)
+                .uvwAverageDepth(2);
+
+        driveConfig.closedLoop
+                .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                .pid(DriveConstants.DRIVE_P.get(), 0.0, DriveConstants.DRIVE_D.get())
+                .outputRange(-1, 1);
+
+        driveConfig.signals
+                .primaryEncoderPositionAlwaysOn(true)
+                .primaryEncoderPositionPeriodMs((int) (1000.0 / DriveConstants.ODOMETRY_FREQUENCY))
+                .primaryEncoderVelocityAlwaysOn(true)
+                .primaryEncoderVelocityPeriodMs(20)
+                .appliedOutputPeriodMs(20)
+                .busVoltagePeriodMs(20)
+                .outputCurrentPeriodMs(20);
+
         driveConfig.inverted(moduleConfig.invertDrive());
 
         this.driveMotor = new SparkFlex(moduleConfig.driveID(), SparkLowLevel.MotorType.kBrushless);
         this.angleMotor = new SparkMax(moduleConfig.angleID(), SparkLowLevel.MotorType.kBrushless);
 
-        driveMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        angleMotor.configure(angleConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        tryConfigureWithRetry(driveMotor, driveConfig, "Drive motor " + moduleNumber);
+        tryConfigureWithRetry(angleMotor, angleConfig, "Angle motor " + moduleNumber);
 
-        // Sync relative encoder to absolute encoder AFTER configuration
         angleMotor.getEncoder().setPosition(angleMotor.getAbsoluteEncoder().getPosition());
+
+        driveMotor.getEncoder().setPosition(0.0);
 
         this.driveController = driveMotor.getClosedLoopController();
         this.angleController = angleMotor.getClosedLoopController();
@@ -84,18 +129,56 @@ public class SwerveModule extends SubsystemBase {
 
         this.moduleOffset = moduleConfig.moduleOffset();
         this.moduleNumber = moduleConfig.moduleNumber();
+    }
 
+    /**
+     * Retry configuration up to 5 times to handle CAN bus flakiness
+     */
+    private void tryConfigureWithRetry(SparkBase spark, Object config, String name) {
+        for (int i = 0; i < 5; i++) {
+            REVLibError error;
+            if (config instanceof SparkFlexConfig) {
+                error = ((SparkFlex) spark).configure(
+                        (SparkFlexConfig) config,
+                        ResetMode.kResetSafeParameters,
+                        PersistMode.kPersistParameters
+                );
+            } else {
+                error = ((SparkMax) spark).configure(
+                        (SparkMaxConfig) config,
+                        ResetMode.kResetSafeParameters,
+                        PersistMode.kPersistParameters
+                );
+            }
+
+            if (error == REVLibError.kOk) {
+                Logger.recordOutput("SwerveModule/" + name + "/ConfigSuccess", true);
+                return;
+            }
+
+            Logger.recordOutput("SwerveModule/" + name + "/ConfigRetry", i + 1);
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        Logger.recordOutput("SwerveModule/" + name + "/ConfigFailed", true);
+        new Alert(name + " configuration failed after 5 retries!", AlertType.kError).set(true);
     }
 
     public void periodic() {
         String modulePrefix = "Module" + moduleNumber + "/";
 
+        // ============ LOGGING ============
         double currentAngleRadians = angleMotor.getAbsoluteEncoder().getPosition();
         double angleSetpoint = angleController.getSetpoint();
-        Logger.recordOutput(modulePrefix + "AngleCurrent_rot", currentAngleRadians);
-        Logger.recordOutput(modulePrefix + "AngleSetpoint_rot", angleSetpoint);
-        Logger.recordOutput(modulePrefix + "AngleError_rot", angleSetpoint - currentAngleRadians);
+        Logger.recordOutput(modulePrefix + "AngleCurrent_rad", currentAngleRadians);
+        Logger.recordOutput(modulePrefix + "AngleSetpoint_rad", angleSetpoint);
+        Logger.recordOutput(modulePrefix + "AngleError_rad", angleSetpoint - currentAngleRadians);
         Logger.recordOutput(modulePrefix + "AngleCurrent_deg", Units.radiansToDegrees(currentAngleRadians));
+        Logger.recordOutput(modulePrefix + "AngleInternalCurrent_deg", angleMotor.getEncoder().getPosition());
         Logger.recordOutput(modulePrefix + "AngleSetpoint_deg", Units.radiansToDegrees(angleSetpoint));
 
         double currentVelocity = driveMotor.getEncoder().getVelocity();
@@ -105,17 +188,23 @@ public class SwerveModule extends SubsystemBase {
         Logger.recordOutput(modulePrefix + "DriveVelocityError_mps", velocitySetpoint - currentVelocity);
         Logger.recordOutput(modulePrefix + "DrivePosition_m", driveMotor.getEncoder().getPosition());
 
+
         TunableNumber.ifChanged(
                 hashCode(),
                 () -> {
                     SparkFlexConfig driveUpdateConfig = new SparkFlexConfig();
-                    driveUpdateConfig.encoder.positionConversionFactor(DriveConstants.DRIVE_POSITION_CONVERSION_FACTOR);
-                    driveUpdateConfig.encoder.velocityConversionFactor(DriveConstants.DRIVE_VELOCITY_CONVERSION_FACTOR);
-                    driveUpdateConfig.closedLoop.pid(
-                            DriveConstants.DRIVE_P.get(),
-                            0.0,
-                            DriveConstants.DRIVE_D.get()
-                    );
+
+                    driveUpdateConfig.encoder
+                            .positionConversionFactor(DriveConstants.DRIVE_POSITION_CONVERSION_FACTOR)
+                            .velocityConversionFactor(DriveConstants.DRIVE_VELOCITY_CONVERSION_FACTOR)
+                            .uvwMeasurementPeriod(10)
+                            .uvwAverageDepth(2);
+
+                    driveUpdateConfig.closedLoop
+                            .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+                            .pid(DriveConstants.DRIVE_P.get(), 0.0, DriveConstants.DRIVE_D.get())
+                            .outputRange(-1, 1);
+
                     driveUpdateConfig.inverted(moduleConfig.invertDrive());
 
                     driveMotor.configure(
@@ -124,11 +213,13 @@ public class SwerveModule extends SubsystemBase {
                             PersistMode.kNoPersistParameters
                     );
 
-                    driveFeedforward.setKs(DriveConstants.DRIVE_KS.get());
-                    driveFeedforward.setKv(DriveConstants.DRIVE_KV.get());
-                    driveFeedforward.setKa(DriveConstants.DRIVE_KA.get());
+                    driveFeedforward = new SimpleMotorFeedforward(
+                            DriveConstants.DRIVE_KS.get(),
+                            DriveConstants.DRIVE_KV.get(),
+                            DriveConstants.DRIVE_KA.get()
+                    );
 
-                    Logger.recordOutput("Drive PID updated for", moduleNumber);
+                    Logger.recordOutput("Drive PID updated for module", moduleNumber);
                 },
                 DriveConstants.DRIVE_P, DriveConstants.DRIVE_D, DriveConstants.DRIVE_KS, DriveConstants.DRIVE_KV, DriveConstants.DRIVE_KA
         );
@@ -138,17 +229,19 @@ public class SwerveModule extends SubsystemBase {
                 () -> {
                     SparkMaxConfig angleUpdateConfig = new SparkMaxConfig();
 
-                    angleUpdateConfig.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
-                    angleUpdateConfig.absoluteEncoder.positionConversionFactor(DriveConstants.ANGLE_POSITION_CONVERSION_FACTOR);
-                    angleUpdateConfig.closedLoop.positionWrappingEnabled(true);
-                    angleUpdateConfig.closedLoop.positionWrappingInputRange(0, 2 * Math.PI);
+                    angleUpdateConfig.absoluteEncoder
+                            .positionConversionFactor(DriveConstants.ANGLE_POSITION_CONVERSION_FACTOR)
+                            .zeroOffset(Units.degreesToRotations(DriveConstants.ANGLE_OFFSETS[moduleNumber].get()))
+                            .averageDepth(2);
+
+                    angleUpdateConfig.closedLoop
+                            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
+                            .pid(DriveConstants.ANGLE_P.get(), 0.0, DriveConstants.ANGLE_D.get())
+                            .outputRange(-1, 1)
+                            .positionWrappingEnabled(true)
+                            .positionWrappingInputRange(0, 2 * Math.PI);
+
                     angleUpdateConfig.inverted(moduleConfig.invertAngle());
-                    angleUpdateConfig.closedLoop.pid(
-                            DriveConstants.ANGLE_P.get(),
-                            0.0,
-                            DriveConstants.ANGLE_D.get()
-                    );
-                    angleUpdateConfig.absoluteEncoder.zeroOffset(Units.degreesToRotations(DriveConstants.ANGLE_OFFSETS[moduleNumber].get()));
 
                     angleMotor.configure(
                             angleUpdateConfig,
@@ -156,7 +249,7 @@ public class SwerveModule extends SubsystemBase {
                             PersistMode.kNoPersistParameters
                     );
 
-                    Logger.recordOutput("Angle PID updated for", moduleNumber);
+                    Logger.recordOutput("Angle PID updated for module", moduleNumber);
                 },
                 DriveConstants.ANGLE_P, DriveConstants.ANGLE_D, DriveConstants.ANGLE_OFFSETS[moduleNumber]
         );
@@ -176,7 +269,7 @@ public class SwerveModule extends SubsystemBase {
     public SwerveModulePosition getModulePosition() {
         return new SwerveModulePosition(
                 driveMotor.getEncoder().getPosition(),
-                new Rotation2d(this.getModulePose().getRotation().getRadians())
+                new Rotation2d(angleMotor.getAbsoluteEncoder().getPosition())
         );
     }
 
@@ -206,18 +299,28 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public void setVelocity(SwerveModuleState desiredState) {
+        String modulePrefix = "Module" + moduleNumber + "/";
 
-        SwerveModuleState optimizedState = SwerveModuleState.optimize(
-                desiredState,
-                getState().angle
-        );
+        // Log BEFORE optimization
+        Logger.recordOutput(modulePrefix + "DesiredAngle_deg", desiredState.angle.getDegrees());
+        Logger.recordOutput(modulePrefix + "DesiredSpeed_mps", desiredState.speedMetersPerSecond);
+        Logger.recordOutput(modulePrefix + "CurrentAngle_deg", getState().angle.getDegrees());
 
-        driveVelocityVoltage(optimizedState.speedMetersPerSecond);
-        setAnglePositionRadians(optimizedState.angle);
+        // Optimize in place (new way)
+        // desiredState.optimize(getState().angle);
+
+        // Log AFTER optimization
+        Logger.recordOutput(modulePrefix + "OptimizedAngle_deg", desiredState.angle.getDegrees());
+        Logger.recordOutput(modulePrefix + "OptimizedSpeed_mps", desiredState.speedMetersPerSecond);
+
+        // Apply cosine scaling
+        desiredState.cosineScale(getState().angle);
+
+        driveVelocityVoltage(desiredState.speedMetersPerSecond);
+        setAnglePosition(desiredState.angle);
     }
 
     private void driveVelocityVoltage(double speedMetersPerSecond) {
-
         double ffVoltage = driveFeedforward.calculate(speedMetersPerSecond);
 
         driveController.setSetpoint(
@@ -229,14 +332,13 @@ public class SwerveModule extends SubsystemBase {
         );
     }
 
-    private void setAnglePositionRadians(Rotation2d angle) {
-
+    private void setAnglePosition(Rotation2d angle) {
         double setpoint = MathUtil.inputModulus(angle.getRadians(), 0, 2 * Math.PI);
 
         String modulePrefix = "Module" + moduleNumber + "/";
-        Logger.recordOutput(modulePrefix + "target-angle", angle);
-        Logger.recordOutput(modulePrefix + "angle-error", angle.getRadians() - angleMotor.getAbsoluteEncoder().getPosition());
-        Logger.recordOutput(modulePrefix + "AngleOptimizedSetpoint_rot", setpoint);
+        Logger.recordOutput(modulePrefix + "TargetAngle_rad", angle.getRadians());
+        Logger.recordOutput(modulePrefix + "TargetAngle_deg", angle.getDegrees());
+        Logger.recordOutput(modulePrefix + "AngleSetpointSent_rad", setpoint);
 
         angleController.setSetpoint(
                 setpoint,

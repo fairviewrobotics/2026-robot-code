@@ -9,5 +9,7 @@ public record SwerveModuleConfig(
         Translation2d moduleOffset,
         double absoluteEncoderOffset,
         boolean invertDrive,
-        boolean invertAngle)
+        boolean invertAngle,
+        boolean invertInternalAngle
+        )
         {}

@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkFlex;
@@ -24,7 +25,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
         SparkFlexConfig topShooterMotorConfig = new SparkFlexConfig();
         SparkFlexConfig bottomShooterMotorConfig = new SparkFlexConfig();
-
+        TalonFXConfiguration topShooterConfig = new TalonFXConfiguration();
         topShooterMotorConfig
                 .inverted(true);
         bottomShooterMotorConfig

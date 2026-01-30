@@ -46,12 +46,17 @@ public class DriveConstants {
 
     public static final boolean FRONT_LEFT_DRIVE_INVERTED = false;
     public static final boolean FRONT_LEFT_ANGLE_INVERTED = false;
+    public static final boolean FRONT_LEFT_ANGLE_INTERNAL_INVERTED = true;
     public static final boolean FRONT_RIGHT_DRIVE_INVERTED = false;
     public static final boolean FRONT_RIGHT_ANGLE_INVERTED = false;
+    public static final boolean FRONT_RIGHT_ANGLE_INTERNAL_INVERTED = true;
     public static final boolean REAR_LEFT_DRIVE_INVERTED = false;
     public static final boolean REAR_LEFT_ANGLE_INVERTED = false;
+    public static final boolean REAR_LEFT_ANGLE_INTERNAL_INVERTED = true;
     public static final boolean REAR_RIGHT_DRIVE_INVERTED = false;
     public static final boolean REAR_RIGHT_ANGLE_INVERTED = false;
+    public static final boolean REAR_RIGHT_ANGLE_INTERNAL_INVERTED = true;
+
 
     // relative to wpi y
     public static final double DRIVEBASE_WIDTH_INCHES = 30.0;
@@ -83,7 +88,8 @@ public class DriveConstants {
                     ),
                     38.267,
                     FRONT_LEFT_DRIVE_INVERTED,
-                    FRONT_LEFT_ANGLE_INVERTED
+                    FRONT_LEFT_ANGLE_INVERTED,
+                    FRONT_LEFT_ANGLE_INTERNAL_INVERTED
                     );
 
     public static final SwerveModuleConfig FRONT_RIGHT_CONFIG =
@@ -97,7 +103,8 @@ public class DriveConstants {
                     ),
                     160.495,
                     FRONT_RIGHT_DRIVE_INVERTED,
-                    FRONT_RIGHT_ANGLE_INVERTED
+                    FRONT_RIGHT_ANGLE_INVERTED,
+                    FRONT_RIGHT_ANGLE_INTERNAL_INVERTED
             );
 
     public static final SwerveModuleConfig REAR_LEFT_CONFIG =
@@ -111,7 +118,8 @@ public class DriveConstants {
                     ),
                     288.346,
                     REAR_LEFT_DRIVE_INVERTED,
-                    REAR_LEFT_ANGLE_INVERTED
+                    REAR_LEFT_ANGLE_INVERTED,
+                    REAR_LEFT_ANGLE_INTERNAL_INVERTED
             );
 
     public static final SwerveModuleConfig REAR_RIGHT_CONFIG =
@@ -125,7 +133,8 @@ public class DriveConstants {
                     ),
                     159.085,
                     REAR_RIGHT_DRIVE_INVERTED,
-                    REAR_RIGHT_ANGLE_INVERTED
+                    REAR_RIGHT_ANGLE_INVERTED,
+                    REAR_RIGHT_ANGLE_INTERNAL_INVERTED
             );
 
         // Creating my kinematics object using the module locations
