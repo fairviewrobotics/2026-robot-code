@@ -91,9 +91,7 @@ public class RobotContainer
                                     DriveConstants.CONTROLLER_DEADBAND.get())
                                     * DriveConstants.MAX_XY_SPEED_MPS.get(),
                     () ->
-                            -MathUtil.applyDeadband(
-                                    primary_controller.getRightX(),
-                                    DriveConstants.CONTROLLER_DEADBAND.get())
+                                    primary_controller.getRightX()
                                     * Math.toRadians(DriveConstants.MAX_THETA_SPEED_RAD_PS.get()),
                     true));
 
@@ -109,7 +107,7 @@ public class RobotContainer
 
     // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
 
-    primary_controller.cross().onTrue((Commands.runOnce(() -> swerveSubsystem.resetGyro())));
+    primary_controller.cross().onTrue(new RunCommand(() -> swerveSubsystem.zeroGyro()));
     primary_controller.options().whileTrue(Commands.none());
     // primary_controller.back().whileTrue(Commands.none());
     primary_controller.R1().onTrue(Commands.none());

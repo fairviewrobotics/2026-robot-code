@@ -24,7 +24,7 @@ public class SwerveSubsystem extends SubsystemBase {
     private final AHRS gyro = new AHRS(AHRS.NavXComType.kMXP_SPI);
     private SwerveModule[] modules;
     private SlewRateLimiter magnitudeSlew = new SlewRateLimiter(0);
-    private SlewRateLimiter thetaSlew = new SlewRateLimiter(20);
+    private SlewRateLimiter thetaSlew = new SlewRateLimiter(0);
     static final Lock odometryLock = new ReentrantLock();
 
     private Rotation2d gyroRotation = Rotation2d.kZero;
@@ -84,6 +84,12 @@ public class SwerveSubsystem extends SubsystemBase {
 
         Logger.recordOutput("swerve/target angle", states[0].angle.getRadians());
         Logger.recordOutput("swerve/CommandedSpeeds", speeds);
+    }
+
+    public void driveAngleMotorsVoltage(double volts) {
+        for (int i = 0; i < modules.length; i++) {
+            modules[i].angleMotor.setVoltage(volts);
+        }
     }
 
     public void periodic() {
@@ -158,6 +164,10 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public void resetOdometry(Pose2d pose) {
         poseEstimator.resetPose(pose);
+    }
+
+    public void zeroGyro() {
+        gyroRotation = Rotation2d.kZero;
     }
 
 }
