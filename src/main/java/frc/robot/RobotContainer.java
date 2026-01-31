@@ -107,6 +107,7 @@ public class RobotContainer
     primary_controller.L1().whileTrue(new DriveToPoint(swerveSubsystem, swerveSubsystem.getPose(), ballDetection.getBallPose(), 0.25));
 
     primary_controller.cross().onTrue(new RunCommand(() -> swerveSubsystem.zeroGyro()));
+    primary_controller.square().whileTrue(new RunCommand(() -> turretSubsystem.zeroTurret()));
     primary_controller.options().whileTrue(Commands.none());
     // primary_controller.back().whileTrue(Commands.none());
     primary_controller.R1().whileTrue(new TurretTestCommand(swerveSubsystem, turretSubsystem, FieldConstants.RED_HUB_CENTER_POINT));
