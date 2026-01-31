@@ -1,6 +1,8 @@
 package frc.robot.constants;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import frc.robot.utils.TunableNumber;
 
 public class ShootingConstants {
@@ -30,6 +32,9 @@ public class ShootingConstants {
 
     public static final double HOOD_MAX_ANGLE_DEGREES = 90.0;
     public static final double HOOD_MIN_ANGLE_DEGREES = 0.0;
+
+    // inches
+    public static final Translation2d TURRET_OFFSET = new Translation2d(Units.inchesToMeters(15.0), Units.inchesToMeters(15.0));
 
     public static TunableNumber TURRET_P = new TunableNumber("turret_p", 8.0);
     public static TunableNumber TURRET_D = new TunableNumber("turret_d", 0.0);

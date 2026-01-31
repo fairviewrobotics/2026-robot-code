@@ -89,12 +89,16 @@ public class TurretSubsystem extends SubsystemBase {
         double setpointRadians = currentAngle + delta;
 
         if (setpointRadians > Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES - 0.5)) {
-            setpointRadians -= Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES);
+            setpointRadians -= (2 * Math.PI);
         } else if (setpointRadians < Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES + 0.5)) {
-            setpointRadians += Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES);
+            setpointRadians += (2 * Math.PI);
         }
 
         return setpointRadians;
+    }
+
+    public double getTurretAngle() {
+        return turretMotor.getEncoder().getPosition();
     }
 
     public void setVoltage(double voltage) {

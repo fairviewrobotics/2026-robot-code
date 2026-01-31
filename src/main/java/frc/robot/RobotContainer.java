@@ -22,10 +22,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.autonomous.SuperSecretMissileTech;
-import frc.robot.commands.DriveCommands;
-import frc.robot.commands.DriveToPoint;
-import frc.robot.commands.ShooterCommand;
-import frc.robot.commands.IntakeCommand;
+import frc.robot.commands.*;
 import frc.robot.constants.DriveConstants;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.IntakeConstants;
@@ -36,6 +33,7 @@ import java.io.File;
 import java.util.Optional;
 
 import frc.robot.utils.NetworkTablesUtils;
+import org.photonvision.PhotonCamera;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
@@ -50,8 +48,9 @@ public class RobotContainer
   final CommandXboxController secondary_controller = new CommandXboxController(1);
   // The robot's subsystems and commands are defined here...
   SwerveSubsystem swerveSubsystem = new SwerveSubsystem();
+  TurretSubsystem turretSubsystem = new TurretSubsystem();
   private final Vision vision;
-  // BallDetection ballDetection = new BallDetection();
+  BallDetection ballDetection = new BallDetection(new PhotonCamera("limelight bumper cam"));
   // ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   // IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
 
@@ -105,12 +104,12 @@ public class RobotContainer
 //    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShootingConstants.TOP_SHOOTER_RPM.get(), ShootingConstants.BOTTOM_SHOOTER_RPM.get()));
 //    secondary_controller.a().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, IntakeConstants.INTAKING_VOLTAGE));
 
-    // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
+    primary_controller.L1().whileTrue(new DriveToPoint(swerveSubsystem, swerveSubsystem.getPose(), ballDetection.getBallPose(), 0.25));
 
     primary_controller.cross().onTrue(new RunCommand(() -> swerveSubsystem.zeroGyro()));
     primary_controller.options().whileTrue(Commands.none());
     // primary_controller.back().whileTrue(Commands.none());
-    primary_controller.R1().onTrue(Commands.none());
+    primary_controller.R1().whileTrue(new TurretTestCommand(swerveSubsystem, turretSubsystem, FieldConstants.RED_HUB_CENTER_POINT));
 
     }
 
