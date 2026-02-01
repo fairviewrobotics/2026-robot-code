@@ -29,7 +29,7 @@ public class AimAtHub extends Command {
     }
 
     private double angle(Pose2d pose) {
-        return Math.atan2(pose.getX(), pose.getY());
+        return Math.atan2(pose.getY(), pose.getX());
     }
 
     private double distance(Pose2d pose) {
@@ -66,18 +66,23 @@ public class AimAtHub extends Command {
         return new Pose2d(new Translation2d(pose0.getX()-pose1.getX(), pose0.getY()-pose1.getY()), pose0.getRotation());
     }
 
-    private double shootingAngle(Pose3d relitivePos, double v, double t){
+    private double shootingAngle(Pose3d relitivePos, double v, boolean low) {
         double dx = relitivePos.getX();
         double dy = relitivePos.getY();
         double dz = relitivePos.getZ();
         double d = Math.hypot(dx, dy);
-        double epsilon = 0.01;
-        if (v *t + epsilon < d) {
-            return -1;
+        double g = 9.8;
+        double v2 = v * v;
+        double discriminant = v2*v2 - g*(g*d*d + 2*dz*v2);
+        if (discriminant < 0) return -1; // unreachable
+        double angleLow = Math.atan((v2 - Math.sqrt(discriminant)) / (g * d));
+        if(low) {
+            return angleLow;
         }
-        double z = (dz + 0.5 * 9.8 * t *t) / (v*t);
-        double x = (d) / (v*t);
-        return Math.atan2(x,z);
+        if(v2 + Math.sqrt(discriminant) > 0 && !low){
+            return Math.atan((v2 - Math.sqrt(discriminant)) / (g * d));
+        }
+        return angleLow;
     }
 
     public double turretAngle(){
@@ -101,7 +106,7 @@ public class AimAtHub extends Command {
         return targetAngle;
     }
 
-    public double hoodAngle(){
+    public double hoodAngle(boolean low){
         Pose2d targetPos2d = targetPose.toPose2d();
         Translation2d turretoffset = new Translation2d(0.5, 0.0);//todo get offset from cad
         Pose2d robotVelocity = new Pose2d(
@@ -118,7 +123,7 @@ public class AimAtHub extends Command {
         Pose3d relativePose3d = getRelative3d(targetPose, turretPose, robotVelocity, time, 3, vMag);
         double d = distance(relativePose2d);
         time = d/vMag;
-        double shooterAngle = shootingAngle(relativePose3d, vMag, time);
+        double shooterAngle = shootingAngle(relativePose3d, vMag, low);
         return shooterAngle;
     }
 
