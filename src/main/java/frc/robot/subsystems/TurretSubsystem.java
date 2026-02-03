@@ -71,7 +71,6 @@ public class TurretSubsystem extends SubsystemBase {
     }
 
     public void setTurret(double angle) {
-        if (!isZeroed) return;
         double currentAngle = turretMotor.getEncoder().getPosition();
 
         double pidOutput = turretPID.calculate(currentAngle, getTurretSetpoint(angle, currentAngle));

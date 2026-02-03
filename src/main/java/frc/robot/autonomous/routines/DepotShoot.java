@@ -15,7 +15,7 @@ public class DepotShoot extends SequentialCommandGroup {
         addRequirements(swerveSubsystem);
         addCommands(
                 new DriveToPoint(swerveSubsystem, swerveSubsystem.getPose(), FieldConstants.DEPOT_INTAKE_POSE, 0.25),
-                new TurretTestCommand(swerveSubsystem, turretSubsystem, FieldConstants.RED_HUB_CENTER_POINT),
+                new TurretTestCommand(swerveSubsystem, turretSubsystem, FieldConstants.AUTO_SHOOT_POSE),
                 new DriveToPoint(swerveSubsystem, swerveSubsystem.getPose(), FieldConstants.AUTO_SHOOT_POSE, 0.25)
         );
     }

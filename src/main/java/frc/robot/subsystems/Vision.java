@@ -43,9 +43,9 @@ public class Vision extends SubsystemBase {
     private Pose3d[] getAdjustedCameraPoses() {
         return new Pose3d[] {
                 new Pose3d(
-                        VisionConstants.SHOOTER_CAM_POSE_X + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_X.get()),
-                        VisionConstants.SHOOTER_CAM_POSE_Y + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Y.get()),
-                        VisionConstants.SHOOTER_CAM_POSE_Z + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Z.get()),
+                        Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_X) + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_X.get()),
+                        Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_Y) + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Y.get()),
+                        Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_Z) + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Z.get()),
                         new Rotation3d(
                                 Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_ROLL + VisionConstants.SHOOTER_CAM_ADJUST_ROLL.get()),
                                 Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_PITCH + VisionConstants.SHOOTER_CAM_ADJUST_PITCH.get()),

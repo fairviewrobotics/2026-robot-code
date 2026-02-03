@@ -20,15 +20,15 @@ public class VisionConstants {
 
     // Inches
 
-    public static final double SHOOTER_CAM_POSE_X = 0.0;
-    public static final double SHOOTER_CAM_POSE_Y = 0.0;
-    public static final double SHOOTER_CAM_POSE_Z = 0.0;
+    public static final double SHOOTER_CAM_POSE_X = 14.0;
+    public static final double SHOOTER_CAM_POSE_Y = 10.0;
+    public static final double SHOOTER_CAM_POSE_Z = 7.5;
 
 
     // Degrees
 
     public static final double SHOOTER_CAM_POSE_ROLL = 0.0;
-    public static final double SHOOTER_CAM_POSE_PITCH = 0.0;
+    public static final double SHOOTER_CAM_POSE_PITCH = -40;
     public static final double SHOOTER_CAM_POSE_YAW = 0.0;
 
     public static TunableNumber SHOOTER_CAM_ADJUST_X =
@@ -64,15 +64,17 @@ public class VisionConstants {
 
     // Inches
 
-    public static final double BALL_CAM_POSE_X = 0.0;
-    public static final double BALL_CAM_POSE_Y = 0.0;
-    public static final double BALL_CAM_POSE_Z = 0.0;
+    // +x is front, +y is left, +z is up
+    public static final double BALL_CAM_POSE_X = -8.0;
+    public static final double BALL_CAM_POSE_Y = 12.0;
+    public static final double BALL_CAM_POSE_Z = 8.5;
 
 
     // Degrees
 
     public static final double BALL_CAM_POSE_ROLL = 0.0;
-    public static final double BALL_CAM_POSE_PITCH = 0.0;
+    // usually negative
+    public static final double BALL_CAM_POSE_PITCH = 45;
     public static final double BALL_CAM_POSE_YAW = 0.0;
 
     public static TunableNumber BALL_CAM_ADJUST_X =

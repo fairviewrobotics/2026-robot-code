@@ -12,6 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.DriveConstants;
 import org.littletonrobotics.junction.Logger;
@@ -64,22 +65,21 @@ public class SwerveSubsystem extends SubsystemBase {
     public void drive(
             Translation2d translation,
             double rotation,
-            boolean fieldRelative,
-            boolean slewRates) {
+            boolean fieldRelative) {
 
-        double vx = slewRates ? magnitudeSlew.calculate(translation.getX()) : translation.getX();
-        double vy = slewRates ? magnitudeSlew.calculate(translation.getY()) : translation.getY();
-        double vr = slewRates ? thetaSlew.calculate(rotation) : rotation;
+        double vx = translation.getX();
+        double vy = translation.getY();
+        double vr = rotation;
 
         ChassisSpeeds speeds = fieldRelative
-                ? ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, vr, this.gyro.getRotation2d())
+                ? ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, vr, gyro.getRotation2d())
                 : new ChassisSpeeds(vx, vy, vr);
 
         SwerveModuleState[] states = DriveConstants.KINEMATICS.toSwerveModuleStates(speeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(states, DriveConstants.MAX_XY_SPEED_MPS.get());
 
-        for (int i = 0; i < modules.length; i++) {
-            modules[i].setVelocity(states[i]);
+        for (SwerveModule m : modules) {
+            m.setVelocity(states[m.moduleNumber]);
         }
 
         Logger.recordOutput("swerve/target angle", states[0].angle.getRadians());
@@ -148,7 +148,6 @@ public class SwerveSubsystem extends SubsystemBase {
         return states;
     }
 
-
     public ChassisSpeeds getRobotVelocity() {
         return DriveConstants.KINEMATICS.toChassisSpeeds(getModuleStates());
     }
@@ -167,6 +166,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void zeroGyro() {
+        gyro.reset();
         gyroRotation = Rotation2d.kZero;
     }
 

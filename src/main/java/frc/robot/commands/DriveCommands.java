@@ -46,8 +46,9 @@ public class DriveCommands extends Command {
         swerveSubsystem.drive(
                 new Translation2d(xSupplier.getAsDouble(), ySupplier.getAsDouble()),
                 thetaSupplier.getAsDouble(),
-                fieldRelative,
-                false);
+                fieldRelative);
     }
+
+    
 
 }

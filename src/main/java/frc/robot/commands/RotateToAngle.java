@@ -58,13 +58,13 @@ public class RotateToAngle extends Command {
                         currentAngle.minus(targetAngle).getRadians());
         if (thetaErrorAbs < thetaController.getPositionTolerance()) thetaVelocity = 0.0;
 
-        swerveSubsystem.drive(Translation2d.kZero, thetaVelocity, true, true);
+        swerveSubsystem.drive(Translation2d.kZero, thetaVelocity, true);
 
     }
 
     @Override
     public void end(boolean interrupted) {
-        swerveSubsystem.drive(Translation2d.kZero, 0.0, false, true);
+        swerveSubsystem.drive(Translation2d.kZero, 0.0, true);
     }
 
     @Override

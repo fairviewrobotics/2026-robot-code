@@ -12,13 +12,10 @@ public class FieldConstants {
 
     public static final double BALL_HEIGHT_METERS = Units.inchesToMeters(6);
 
-    // Garage bullshit values
+    public static final Pose2d STARTING_ODOMETRY_POSE = new Pose2d(3, 3, Rotation2d.fromDegrees(0));
 
-    public static final Pose2d ALGAE_1_LOLLIPOP_POINT = new Pose2d(1.24, 3.64, new Rotation2d(2.74));
-    public static final Pose2d ALGAE_2_LOLLIPOP_POINT = new Pose2d(1.33, 2.79, new Rotation2d(-2.443));
-    public static final Pose2d SHOOT_BARGE_POINT = new Pose2d(3, 3, new Rotation2d(0));
-    public static final Pose2d DEPOT_INTAKE_POSE = new Pose2d(0,5,new Rotation2d(0)); // todo find the correct x and y
-    public static final Pose2d AUTO_SHOOT_POSE = new Pose2d(1,2,new Rotation2d(0)); // todo please chose new x and y
+    public static final Pose2d DEPOT_INTAKE_POSE = new Pose2d(2.5,3.75,new Rotation2d(0)); // todo find the correct x and y
+    public static final Pose2d AUTO_SHOOT_POSE = new Pose2d(2.28,3.23,new Rotation2d(0)); // todo please chose new x and y
 
     // 1 is center face from drive POV then go clockwise w/ driver POV
 

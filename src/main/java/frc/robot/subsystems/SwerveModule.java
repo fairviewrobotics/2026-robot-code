@@ -309,20 +309,14 @@ public class SwerveModule extends SubsystemBase {
     public void setVelocity(SwerveModuleState desiredState) {
         String modulePrefix = "Module" + moduleNumber + "/";
 
-        // Log BEFORE optimization
         Logger.recordOutput(modulePrefix + "DesiredAngle_deg", desiredState.angle.getDegrees());
         Logger.recordOutput(modulePrefix + "DesiredSpeed_mps", desiredState.speedMetersPerSecond);
         Logger.recordOutput(modulePrefix + "CurrentAngle_deg", getState().angle.getDegrees());
 
-        // Optimize in place (new way)
-        // desiredState.optimize(getState().angle);
+        desiredState.optimize(getState().angle);
 
-        // Log AFTER optimization
         Logger.recordOutput(modulePrefix + "OptimizedAngle_deg", desiredState.angle.getDegrees());
         Logger.recordOutput(modulePrefix + "OptimizedSpeed_mps", desiredState.speedMetersPerSecond);
-
-        // Apply cosine scaling
-        desiredState.cosineScale(getState().angle);
 
         driveVelocityVoltage(desiredState.speedMetersPerSecond);
         setAnglePosition(desiredState.angle);
@@ -367,8 +361,8 @@ public class SwerveModule extends SubsystemBase {
     }
 
     public void stop() {
-        angleMotor.set(0.0);
-        driveMotor.set(0.0);
+        angleMotor.setVoltage(0.0);
+        driveMotor.setVoltage(0.0);
     }
 
 }

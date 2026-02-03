@@ -44,6 +44,11 @@ public class BallDetection extends SubsystemBase {
         Pose3d cameraPose = getAdjustedCameraPose();
 
         List<PhotonPipelineResult> result = camera.getAllUnreadResults();
+
+        if (result.isEmpty()) {
+            return null;
+        }
+
         PhotonPipelineResult latestResult = result.get(result.size() - 1);
 
         if (!latestResult.hasTargets()) {
@@ -56,6 +61,7 @@ public class BallDetection extends SubsystemBase {
         if (balls.isEmpty()) {
             return null;
         }
+
         double tx = balls.get().yaw;
         double ty = balls.get().pitch;
 
@@ -78,10 +84,13 @@ public class BallDetection extends SubsystemBase {
     @Override
     public void periodic() {
         updateBallPose();
-        Logger.recordOutput("Ball Pose", getBallPose());
+        Logger.recordOutput("BallDetection/Ball Pose", getBallPose());
     }
 
     public Pose2d getBallPose() {
+        if (ball == null) {
+            return null;
+        }
         return ball.toPose2d();
     }
 

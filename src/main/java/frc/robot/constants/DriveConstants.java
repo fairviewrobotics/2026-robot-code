@@ -25,14 +25,14 @@ public class DriveConstants {
     public static final double ANGLE_POSITION_CONVERSION_FACTOR = 2.0 * Math.PI;
 
     public static TunableNumber MAX_XY_SPEED_MPS = new TunableNumber("max-module-speed", 5.0);
-    public static TunableNumber MAX_THETA_SPEED_RAD_PS = new TunableNumber("max-module-theta", 128 * Math.PI);
+    public static TunableNumber MAX_THETA_SPEED_RAD_PS = new TunableNumber("max-module-theta", 1440);
 
     public static TunableNumber DRIVE_P = new TunableNumber("drive-p", 0.3);
     public static TunableNumber DRIVE_D = new TunableNumber("drive-d", 0.0);
     public static TunableNumber DRIVE_KS = new TunableNumber("drive-ks", 0.0);
     public static TunableNumber DRIVE_KV = new TunableNumber("drive-kv", 0.0);
     public static TunableNumber DRIVE_KA = new TunableNumber("drive-ka", 0.0);
-    public static TunableNumber ANGLE_P = new TunableNumber("angle-p", 1.0);
+    public static TunableNumber ANGLE_P = new TunableNumber("angle-p", 0.7);
     public static TunableNumber ANGLE_D = new TunableNumber("angle-d", 0.0);
 
     public static final int FRONT_LEFT_DRIVE_MOTOR_ID = 1;
@@ -83,7 +83,7 @@ public class DriveConstants {
                     FRONT_LEFT_DRIVE_INVERTED,
                     FRONT_LEFT_ANGLE_INVERTED,
                     FRONT_LEFT_ANGLE_INTERNAL_INVERTED
-                    );
+            );
 
     public static final SwerveModuleConfig FRONT_RIGHT_CONFIG =
             new SwerveModuleConfig(
@@ -130,9 +130,9 @@ public class DriveConstants {
                     REAR_RIGHT_ANGLE_INTERNAL_INVERTED
             );
 
-        // Creating my kinematics object using the module locations
+    // Creating my kinematics object using the module locations
     public static final SwerveDriveKinematics KINEMATICS = new SwerveDriveKinematics(
-            FRONT_RIGHT, FRONT_LEFT, REAR_RIGHT, REAR_LEFT
+            FRONT_LEFT, FRONT_RIGHT, REAR_LEFT, REAR_RIGHT
     );
 
 }
