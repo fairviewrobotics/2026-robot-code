@@ -48,7 +48,6 @@ public class SwerveSubsystem extends SubsystemBase {
                         new SwerveModule(DriveConstants.REAR_LEFT_CONFIG),
                         new SwerveModule(DriveConstants.REAR_RIGHT_CONFIG),
                 };
-
         this.poseEstimator =
             new SwerveDrivePoseEstimator(
                     DriveConstants.KINEMATICS,
@@ -75,7 +74,7 @@ public class SwerveSubsystem extends SubsystemBase {
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, vr, gyro.getRotation2d())
                 : new ChassisSpeeds(vx, vy, vr);
 
-        SwerveModuleState[] states = DriveConstants.KINEMATICS.toSwerveModuleStates(speeds);
+        SwerveModuleState[] states = DriveConstants.KINEMATICS.toSwerveModuleStates(calculateChassisSpeeds(translation, rotation, gyro.getRotation2d()));
         SwerveDriveKinematics.desaturateWheelSpeeds(states, DriveConstants.MAX_XY_SPEED_MPS.get());
 
         for (SwerveModule m : modules) {
@@ -92,11 +91,26 @@ public class SwerveSubsystem extends SubsystemBase {
         }
     }
 
+    private ChassisSpeeds calculateChassisSpeeds(
+            Translation2d translation,
+            double rotation,
+            Rotation2d robotRotation) {
+            ChassisSpeeds speeds;
+            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                            translation.getX(),
+                            translation.getY(),
+                            rotation,
+                            robotRotation);
+        return speeds;
+    }
+
     public void periodic() {
         odometryLock.lock();
+
         for (var module : modules) {
             module.periodic();
         }
+
         odometryLock.unlock();
 
         if (DriverStation.isDisabled()) {
@@ -122,7 +136,7 @@ public class SwerveSubsystem extends SubsystemBase {
             }
             
 
-            poseEstimator.updateWithTime(sampleTimestamps[i], gyroRotation, modulePositions);
+            poseEstimator.updateWithTime(sampleTimestamps[i], gyro.getRotation2d(), modulePositions);
         }
 
         double[] swerveStateArray = new double[8];
@@ -135,7 +149,7 @@ public class SwerveSubsystem extends SubsystemBase {
         Logger.recordOutput("swerve/advantagescope swerve states", swerveStateArray);
         Logger.recordOutput("swerve/absolute encoder degrees", absolutePositions);
         Logger.recordOutput("swerve/module states", getModuleStates());
-        Logger.recordOutput("swerve/gyro", gyroRotation);
+        Logger.recordOutput("swerve/gyro", gyro.getRotation2d());
         Logger.recordOutput("odometry/robot pose", poseEstimator.getEstimatedPosition());
 
     }
@@ -154,7 +168,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
     public ChassisSpeeds getFieldVelocity() {
         ChassisSpeeds robotRelative = this.getRobotVelocity();
-        return ChassisSpeeds.fromRobotRelativeSpeeds(robotRelative, gyroRotation);
+        return ChassisSpeeds.fromRobotRelativeSpeeds(robotRelative, gyro.getRotation2d());
     }
 
     public Pose2d getPose() {
@@ -168,6 +182,22 @@ public class SwerveSubsystem extends SubsystemBase {
     public void zeroGyro() {
         gyro.reset();
         gyroRotation = Rotation2d.kZero;
+    }
+
+    public ChassisSpeeds getRobotRelativeChassisSpeeds() {
+        return DriveConstants.KINEMATICS.toChassisSpeeds(getModuleStates());
+    }
+
+    public ChassisSpeeds getFieldRelativeChassisSpeeds() {
+        ChassisSpeeds robotRelative = this.getRobotRelativeChassisSpeeds();
+        return new ChassisSpeeds(
+                robotRelative.vxMetersPerSecond * Math.cos(gyroRotation.getRadians())
+                        - robotRelative.vyMetersPerSecond
+                        * Math.sin(gyroRotation.getRadians()),
+                robotRelative.vyMetersPerSecond * Math.cos(gyroRotation.getRadians())
+                        + robotRelative.vxMetersPerSecond
+                        * Math.sin(gyroRotation.getRadians()),
+                robotRelative.omegaRadiansPerSecond);
     }
 
 }

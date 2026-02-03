@@ -105,16 +105,16 @@ public class RobotContainer
 //    secondary_controller.x().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, -IntakeConstants.INTAKING_VOLTAGE));
 //    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShootingConstants.TOP_SHOOTER_RPM.get(), ShootingConstants.BOTTOM_SHOOTER_RPM.get()));
 //    secondary_controller.a().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, IntakeConstants.INTAKING_VOLTAGE));
-    primary_controller.L1().whileTrue(
-            Commands.either(
-                    new DriveToPoint(swerveSubsystem, swerveSubsystem.getPose(), ballDetection.getBallPose(), 0.25),
-                    Commands.none(),
-                    () -> ballDetection.getBallPose() != null
-            )
-    );
+//    primary_controller.L1().whileTrue(
+//            Commands.either(
+//                    new DriveToPoint(swerveSubsystem, swerveSubsystem.getPose(), ballDetection.getBallPose(), 0.25),
+//                    Commands.none(),
+//                    () -> ballDetection.getBallPose() != null
+//            )
+//    );
 
     primary_controller.cross().onTrue(new RunCommand(() -> swerveSubsystem.zeroGyro()));
-    primary_controller.square().whileTrue(new RunCommand(() -> turretSubsystem.zeroTurret()));
+    primary_controller.square().onTrue(new RunCommand(() -> turretSubsystem.zeroTurret()));
     primary_controller.options().onTrue(new RunCommand(() -> swerveSubsystem.resetOdometry(FieldConstants.STARTING_ODOMETRY_POSE)));
     // primary_controller.back().whileTrue(Commands.none());
     primary_controller.R1().whileTrue(new TurretTestCommand(swerveSubsystem, turretSubsystem, FieldConstants.RED_HUB_CENTER_POINT));

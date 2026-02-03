@@ -64,21 +64,17 @@ public class DriveConstants {
     // relative to wpi x
     public static final double DRIVEBASE_LENGTH_INCHES = 30.0;
 
-    // Locations for the swerve drive modules relative to the robot center.
-    private static final Translation2d FRONT_LEFT = new Translation2d(Units.inchesToMeters(DRIVEBASE_WIDTH_INCHES/2), Units.inchesToMeters(DRIVEBASE_LENGTH_INCHES/2));
-    private static final Translation2d FRONT_RIGHT = new Translation2d(Units.inchesToMeters(DRIVEBASE_WIDTH_INCHES/2), -Units.inchesToMeters(DRIVEBASE_LENGTH_INCHES/2));
-    private static final Translation2d REAR_LEFT = new Translation2d(-Units.inchesToMeters(DRIVEBASE_WIDTH_INCHES/2), Units.inchesToMeters(DRIVEBASE_LENGTH_INCHES/2));
-    private static final Translation2d REAR_RIGHT = new Translation2d(-Units.inchesToMeters(DRIVEBASE_WIDTH_INCHES/2), -Units.inchesToMeters(DRIVEBASE_LENGTH_INCHES/2));
+    private static final Translation2d FRONT_LEFT = new Translation2d(Units.inchesToMeters(15.0), Units.inchesToMeters(15.0));
+    private static final Translation2d FRONT_RIGHT = new Translation2d(Units.inchesToMeters(15.0), -Units.inchesToMeters(15.0));
+    private static final Translation2d REAR_LEFT = new Translation2d(-Units.inchesToMeters(15.0), Units.inchesToMeters(15.0));
+    private static final Translation2d REAR_RIGHT = new Translation2d(-Units.inchesToMeters(15.0), Units.inchesToMeters(-15.0));
 
     public static final SwerveModuleConfig FRONT_LEFT_CONFIG =
             new SwerveModuleConfig(
                     0,
                     FRONT_LEFT_DRIVE_MOTOR_ID,
                     FRONT_LEFT_ANGLE_MOTOR_ID,
-                    new Translation2d(
-                            Units.inchesToMeters(DRIVEBASE_WIDTH_INCHES/2),
-                            Units.inchesToMeters(DRIVEBASE_LENGTH_INCHES/2)
-                    ),
+                    FRONT_LEFT,
                     25.524,
                     FRONT_LEFT_DRIVE_INVERTED,
                     FRONT_LEFT_ANGLE_INVERTED,
@@ -90,10 +86,7 @@ public class DriveConstants {
                     1,
                     FRONT_RIGHT_DRIVE_MOTOR_ID,
                     FRONT_RIGHT_ANGLE_MOTOR_ID,
-                    new Translation2d(
-                            Units.inchesToMeters(DRIVEBASE_WIDTH_INCHES/2),
-                            Units.inchesToMeters(-DRIVEBASE_LENGTH_INCHES/2)
-                    ),
+                    FRONT_RIGHT,
                     311.201,
                     FRONT_RIGHT_DRIVE_INVERTED,
                     FRONT_RIGHT_ANGLE_INVERTED,
@@ -105,10 +98,7 @@ public class DriveConstants {
                     2,
                     REAR_LEFT_DRIVE_MOTOR_ID,
                     REAR_LEFT_ANGLE_MOTOR_ID,
-                    new Translation2d(
-                            Units.inchesToMeters(-DRIVEBASE_WIDTH_INCHES/2),
-                            Units.inchesToMeters(DRIVEBASE_LENGTH_INCHES/2)
-                    ),
+                    REAR_LEFT,
                     292.221,
                     REAR_LEFT_DRIVE_INVERTED,
                     REAR_LEFT_ANGLE_INVERTED,
@@ -120,17 +110,13 @@ public class DriveConstants {
                     3,
                     REAR_RIGHT_DRIVE_MOTOR_ID,
                     REAR_RIGHT_ANGLE_MOTOR_ID,
-                    new Translation2d(
-                            Units.inchesToMeters(-DRIVEBASE_WIDTH_INCHES/2),
-                            Units.inchesToMeters(-DRIVEBASE_LENGTH_INCHES/2)
-                    ),
+                    REAR_RIGHT,
                     333.987,
                     REAR_RIGHT_DRIVE_INVERTED,
                     REAR_RIGHT_ANGLE_INVERTED,
                     REAR_RIGHT_ANGLE_INTERNAL_INVERTED
             );
 
-    // Creating my kinematics object using the module locations
     public static final SwerveDriveKinematics KINEMATICS = new SwerveDriveKinematics(
             FRONT_LEFT, FRONT_RIGHT, REAR_LEFT, REAR_RIGHT
     );

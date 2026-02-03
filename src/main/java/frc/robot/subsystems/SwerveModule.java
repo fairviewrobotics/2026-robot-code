@@ -281,7 +281,6 @@ public class SwerveModule extends SubsystemBase {
     public SwerveModuleState getState() {
         return new SwerveModuleState(
                 driveMotor.getEncoder().getVelocity(),
-                // Subtract the offset here too
                 new Rotation2d(angleMotor.getAbsoluteEncoder().getPosition())
                         .minus(Rotation2d.fromDegrees(zeroRotation))
         );
@@ -336,13 +335,7 @@ public class SwerveModule extends SubsystemBase {
 
 
     private void setAnglePosition(Rotation2d angle) {
-
-        double setpoint = MathUtil.inputModulus(
-                angle.plus(new Rotation2d(Units.degreesToRadians(zeroRotation))).getRadians(),
-                0,
-                2 * Math.PI
-        );
-
+        double setpoint = angle.plus(new Rotation2d(Units.degreesToRadians(zeroRotation))).getRadians();
 
         String modulePrefix = "Module" + moduleNumber + "/";
         Logger.recordOutput(modulePrefix + "TargetAngle_rad", angle.getRadians());
