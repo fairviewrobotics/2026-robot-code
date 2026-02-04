@@ -10,23 +10,26 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.IntakeConstants;
 
 public class IntakeSubsystem extends SubsystemBase {
+    private final SparkFlex intakeDeployMotor = new SparkFlex(IntakeConstants.INTAKE_DEPLOY_MOTOR_ID, SparkFlex.MotorType.kBrushless);
     private final SparkFlex intakeRollerMotor = new SparkFlex(IntakeConstants.INTAKE_ROLLER_MOTOR_ID, SparkFlex.MotorType.kBrushless);
-    private final SparkFlex indexerMotor = new SparkFlex(IntakeConstants.INDEXER_ROLLER_MOTOR_ID, SparkFlex.MotorType.kBrushless);
 
     private final DigitalInput intakeLinebreak = new DigitalInput(0);
 
     public IntakeSubsystem() {
+        SparkFlexConfig intakeDeployMotorConfig = new SparkFlexConfig();
         SparkFlexConfig intakeRollerMotorConfig = new SparkFlexConfig();
-        SparkFlexConfig indexerMotorConfig = new SparkFlexConfig();
 
-        intakeRollerMotorConfig
+        intakeDeployMotorConfig
+                .inverted(true);
+        intakeDeployMotorConfig.encoder
+                .positionConversionFactor(IntakeConstants.INTAKE_DEPLOY_MOTOR_CONVERSION_FACTOR)
                 .inverted(true);
 
-        indexerMotorConfig
+        intakeRollerMotorConfig
                 .inverted(false);
 
         intakeRollerMotor.configure(intakeRollerMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        indexerMotor.configure(indexerMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        intakeDeployMotor.configure(intakeDeployMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     }
 
@@ -39,7 +42,7 @@ public class IntakeSubsystem extends SubsystemBase {
     }
 
     public void setIndexerVoltage(double voltage) {
-        indexerMotor.setVoltage(voltage);
+        intakeDeployMotor.setVoltage(voltage);
     }
 
     public boolean getLinebreak() {

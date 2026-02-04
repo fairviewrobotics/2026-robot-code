@@ -24,6 +24,7 @@ import frc.robot.autonomous.SuperSecretMissileTech;
 import frc.robot.commands.DriveToPoint;
 import frc.robot.commands.ShooterCommand;
 import frc.robot.commands.IntakeCommand;
+import frc.robot.commands.TurretTestCommand;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.IntakeConstants;
 import frc.robot.constants.ShootingConstants;
@@ -50,6 +51,7 @@ public class RobotContainer
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
           "swerve"));
   private final Vision vision;
+  TurretSubsystem turretSubsystem = new TurretSubsystem();
   // BallDetection ballDetection = new BallDetection();
   // ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   // IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
@@ -165,14 +167,13 @@ public class RobotContainer
 
     // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
 
-    primary_controller.R1().whileTrue(driveFieldOrientedYAxisLock);
+    primary_controller.R1().whileTrue(new TurretTestCommand(drivebase, turretSubsystem, FieldConstants.AUTO_SHOOT_POSE));
 
     primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
     primary_controller.square().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
     primary_controller.options().whileTrue(Commands.none());
     // primary_controller.back().whileTrue(Commands.none());
     primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-    primary_controller.R1().onTrue(Commands.none());
 
     if (RobotBase.isSimulation())
     {
