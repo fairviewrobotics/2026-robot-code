@@ -57,7 +57,7 @@ public class AimAtHub extends Command {
         return pose;
     }
 
-    public Pose2d getTurretPose(Pose2d pose, Translation2d turretTranslation) {
+    private Pose2d getTurretPose(Pose2d pose, Translation2d turretTranslation) {
         Translation2d offsetRotated = turretTranslation.rotateBy(pose.getRotation());
         return new Pose2d(pose.getTranslation().plus(offsetRotated), pose.getRotation());
     }
