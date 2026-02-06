@@ -5,8 +5,8 @@ import frc.robot.utils.TunableNumber;
 
 public class ShootingConstants {
 
-    public static final int TOP_SHOOTER_MOTOR_ID = 17;
-    public static final int BOTTOM_SHOOTER_MOTOR_ID = 16;
+    public static final int LEFT_SHOOTER_MOTOR_ID = 17;
+    public static final int RIGHT_SHOOTER_MOTOR_ID = 16;
     public static final int INDEXER_MOTOR_ID = 22;
     public static final int HOOD_ACTUATOR_ID = 0;
     public static final int TURRET_MOTOR_ID = 14;

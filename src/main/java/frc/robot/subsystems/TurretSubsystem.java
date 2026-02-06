@@ -14,6 +14,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ShootingConstants;
 import frc.robot.utils.MathUtils;
@@ -44,12 +45,12 @@ public class TurretSubsystem extends SubsystemBase {
         turretSoftLimits
                 .forwardSoftLimitEnabled(true)
                 .reverseSoftLimitEnabled(true)
-                .forwardSoftLimit(Units.degreesToRotations(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES))
-                .reverseSoftLimit(Units.degreesToRotations(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES));
+                .forwardSoftLimit(Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES))
+                .reverseSoftLimit(Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES));
 
         turretMotorConfig
                 .inverted(false)
-                // .apply(turretSoftLimits)
+                .apply(turretSoftLimits)
                 .idleMode(SparkBaseConfig.IdleMode.kCoast)
                 .encoder.positionConversionFactor(ShootingConstants.TURRET_ENCODER_TO_RADIANS_CONVERSION_FACTOR);
 
@@ -67,10 +68,10 @@ public class TurretSubsystem extends SubsystemBase {
             turretPID.reset(Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES));
             isZeroed = true;
         }
+
     }
 
     public void setTurret(double angle) {
-        if (!isZeroed) return;
         double currentAngle = turretMotor.getEncoder().getPosition();
 
         double pidOutput = turretPID.calculate(currentAngle, getTurretSetpoint(angle, currentAngle));
@@ -88,9 +89,9 @@ public class TurretSubsystem extends SubsystemBase {
         double setpointRadians = currentAngle + delta;
 
         if (setpointRadians > Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES - 0.5)) {
-            setpointRadians -= Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES);
+            setpointRadians -= 2 * Math.PI;
         } else if (setpointRadians < Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES + 0.5)) {
-            setpointRadians += Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES);
+            setpointRadians += 2 * Math.PI;
         }
 
         return setpointRadians;
@@ -127,9 +128,9 @@ public class TurretSubsystem extends SubsystemBase {
                 ShootingConstants.TURRET_KV
         );
 
-        turretNT.setEntry("turret angle", turretMotor.getEncoder().getPosition());
-        turretNT.setEntry("turret error", turretPID.getPositionError());
-        turretNT.setEntry("turret linebreak", turretLinebreak.get());
+        SmartDashboard.putNumber("Turret/turret angle", turretMotor.getEncoder().getPosition());
+        SmartDashboard.putNumber("Turret/turret error", turretPID.getPositionError());
+        SmartDashboard.putBoolean("Turret/turret linebreak", turretLinebreak.get());
     }
 
 }

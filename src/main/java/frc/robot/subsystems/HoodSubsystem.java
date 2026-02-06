@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.constants.ShootingConstants;
@@ -23,8 +24,7 @@ import static frc.robot.Constants.TARGET_POSE_ROTATION;
 
 public class HoodSubsystem extends SubsystemBase {
 
-    private final Servo hoodActuator = new Servo(ShootingConstants.HOOD_ACTUATOR_ID);
-    private NetworkTablesUtils hoodNT = NetworkTablesUtils.getTable("Hood");
+    private final LinearServo hoodActuator = new LinearServo(ShootingConstants.HOOD_ACTUATOR_ID, 10, 10);
 
     private final InterpolatingDoubleTreeMap distanceToHoodSetpointMap =
             new InterpolatingDoubleTreeMap();
@@ -33,17 +33,25 @@ public class HoodSubsystem extends SubsystemBase {
         createHoodSetpointMap();
     }
 
-    public void setHood(double angleDegrees) {
-        double angleSetpoint = MathUtil.clamp(angleDegrees, ShootingConstants.HOOD_MIN_ANGLE_DEGREES, ShootingConstants.HOOD_MAX_ANGLE_DEGREES);
-        hoodActuator.setPosition(Math.toDegrees(angleSetpoint));
+    /**
+     * Set hood angle
+     * @param angle The angle in degrees to set the hood.
+     */
+    public void setAngle(double angle) {
+        hoodActuator.setPosition(angle / (ShootingConstants.HOOD_MAX_ANGLE_DEGREES - ShootingConstants.HOOD_MIN_ANGLE_DEGREES));
     }
 
+    /**
+     *
+     * @param distance distance in meters from target
+     */
+
     public void setHoodWithDistance(double distance) {
-        setHood(distanceToHoodSetpointMap.get(distance));
+        setAngle(distanceToHoodSetpointMap.get(distance));
     }
 
     private void createHoodSetpointMap() {
-        // distance (m), setpoint (rad)
+        // distance (m), setpoint (deg)
         // measure in 8" increments or smth
         distanceToHoodSetpointMap.put(0.0, 0.0);
 
@@ -51,7 +59,8 @@ public class HoodSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        hoodNT.setEntry("hood angle", hoodActuator.getAngle());
+        SmartDashboard.putNumber("Hood/hood position", hoodActuator.getPosition());
+        SmartDashboard.putNumber("Hood/hood angle", hoodActuator.getPosition() * (ShootingConstants.HOOD_MAX_ANGLE_DEGREES - ShootingConstants.HOOD_MIN_ANGLE_DEGREES));
     }
 
 }

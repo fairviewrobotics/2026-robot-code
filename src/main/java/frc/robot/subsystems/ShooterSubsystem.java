@@ -1,142 +1,66 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.configs.TalonFXConfigurator;
-import com.ctre.phoenix6.hardware.DeviceIdentifier;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode;
-import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.SparkLowLevel;
-import com.revrobotics.spark.config.SparkFlexConfig;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DigitalInput;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.constants.ShootingConstants;
-import frc.robot.utils.MathUtils;
-import frc.robot.utils.NetworkTablesUtils;
 import frc.robot.utils.TunableNumber;
-
-import static frc.robot.Constants.TARGET_POSE_ROTATION;
 
 public class ShooterSubsystem extends SubsystemBase {
 
-    private final TalonFX topShooterMotor = new TalonFX(ShootingConstants.TOP_SHOOTER_MOTOR_ID);
-    private final TalonFX bottomShooterMotor = new TalonFX(ShootingConstants.BOTTOM_SHOOTER_MOTOR_ID);
-    private final TalonFXConfigurator topShooterMotorConfig;
-    private final TalonFXConfigurator bottomShooterMotorConfig;
-    private final DigitalInput shooterLinebreak = new DigitalInput(10);
-    NetworkTablesUtils shooterNT = NetworkTablesUtils.getTable("Shooter");
+    private final TalonFX leftShooterMotor = new TalonFX(ShootingConstants.LEFT_SHOOTER_MOTOR_ID);
+    private final TalonFX rightShooterMotor = new TalonFX(ShootingConstants.RIGHT_SHOOTER_MOTOR_ID);
+
+    private final TalonFXConfiguration motorConfig = new TalonFXConfiguration();
 
     public ShooterSubsystem() {
-        topShooterMotorConfig = topShooterMotor.getConfigurator();
-        bottomShooterMotorConfig = bottomShooterMotor.getConfigurator();
-        MotorOutputConfigs newConfigs = new MotorOutputConfigs();
-        newConfigs.Inverted = InvertedValue.Clockwise_Positive;
-        topShooterMotorConfig
-                .apply(newConfigs);
-        //topShooterMotorConfig
-                //.velocityConversionFactor(ShootingConstants.SHOOTER_VELOCITY_CONVERSION_FACTOR); TODO: Add velocity conversion factor
+        motorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        motorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
-        bottomShooterMotorConfig
-                .apply(newConfigs);
-        //bottomShooterMotorConfig
-                //.encoder.velocityConversionFactor(ShootingConstants.SHOOTER_VELOCITY_CONVERSION_FACTOR);
+        updateHardwareConfigs();
+
+        leftShooterMotor.getConfigurator().apply(motorConfig);
+        rightShooterMotor.getConfigurator().apply(motorConfig);
     }
 
-    private final SimpleMotorFeedforward shooterFF = new SimpleMotorFeedforward(
-        ShootingConstants.SHOOTER_KS.get(),
-        ShootingConstants.SHOOTER_KV.get(),
-        ShootingConstants.SHOOTER_KA
-    );
+    private void updateHardwareConfigs() {
+        var slot0 = motorConfig.Slot0;
+        slot0.kP = ShootingConstants.SHOOTER_P.get();
+        slot0.kD = ShootingConstants.SHOOTER_D.get();
+        slot0.kS = ShootingConstants.SHOOTER_KS.get();
+        slot0.kV = ShootingConstants.SHOOTER_KV.get();
 
-    private final PIDController shooterPID = new PIDController(
-            ShootingConstants.SHOOTER_P.get(), ShootingConstants.SHOOTER_I, ShootingConstants.SHOOTER_D.get()
-    );
-
-    double setpoint;
-
-    public void setTopMotorRPM(double rpm) {
-        this.setpoint = rpm;
-        topShooterMotor.setVoltage(
-                shooterPID.calculate(topShooterMotor.getVelocity().getValueAsDouble(), MathUtils.RPMtoRadians(rpm)) +
-                        shooterFF.calculate(MathUtils.RPMtoRadians(rpm))
-        );
-    }
-
-    public void setBottomMotorRPM(double rpm) {
-        this.setpoint = rpm;
-        bottomShooterMotor.setVoltage(
-                shooterPID.calculate(bottomShooterMotor.getVelocity().getValueAsDouble(), MathUtils.RPMtoRadians(rpm)) +
-                        shooterFF.calculate(MathUtils.RPMtoRadians(rpm))
-        );
+        leftShooterMotor.getConfigurator().apply(slot0);
+        rightShooterMotor.getConfigurator().apply(slot0);
     }
 
     public void setMotorRPM(double rpm) {
-        this.setpoint = rpm;
-        topShooterMotor.setVoltage(
-                shooterPID.calculate(topShooterMotor.getVelocity().getValueAsDouble(), MathUtils.RPMtoRadians(rpm)) +
-                shooterFF.calculate(MathUtils.RPMtoRadians(rpm))
-        );
-
-        bottomShooterMotor.setVoltage(
-                shooterPID.calculate(bottomShooterMotor.getVelocity().getValueAsDouble(), MathUtils.RPMtoRadians(rpm)) +
-                shooterFF.calculate(MathUtils.RPMtoRadians(rpm))
-        );
-
+        double rps = rpm / 60.0;
+        leftShooterMotor.setControl(new VelocityVoltage(rps));
+        rightShooterMotor.setControl(new VelocityVoltage(rps));
     }
 
-    public void stopMotors() {
-        topShooterMotor.setVoltage(0);
-        bottomShooterMotor.setVoltage(0);
-    }
-
-    public void runVolts(double volts) {
-        topShooterMotor.setVoltage(volts);
-        bottomShooterMotor.setVoltage(volts);
-    }
-
-    public boolean getLinebreak() {
-        return !shooterLinebreak.get();
-    }
-
-
+    @Override
     public void periodic() {
-
         TunableNumber.ifChanged(
                 hashCode(),
-                () -> {
-                    shooterFF.setKs(ShootingConstants.SHOOTER_KS.get());
-                    shooterFF.setKv(ShootingConstants.SHOOTER_KV.get());
-                },
+                this::updateHardwareConfigs,
                 ShootingConstants.SHOOTER_KS,
                 ShootingConstants.SHOOTER_KV,
-                TARGET_POSE_ROTATION
-        );
-
-        TunableNumber.ifChanged(
-                hashCode(),
-                () -> {
-                    shooterPID.setP(ShootingConstants.SHOOTER_P.get());
-                    shooterPID.setD(ShootingConstants.SHOOTER_D.get());
-                },
                 ShootingConstants.SHOOTER_P,
                 ShootingConstants.SHOOTER_D
         );
 
-        shooterNT.setEntry("shooter error", shooterPID.getError());
-        shooterNT.setEntry("shooter setpoint", setpoint);
-        shooterNT.setEntry("shooter velocity", topShooterMotor.getVelocity().getValueAsDouble());
-
+        SmartDashboard.putNumber("Shooter/left motor rpm", leftShooterMotor.getVelocity().getValueAsDouble() * 60);
+        SmartDashboard.putNumber("Shooter/right motor rpm", rightShooterMotor.getVelocity().getValueAsDouble() * 60);
     }
 
-    public void resetPID() {
-        shooterPID.reset();
+    public void stopMotors() {
+        leftShooterMotor.stopMotor();
+        rightShooterMotor.stopMotor();
     }
 }
