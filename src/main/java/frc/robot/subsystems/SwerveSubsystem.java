@@ -21,6 +21,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
@@ -44,14 +45,12 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 public class SwerveSubsystem extends SubsystemBase
 {
-  private final NetworkTablesUtils NTDebug = NetworkTablesUtils.getTable("debug");
-
   //TODO: add swerve constants
   private final ProfiledPIDController decelerationPID = new ProfiledPIDController(Constants.DrivebaseConstants.DECELERATION_P.get(), 0, Constants.DrivebaseConstants.DECELERATION_P.get(), Constants.DrivebaseConstants.TRANSLATION_ALIGN_CONSTRAINTS);
   private final ProfiledPIDController autoRotationPID = new ProfiledPIDController(Constants.DrivebaseConstants.AUTO_ROTATION_P.get(), 0, Constants.DrivebaseConstants.AUTO_ROTATION_D.get(), Constants.DrivebaseConstants.ROTATION_ALIGN_CONSTRAINTS);
 
   private final SlewRateLimiter xyLimiter = new SlewRateLimiter(0);
-  private final SlewRateLimiter thetaLimiter = new SlewRateLimiter(20);
+  private final SlewRateLimiter omegaLimiter = new SlewRateLimiter(0);
 
   /**
    * Swerve drive object.
@@ -90,7 +89,7 @@ public class SwerveSubsystem extends SubsystemBase
     {
       throw new RuntimeException(e);
     }
-    swerveDrive.swerveController.addSlewRateLimiters(xyLimiter, xyLimiter, thetaLimiter);
+    swerveDrive.swerveController.addSlewRateLimiters(xyLimiter, xyLimiter, omegaLimiter);
     swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via angle.
     swerveDrive.setCosineCompensator(false);//!SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for simulations since it causes discrepancies not seen in real life.
     swerveDrive.setAngularVelocityCompensation(true,
@@ -429,72 +428,6 @@ private final StructPublisher<Pose2d> poseEntry = NetworkTableInstance.getDefaul
 private final StructPublisher<Pose2d> targetPoseEntry = NetworkTableInstance.getDefault()
   .getTable("Sim")
   .getStructTopic("Target Pose", Pose2d.struct).publish();
-
-public boolean driveToPointVectorBased(Pose2d point, double tolerance, double maxVel, double maxRVel, boolean isContinuous) {
-
-    NTDebug.setEntry("TRANSLATION_X?", point.getX());
-
-    // Use radians consistently
-    double yaw = swerveDrive.getYaw().getRadians();
-    double targetYaw = point.getRotation().getRadians();    
-
-    // Ensure PID is using radians
-     // or some small radian tolerance
-
-    decelerationPID.setTolerance(tolerance);
-
-    // Translation
-    Translation2d difference = point.minus(swerveDrive.getPose()).getTranslation();
-    double distance = difference.getNorm();
-
-    double translationMag;
-
-    if (isContinuous) {
-        translationMag = -maxVel;
-        
-    } else {
-        translationMag = Math.min(maxVel, decelerationPID.calculate(Math.abs(distance), 0.0));
-    }   
-
-    double xVel = translationMag * Math.cos(difference.getAngle().getRadians());
-    double yVel = translationMag * Math.sin(difference.getAngle().getRadians());
-
-    NTDebug.setEntry("velocity", translationMag);
-    NTDebug.setEntry("drive pid calculation", decelerationPID.calculate(Math.abs(distance), 0.0));
-
-  
-
-    // Rotation PID: calculate using radians
-    double rVel = maxRVel * autoRotationPID.calculate(yaw, targetYaw);
-    // rVel = MathUtil.clamp(rVel, -maxRVel, maxRVel);
-    if (rVel > 0) {
-      rVel = Math.min(rVel, maxRVel);
-    } else {
-      rVel = Math.max(rVel, -maxRVel);
-    }
-
-    Translation2d driveVals = new Translation2d(xVel, yVel);
-    Translation2d driveVelocity =
-          new Pose2d(
-                  0.0,
-                  0.0,
-                  swerveDrive.getPose()
-                          .getTranslation()
-                          .minus(point.getTranslation())
-                          .getAngle())
-                  .transformBy(new Transform2d(translationMag, 0.0, new Rotation2d()))
-                  .getTranslation();
-
-
-    drive(driveVals, rVel, true);
-
-    NTDebug.setEntry("distance", distance);
-
-    // Return true if within positional tolerance
-
-    return  distance<tolerance && autoRotationPID.atSetpoint();
-    // return distance < tolerance;
-}
 
 
   /**

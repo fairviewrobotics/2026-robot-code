@@ -6,48 +6,50 @@ import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.IntakeConstants;
 
 public class IntakeSubsystem extends SubsystemBase {
-    private final SparkFlex intakeRollerMotor = new SparkFlex(IntakeConstants.INTAKE_ROLLER_MOTOR_ID, SparkFlex.MotorType.kBrushless);
-    private final SparkFlex indexerMotor = new SparkFlex(IntakeConstants.INDEXER_ROLLER_MOTOR_ID, SparkFlex.MotorType.kBrushless);
 
-    private final DigitalInput intakeLinebreak = new DigitalInput(0);
+    private final SparkFlex intakeDeployMotor = new SparkFlex(IntakeConstants.INTAKE_DEPLOY_MOTOR_ID, SparkFlex.MotorType.kBrushless);
+    private final SparkFlex intakeRollerMotor = new SparkFlex(IntakeConstants.INTAKE_ROLLER_MOTOR_ID, SparkFlex.MotorType.kBrushless);
 
     public IntakeSubsystem() {
+
+        SparkFlexConfig intakeDeployMotorConfig = new SparkFlexConfig();
         SparkFlexConfig intakeRollerMotorConfig = new SparkFlexConfig();
-        SparkFlexConfig indexerMotorConfig = new SparkFlexConfig();
+
+        intakeDeployMotorConfig
+                .inverted(true);
+        intakeDeployMotorConfig.encoder
+                .positionConversionFactor(IntakeConstants.INTAKE_DEPLOY_MOTOR_CONVERSION_FACTOR)
+                .inverted(false);
 
         intakeRollerMotorConfig
-                .inverted(true);
-
-        indexerMotorConfig
                 .inverted(false);
 
         intakeRollerMotor.configure(intakeRollerMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        indexerMotor.configure(indexerMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        intakeDeployMotor.configure(intakeDeployMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     }
 
-    public void setSpeed(double speed) {
-        intakeRollerMotor.set(speed);
+    public void setIntakeRollerMotor(double speed) {intakeRollerMotor.set(speed);}
+
+    public void setIntakeRollerMotorVoltage(double voltage) {intakeRollerMotor.setVoltage(voltage);}
+
+    public void setIntakeDeployMotor(double speed) {intakeDeployMotor.set(speed);}
+
+    public void stopMotors() {
+        intakeDeployMotor.stopMotor();
+        intakeRollerMotor.stopMotor();
     }
 
-    public void setVoltage(double voltage) {
-        intakeRollerMotor.setVoltage(voltage);
-    }
-
-    public void setIndexerVoltage(double voltage) {
-        indexerMotor.setVoltage(voltage);
-    }
-
-    public boolean getLinebreak() {
-        return !intakeLinebreak.get();
-    }
+    public void setIntakeDeployMotorVoltage(double voltage) {intakeDeployMotor.setVoltage(voltage);}
 
     @Override
     public void periodic() {
-
+        SmartDashboard.putNumber("Intake/intake deploy motor", intakeDeployMotor.getEncoder().getPosition());
+        SmartDashboard.putNumber("Intake/intake roller", intakeRollerMotor.getEncoder().getVelocity() * 60);
     }
 }

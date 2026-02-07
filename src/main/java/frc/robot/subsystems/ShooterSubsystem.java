@@ -15,27 +15,41 @@ public class ShooterSubsystem extends SubsystemBase {
     private final TalonFX leftShooterMotor = new TalonFX(ShootingConstants.LEFT_SHOOTER_MOTOR_ID);
     private final TalonFX rightShooterMotor = new TalonFX(ShootingConstants.RIGHT_SHOOTER_MOTOR_ID);
 
-    private final TalonFXConfiguration motorConfig = new TalonFXConfiguration();
-
     public ShooterSubsystem() {
-        motorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        motorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+
+        TalonFXConfiguration shooterMotorConfig = new TalonFXConfiguration();
+        shooterMotorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        shooterMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        // yes this is right
+        shooterMotorConfig.Slot0.kP = 676767676767.0;
+        shooterMotorConfig.Slot0.kI = 0.0;
+        shooterMotorConfig.Slot0.kD = 0.0;
+        shooterMotorConfig.Slot0.kV = 0.0;
+
+        shooterMotorConfig.CurrentLimits.StatorCurrentLimit = 40.0;
+        shooterMotorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+
+        shooterMotorConfig.MotorOutput.PeakForwardDutyCycle = 1.0;
+        shooterMotorConfig.MotorOutput.PeakReverseDutyCycle = 0.0;
+
+        leftShooterMotor.getConfigurator().apply(shooterMotorConfig);
+        rightShooterMotor.getConfigurator().apply(shooterMotorConfig);
 
         updateHardwareConfigs();
 
-        leftShooterMotor.getConfigurator().apply(motorConfig);
-        rightShooterMotor.getConfigurator().apply(motorConfig);
+        leftShooterMotor.getConfigurator().apply(shooterMotorConfig);
+        rightShooterMotor.getConfigurator().apply(shooterMotorConfig);
     }
 
     private void updateHardwareConfigs() {
-        var slot0 = motorConfig.Slot0;
-        slot0.kP = ShootingConstants.SHOOTER_P.get();
-        slot0.kD = ShootingConstants.SHOOTER_D.get();
-        slot0.kS = ShootingConstants.SHOOTER_KS.get();
-        slot0.kV = ShootingConstants.SHOOTER_KV.get();
+//        var slot0 = motorConfig.Slot0;
+//        slot0.kP = ShootingConstants.SHOOTER_P.get();
+//        slot0.kD = ShootingConstants.SHOOTER_D.get();
+//        slot0.kS = ShootingConstants.SHOOTER_KS.get();
+//        slot0.kV = ShootingConstants.SHOOTER_KV.get();
 
-        leftShooterMotor.getConfigurator().apply(slot0);
-        rightShooterMotor.getConfigurator().apply(slot0);
+//        leftShooterMotor.getConfigurator().apply(slot0);
+//        rightShooterMotor.getConfigurator().apply(slot0);
     }
 
     public void setMotorRPM(double rpm) {
@@ -46,14 +60,15 @@ public class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        TunableNumber.ifChanged(
-                hashCode(),
-                this::updateHardwareConfigs,
-                ShootingConstants.SHOOTER_KS,
-                ShootingConstants.SHOOTER_KV,
-                ShootingConstants.SHOOTER_P,
-                ShootingConstants.SHOOTER_D
-        );
+
+//        TunableNumber.ifChanged(
+//                hashCode(),
+//                this::updateHardwareConfigs,
+//                ShootingConstants.SHOOTER_KS,
+//                ShootingConstants.SHOOTER_KV,
+//                ShootingConstants.SHOOTER_P,
+//                ShootingConstants.SHOOTER_D
+//        );
 
         SmartDashboard.putNumber("Shooter/left motor rpm", leftShooterMotor.getVelocity().getValueAsDouble() * 60);
         SmartDashboard.putNumber("Shooter/right motor rpm", rightShooterMotor.getVelocity().getValueAsDouble() * 60);
@@ -63,4 +78,5 @@ public class ShooterSubsystem extends SubsystemBase {
         leftShooterMotor.stopMotor();
         rightShooterMotor.stopMotor();
     }
+
 }

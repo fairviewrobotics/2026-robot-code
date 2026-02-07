@@ -23,14 +23,13 @@ public class IntakeCommand extends Command {
 
     @Override
     public void execute() {
-        intakeSubsystem.setVoltage(intakeVoltage);
-        intakeSubsystem.setIndexerVoltage(intakeVoltage);
+        // intakeSubsystem.setVoltage(intakeVoltage);
+        // intakeSubsystem.setIndexerVoltage(intakeVoltage);
     }
 
     @Override
     public void end(boolean interrupted) {
-        intakeSubsystem.setVoltage(0);
-        intakeSubsystem.setIndexerVoltage(0);
+        intakeSubsystem.stopMotors();
     }
 
 }

@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import dev.doglog.DogLog;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.MathUtil;
@@ -16,6 +18,7 @@ import org.littletonrobotics.junction.Logger;
 public class DriveToPoint extends Command {
 
     private ProfiledPIDController driveController;
+
     private final ProfiledPIDController thetaController =
             new ProfiledPIDController(
                     Constants.DrivebaseConstants.AUTO_ROTATION_P.get(),
@@ -25,6 +28,7 @@ public class DriveToPoint extends Command {
                             Constants.MAX_ANGULAR_SPEED,
                             Constants.MAX_ANGULAR_SPEED/2),
                     0.02);
+
     private SwerveSubsystem swerveSubsystem;
     private Pose2d currentPose;
     private double driveErrorAbs;
@@ -56,8 +60,6 @@ public class DriveToPoint extends Command {
 
     @Override
     public void initialize() {
-        // arm center is the same as the robot center when stowed, so can use field to
-        // robot
         Pose2d currentPose = swerveSubsystem.getPose();
 
         driveController.reset(
@@ -87,27 +89,26 @@ public class DriveToPoint extends Command {
 
     @Override
     public void execute() {
-        Pose2d currentPose = swerveSubsystem.getPose();
 
-        Logger.recordOutput("DriveToPose/currentPose", currentPose);
-        Logger.recordOutput("DriveToPose/targetLocation", targetLocation.toString());
-        Logger.recordOutput("DriveToPose/targetPose", targetLocation);
+        Pose2d currentPose = swerveSubsystem.getPose();
+        DogLog.log("DriveToPose/current pose", currentPose);
+        DogLog.log("DriveToPose/target location", targetLocation);
 
         double currentDistance =
                 currentPose.getTranslation().getDistance(targetLocation.getTranslation());
-        double ffScaler =
+        double ffScalar =
                 MathUtil.clamp(
                         (currentDistance - ffMinRadius) / (ffMaxRadius - ffMinRadius), 0.0, 1.0);
         driveErrorAbs = currentDistance;
-        Logger.recordOutput("DriveToPose/ffScaler", ffScaler);
+        DogLog.log("DriveToPose/ffScalar", ffScalar);
         double driveVelocityScalar =
-                driveController.getSetpoint().velocity * ffScaler
+                driveController.getSetpoint().velocity * ffScalar
                         + driveController.calculate(driveErrorAbs, 0.0);
         if (currentDistance < driveController.getPositionTolerance()) driveVelocityScalar = 0.0;
 
         // Calculate theta speed
         double thetaVelocity =
-                thetaController.getSetpoint().velocity * ffScaler
+                thetaController.getSetpoint().velocity * ffScalar
                         + thetaController.calculate(
                         currentPose.getRotation().getRadians(),
                         targetLocation.getRotation().getRadians());

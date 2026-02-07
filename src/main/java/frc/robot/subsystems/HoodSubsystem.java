@@ -24,7 +24,7 @@ import static frc.robot.Constants.TARGET_POSE_ROTATION;
 
 public class HoodSubsystem extends SubsystemBase {
 
-    private final LinearServo hoodActuator = new LinearServo(ShootingConstants.HOOD_ACTUATOR_ID, 10, 10);
+    private final LinearServo hoodActuator = new LinearServo(ShootingConstants.HOOD_ACTUATOR_ID, 50, 0);
 
     private final InterpolatingDoubleTreeMap distanceToHoodSetpointMap =
             new InterpolatingDoubleTreeMap();
@@ -37,8 +37,12 @@ public class HoodSubsystem extends SubsystemBase {
      * Set hood angle
      * @param angle The angle in degrees to set the hood.
      */
+
     public void setAngle(double angle) {
-        hoodActuator.setPosition(angle / (ShootingConstants.HOOD_MAX_ANGLE_DEGREES - ShootingConstants.HOOD_MIN_ANGLE_DEGREES));
+        double percentage = (angle - ShootingConstants.HOOD_MIN_ANGLE_DEGREES) /
+                (ShootingConstants.HOOD_MAX_ANGLE_DEGREES - ShootingConstants.HOOD_MIN_ANGLE_DEGREES);
+
+        hoodActuator.setPosition(percentage);
     }
 
     /**

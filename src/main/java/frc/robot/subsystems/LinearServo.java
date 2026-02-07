@@ -5,44 +5,27 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.math.MathUtil;
 import frc.robot.constants.ShootingConstants;
 
-public class LinearServo extends Servo{
-    double speed;
-    double length;
-    double setPosition;
-    double curPos;
+public class LinearServo extends Servo {
+    private final double length;
 
     public LinearServo(int channel, int length, int speed) {
         super(channel);
-        this.setBoundsMicroseconds(2000, 1501, 1500, 1499, 1000);
         this.length = length;
-        this.speed = speed;
+        // (Max, High-Deadband, Center, Low-Deadband, Min)
+        this.setBoundsMicroseconds(2000, 1501, 1500, 1499, 1000);
     }
 
-    public void setPosition(double setpoint){
-        setPosition = MathUtil.clamp(setpoint, 0, length);
-        setSpeed( (setPosition/length *2)-1);
+    /**
+     * @param setpoint Normalized position from 0.0 to 1.0
+     */
+
+    public void setPosition(double setpoint) {
+        super.set(MathUtil.clamp(setpoint, 0.1, 0.9));
     }
 
-
-    double lastTime = 0;
-
-    public void updateCurPos(){
-        double delta = Timer.getFPGATimestamp() - lastTime;
-        if (curPos > setPosition + speed * delta){
-            curPos -= speed * delta;
-        } else if(curPos < setPosition - speed * delta){
-            curPos += speed * delta;
-        }else{
-            curPos = setPosition;
-        }
+    @Override
+    public double getPosition() {
+        // super.get() returns the last commanded position (0.0 to 1.0)
+        return super.get();
     }
-
-    public double getPosition(){
-        return curPos;
-    }
-
-    public boolean isFinished(){
-        return curPos == setPosition;
-    }
-
 }

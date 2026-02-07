@@ -51,13 +51,13 @@ public class RobotContainer
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
           "swerve"));
   private final Vision vision;
+  TurretSubsystem turretSubsystem = new TurretSubsystem();
   // BallDetection ballDetection = new BallDetection();
   // ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   // IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   NetworkTablesUtils NTAuto = NetworkTablesUtils.getTable("Autonomous");
 
   public static SuperSecretMissileTech superSecretMissileTech;
-  private final TurretSubsystem turretSubsystem = new TurretSubsystem();
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
@@ -167,15 +167,13 @@ public class RobotContainer
 
     // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
 
-    primary_controller.R1().whileTrue(driveFieldOrientedYAxisLock);
+    primary_controller.R1().whileTrue(new TurretTestCommand(drivebase, turretSubsystem, FieldConstants.ALGAE_1_LOLLIPOP_POINT));
 
-    // primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-    primary_controller.cross().onTrue(new RunCommand(() -> turretSubsystem.zeroTurret()));
+    primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
     primary_controller.square().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
     primary_controller.options().whileTrue(Commands.none());
     // primary_controller.back().whileTrue(Commands.none());
-    // primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-    primary_controller.L1().whileTrue(new TurretTestCommand(drivebase, turretSubsystem, new Pose2d(new Translation2d(0, 0), new Rotation2d(0))));
+    primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
 
     if (RobotBase.isSimulation())
     {
