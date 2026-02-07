@@ -58,6 +58,10 @@ public class TurretSubsystem extends SubsystemBase {
 
     }
 
+    public void zeroTurretEncoder() {
+        turretMotor.getEncoder().setPosition(Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES));
+    }
+
     public void zeroTurret() {
         if (!turretLinebreak.get()) {
             this.setVoltage(-1.0);

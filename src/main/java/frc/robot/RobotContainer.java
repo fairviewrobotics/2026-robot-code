@@ -21,10 +21,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.autonomous.SuperSecretMissileTech;
-import frc.robot.commands.DriveToPoint;
-import frc.robot.commands.ShooterCommand;
-import frc.robot.commands.IntakeCommand;
-import frc.robot.commands.TurretTestCommand;
+import frc.robot.commands.*;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.IntakeConstants;
 import frc.robot.constants.ShootingConstants;
@@ -167,10 +164,10 @@ public class RobotContainer
 
     // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
 
-    primary_controller.R1().whileTrue(new TurretTestCommand(drivebase, turretSubsystem, FieldConstants.ALGAE_1_LOLLIPOP_POINT));
+    primary_controller.R1().whileTrue(new AimAtHub2(drivebase, turretSubsystem, true, 0.0));
 
     primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-    primary_controller.square().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
+    primary_controller.square().onTrue(Commands.runOnce(turretSubsystem::zeroTurretEncoder));
     primary_controller.options().whileTrue(Commands.none());
     // primary_controller.back().whileTrue(Commands.none());
     primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());

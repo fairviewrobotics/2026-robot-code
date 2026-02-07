@@ -17,11 +17,13 @@ public class AimAtHub2 extends Command {
     private Pose3d currentPose;
     private Pose3d targetPose;
     private SwerveSubsystem swerveSubsystem;
+    private TurretSubsystem turretSubsystem;
     private double time;
     private final double g = -9.81;
 
-    public AimAtHub2(SwerveSubsystem swerveSubsystem, boolean red, double time){
+    public AimAtHub2(SwerveSubsystem swerveSubsystem, TurretSubsystem turretSubsystem, boolean red, double time){
         this.swerveSubsystem = swerveSubsystem;
+        this.turretSubsystem = turretSubsystem;
         this.currentPose = new Pose3d(this.swerveSubsystem.getPose().getX(),
                 this.swerveSubsystem.getPose().getY(),
                 0.0,
@@ -59,7 +61,7 @@ public class AimAtHub2 extends Command {
 
 
     public double turretAngle(){
-        Translation3d turretOffset = new Translation3d(0.5, 0.0, 0.0); // TODO: get offset from cad
+        Translation3d turretOffset = new Translation3d(-0.0508, -0.381, 0.0); // TODO: get offset from cad
         Translation2d robotVelocity = new Translation2d(
                         swerveSubsystem.getFieldVelocity().vxMetersPerSecond,
                         swerveSubsystem.getFieldVelocity().vyMetersPerSecond);
@@ -90,6 +92,22 @@ public class AimAtHub2 extends Command {
         Pose3d turretPose = getTurretPose3d(currentPose, turretOffset);
         Pose3d relativePose = getRelativePose3d(targetPose,turretPose, robotVelocity, time);
         return getVelocity(relativePose, time, g);
+    }
+
+    @Override
+    public void initialize() {
+        turretSubsystem.resetPID();
+    }
+
+    @Override
+    public void execute() {
+        turretAngle();
+        turretSubsystem.setTurret(turretAngle());
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        turretSubsystem.setVoltage(0.0);
     }
 
 
