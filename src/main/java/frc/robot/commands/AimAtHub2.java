@@ -38,9 +38,9 @@ public class AimAtHub2 extends Command {
     }
 
     private static Pose3d getRelativePose3d(Pose3d targetPose, Pose3d turretPose, Translation2d robotVelocity, double time){
-        return new Pose3d(Math.abs(targetPose.getX() - (turretPose.getX() + (robotVelocity.getX()* time))),
-                Math.abs(targetPose.getY() - (turretPose.getY() + (robotVelocity.getY() * time))),
-                Math.abs(targetPose.getZ() - turretPose.getZ()),
+        return new Pose3d(targetPose.getX() - (turretPose.getX() + (robotVelocity.getX()* time)),
+                targetPose.getY() - (turretPose.getY() + (robotVelocity.getY() * time)),
+                targetPose.getZ() - turretPose.getZ(),
                 targetPose.getRotation());
     }
 
@@ -64,7 +64,7 @@ public class AimAtHub2 extends Command {
         Pose3d relativePose = getRelativePose3d(targetPose,turretPose, robotVelocity, time);
         double turretAngle = Math.atan2(relativePose.getY(), relativePose.getX());
         if(turretAngle < 0){
-            turretAngle = Math.PI*2 - turretAngle;
+            turretAngle += Math.PI*2;
         }
         return turretAngle;
     }
