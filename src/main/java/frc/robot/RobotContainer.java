@@ -49,6 +49,7 @@ public class RobotContainer
           "swerve"));
   private final Vision vision;
   TurretSubsystem turretSubsystem = new TurretSubsystem();
+  HoodSubsystem hoodSubsystem = new HoodSubsystem();
   // BallDetection ballDetection = new BallDetection();
   // ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   // IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
@@ -165,9 +166,9 @@ public class RobotContainer
     // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
 
     primary_controller.R1().whileTrue(new AimAtHub2(drivebase, turretSubsystem, true, 0.0));
-
+    primary_controller.circle().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(45.0)));
     primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-    primary_controller.square().onTrue(Commands.runOnce(turretSubsystem::zeroTurretEncoder));
+    primary_controller.square().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(20.0)));
     primary_controller.options().whileTrue(Commands.none());
     // primary_controller.back().whileTrue(Commands.none());
     primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
