@@ -44,18 +44,17 @@ public class AimAtHub2 extends Command {
         turretSubsystem.setTurret(turretAngle(new Pose3d(swerveSubsystem.getPose().getX(),
                 swerveSubsystem.getPose().getY(),
                 0.0,
-                swerveSubsystem.getPose().getRotation().)));
-        System.out.println(turretAngle(new Pose3d(swerveSubsystem.getPose().getX(),
+                new Rotation3d(swerveSubsystem.getPose().getRotation()))));
+        System.out.println("turret angle: " +turretAngle(new Pose3d(swerveSubsystem.getPose().getX(),
                 swerveSubsystem.getPose().getY(),
                 0.0,
-                swerveSubsystem.getPose().getRotation())));
+                new Rotation3d(swerveSubsystem.getPose().getRotation()))) + " Robot rotation: " + swerveSubsystem.getPose().getRotation().getRadians());
     }
 
     private static Pose3d getTurretPose3d(Pose3d currentPose, Translation3d turretOffset) {
-        turretOffset.rotateBy(currentPose.getRotation());
-        return new Pose3d(currentPose.getTranslation().plus(turretOffset), currentPose.getRotation());
+        Translation3d rotatedOffset = turretOffset.rotateBy(currentPose.getRotation());
+        return new Pose3d(currentPose.getTranslation().plus(rotatedOffset), currentPose.getRotation());
     }
-
     private static Pose3d getRelativePose3d(Pose3d targetPose, Pose3d turretPose, Translation2d robotVelocity, double time) {
         return new Pose3d(targetPose.getX() - (turretPose.getX() + (robotVelocity.getX()* time)),
                 targetPose.getY() - (turretPose.getY() + (robotVelocity.getY() * time)),
@@ -80,17 +79,18 @@ public class AimAtHub2 extends Command {
                         swerveSubsystem.getFieldVelocity().vxMetersPerSecond,
                         swerveSubsystem.getFieldVelocity().vyMetersPerSecond);
         Pose3d turretPose = getTurretPose3d(currentPose, turretOffset);
-        //Pose3d relativePose = getRelativePose3d(targetPose,turretPose, robotVelocity, time);
-        double turretAngle = Math.atan2(targetPose.getY()- turretPose.getY(), targetPose.getX()- turretPose.getX());
-        turretAngle += currentPose.getRotation().getAngle() * -1;
+        Pose3d relativePose = getRelativePose3d(targetPose,turretPose, robotVelocity, time);
+        double turretAngle = Math.atan2(relativePose.getY(),relativePose.getX());
+        turretAngle +=swerveSubsystem.getPose().getRotation().getRadians() * -1;
+        turretAngle = turretAngle % (Math.PI * 2);
         if(turretAngle < 0){
-            turretAngle += Math.PI*2;
+            turretAngle += Math.PI * 2;
         }
         return turretAngle;
     }
 
     public double shootingAngle(Pose3d currentPose){
-        Translation3d turretOffset = new Translation3d(0.5, 0.0, 0.0); // TODO: get offset from cad
+        Translation3d turretOffset = new Translation3d(0.5, 0.0, 0.0);// TODO: get offset from cad
         Translation2d robotVelocity = new Translation2d(
                 swerveSubsystem.getFieldVelocity().vxMetersPerSecond,
                 swerveSubsystem.getFieldVelocity().vyMetersPerSecond);
