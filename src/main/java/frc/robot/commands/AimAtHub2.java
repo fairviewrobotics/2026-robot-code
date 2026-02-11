@@ -80,14 +80,15 @@ public class AimAtHub2 extends Command {
                         swerveSubsystem.getFieldVelocity().vyMetersPerSecond);
         Pose3d turretPose = getTurretPose3d(currentPose, turretOffset);
         Pose3d relativePose = getRelativePose3d(targetPose,turretPose, robotVelocity, time);
-        double turretAngle = Math.atan2(relativePose.getY(),relativePose.getX());
-        turretAngle +=swerveSubsystem.getPose().getRotation().getRadians() * -1;
+        double fieldAngel = Math.atan2(relativePose.getY(),relativePose.getX());
+        double turretAngle = fieldAngel -swerveSubsystem.getPose().getRotation().getRadians();
         turretAngle = turretAngle % (Math.PI * 2);
         if(turretAngle < 0){
             turretAngle += Math.PI * 2;
         }
         return turretAngle;
     }
+
 
     public double shootingAngle(Pose3d currentPose){
         Translation3d turretOffset = new Translation3d(0.5, 0.0, 0.0);// TODO: get offset from cad
