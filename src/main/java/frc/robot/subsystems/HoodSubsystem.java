@@ -11,6 +11,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -25,7 +26,6 @@ import static frc.robot.Constants.TARGET_POSE_ROTATION;
 public class HoodSubsystem extends SubsystemBase {
 
     private final LinearServo hoodActuator = new LinearServo(ShootingConstants.HOOD_ACTUATOR_ID, 50, 0);
-
     private final InterpolatingDoubleTreeMap distanceToHoodSetpointMap =
             new InterpolatingDoubleTreeMap();
 
@@ -41,8 +41,7 @@ public class HoodSubsystem extends SubsystemBase {
     public void setAngle(double angle) {
         double percentage = (angle - ShootingConstants.HOOD_MIN_ANGLE_DEGREES) /
                 (ShootingConstants.HOOD_MAX_ANGLE_DEGREES - ShootingConstants.HOOD_MIN_ANGLE_DEGREES);
-
-        hoodActuator.setPosition(percentage);
+        hoodActuator.setClampedPosition(percentage);
     }
 
     /**
@@ -58,13 +57,11 @@ public class HoodSubsystem extends SubsystemBase {
         // distance (m), setpoint (deg)
         // measure in 8" increments or smth
         distanceToHoodSetpointMap.put(0.0, 0.0);
-
     }
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Hood/hood position", hoodActuator.getPosition());
-        SmartDashboard.putNumber("Hood/hood angle", hoodActuator.getPosition() * (ShootingConstants.HOOD_MAX_ANGLE_DEGREES - ShootingConstants.HOOD_MIN_ANGLE_DEGREES));
+
     }
 
 }

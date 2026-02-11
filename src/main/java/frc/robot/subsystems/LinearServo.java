@@ -19,13 +19,13 @@ public class LinearServo extends Servo {
      * @param setpoint Normalized position from 0.0 to 1.0
      */
 
-    public void setPosition(double setpoint) {
+    public void setClampedPosition(double setpoint) {
         super.set(MathUtil.clamp(setpoint, 0.1, 0.9));
     }
 
     @Override
     public double getPosition() {
         // super.get() returns the last commanded position (0.0 to 1.0)
-        return super.get();
+        return super.get() * length;
     }
 }
