@@ -28,15 +28,15 @@ public class ShootingConstants {
     public static final double SHOOTER_I = 0.0;
     public static final TunableNumber SHOOTER_D = new TunableNumber("shooter_d", 0.0);
 
-    public static final double HOOD_MAX_ANGLE_DEGREES = 90.0;
-    public static final double HOOD_MIN_ANGLE_DEGREES = 0.0;
+    public static final double HOOD_MAX_ANGLE_DEGREES = 60.0;
+    public static final double HOOD_MIN_ANGLE_DEGREES = 15.0;
 
-    public static TunableNumber TURRET_P = new TunableNumber("turret_p", 8.0);
-    public static TunableNumber TURRET_D = new TunableNumber("turret_d", 0.0);
+    public static double TURRET_P = 8.0;
+    public static double TURRET_D = 0.0;
     public static final TrapezoidProfile.Constraints TURRET_CONSTRAINTS = new TrapezoidProfile.Constraints(8 * Math.PI, 32 * Math.PI);
 
-    public static TunableNumber TURRET_KS = new TunableNumber("turret_ks", 0.0);
-    public static TunableNumber TURRET_KV = new TunableNumber("turret_kv", 0.0);
+    public static double TURRET_KS = 0.0;
+    public static double TURRET_KV = 0.0;
     public static double TURRET_KA = 0.0;
 
     public static final double HOOD_MOTOR_GEAR_RATIO = 0.0;
@@ -48,10 +48,8 @@ public class ShootingConstants {
 
     public static double TURRET_ENCODER_RATIO = 0.0;
 
-    public static TunableNumber TOP_SHOOTER_RPM = new TunableNumber("top_shooter_rpm", 2500);
-    public static TunableNumber BOTTOM_SHOOTER_RPM = new TunableNumber("bottom_shooter_rpm", 6500);
-    public static final double AUTO_TOP_SHOOTER_RPM = 2500;
-    public static final double AUTO_BOTTOM_SHOOTER_RPM = 6500;
+    public static final double LEFT_SHOOTER_RPM = 2500;
+    public static final double RIGHT_SHOOTER_RPM = 6500;
 
     // Just make it spun up the entire time unc
     public static final double AUTO_SHOOTER_TIMEOUT_SECONDS = 2.0;

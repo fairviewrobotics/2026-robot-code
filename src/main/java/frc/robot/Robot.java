@@ -22,7 +22,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
  * described in the TimedRobot documentation. If you change the name of this class or the package after creating this
  * project, you must also update the build.gradle file in the project.
  */
-public class Robot extends TimedRobot
+public class Robot extends LoggedRobot
 {
 
   private static Robot   instance;
@@ -35,7 +35,7 @@ public class Robot extends TimedRobot
   {
     {
     // Logger.recordMetadata("ProjectName", "MyProject"); // Set a metadata value
-    // Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
+    Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
     // setUseTiming(false); // Run as fast as possible
     // String logPath = LogFileUtil.findReplayLog(); // Pull the replay log from AdvantageScope (or prompt the user)
     // Logger.setReplaySource(new WPILOGReader(logPath)); // Read replay log
@@ -43,7 +43,7 @@ public class Robot extends TimedRobot
     }
     
     // this.addDataReceiver(new NT4Publisher());
-    // this.start();
+    Logger.start();
     instance = this;
   }
 

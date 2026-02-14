@@ -28,7 +28,7 @@ public class VisionConstants {
     // Degrees
 
     public static final double SHOOTER_CAM_POSE_ROLL = 0.0;
-    public static final double SHOOTER_CAM_POSE_PITCH = 41;
+    public static final double SHOOTER_CAM_POSE_PITCH = -23;
     public static final double SHOOTER_CAM_POSE_YAW = 0.0;
 
     public static TunableNumber SHOOTER_CAM_ADJUST_X =

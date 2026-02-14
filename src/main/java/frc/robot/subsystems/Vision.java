@@ -44,9 +44,9 @@ public class Vision extends SubsystemBase {
     private Pose3d[] getAdjustedCameraPoses() {
         return new Pose3d[] {
                 new Pose3d(
-                        VisionConstants.SHOOTER_CAM_POSE_X + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_X.get()),
-                        VisionConstants.SHOOTER_CAM_POSE_Y + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Y.get()),
-                        VisionConstants.SHOOTER_CAM_POSE_Z + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Z.get()),
+                        Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_X) + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_X.get()),
+                        Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_Y) + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Y.get()),
+                        Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_Z) + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Z.get()),
                         new Rotation3d(
                                 Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_ROLL + VisionConstants.SHOOTER_CAM_ADJUST_ROLL.get()),
                                 Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_PITCH + VisionConstants.SHOOTER_CAM_ADJUST_PITCH.get()),
@@ -79,22 +79,14 @@ public class Vision extends SubsystemBase {
     @Override
     public void periodic() {
         updatePose();
+        Logger.recordOutput("Vision/Pose", getRobotPose());
     }
 
 
 
     public void updatePose() {
 
-        frc.robot.utils.TunableNumber.ifChanged(
-                hashCode(),
-                this::getAdjustedCameraPoses,
-                VisionConstants.SHOOTER_CAM_ADJUST_X,
-                VisionConstants.SHOOTER_CAM_ADJUST_Y,
-                VisionConstants.SHOOTER_CAM_ADJUST_Z,
-                VisionConstants.SHOOTER_CAM_ADJUST_ROLL,
-                VisionConstants.SHOOTER_CAM_ADJUST_PITCH,
-                VisionConstants.SHOOTER_CAM_ADJUST_YAW
-        );
+        getAdjustedCameraPoses();
 
 
         for (int cameraIndex = 0; cameraIndex < cameraPoses.length; cameraIndex++) {
@@ -136,6 +128,7 @@ public class Vision extends SubsystemBase {
 
                     if (distance < VisionConstants.MAX_ACCEPTABLE_TAG_RANGE) {
                         tagPoses.add(tagPose);
+                        Logger.recordOutput("Vision/out-of-range", true);
                     } else {
                         return;
                     }
@@ -156,15 +149,18 @@ public class Vision extends SubsystemBase {
                         || robotPoseEstimation.getX() > FieldConstants.FIELD_LENGTH_METERS + FieldConstants.FIELD_BORDER_MARGIN_METERS
                         || robotPoseEstimation.getY() < -FieldConstants.FIELD_BORDER_MARGIN_METERS
                         || robotPoseEstimation.getY() > FieldConstants.FIELD_WIDTH_METERS + FieldConstants.FIELD_BORDER_MARGIN_METERS) {
+                    Logger.recordOutput("Vision/out-of-field", true);
                     return;
                 }
 
                 if (robotPoseEstimation3d.getZ() > VisionConstants.MAX_Z_ERROR) {
+                    Logger.recordOutput("Vision/too high", true);
                     return;
                 }
 
                 if (!latestResult.targets.isEmpty()
                         && latestResult.targets.get(0).getPoseAmbiguity() > VisionConstants.MAX_POSE_AMBIGUITY) {
+                    Logger.recordOutput("Vision/bad ambiguity", true);
                     return;
                 }
 

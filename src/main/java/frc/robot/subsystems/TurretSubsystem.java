@@ -14,30 +14,38 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ShootingConstants;
 import frc.robot.utils.MathUtils;
 import frc.robot.utils.NetworkTablesUtils;
 import frc.robot.utils.TunableNumber;
+import org.littletonrobotics.junction.Logger;
 
 public class TurretSubsystem extends SubsystemBase {
     private final ProfiledPIDController turretPID = new ProfiledPIDController(
-            ShootingConstants.TURRET_P.get(),
+            ShootingConstants.TURRET_P,
             0.0,
-            ShootingConstants.TURRET_D.get(),
+            ShootingConstants.TURRET_D,
             ShootingConstants.TURRET_CONSTRAINTS);
     private boolean isZeroed = false;
     private DigitalInput turretLinebreak = new DigitalInput(ShootingConstants.TURRET_LINEBREAK_ID);
     private final SparkFlex turretMotor = new SparkFlex(ShootingConstants.TURRET_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
-    private final NetworkTablesUtils turretNT = NetworkTablesUtils.getTable("Turret");
     private final SimpleMotorFeedforward turretFF = new SimpleMotorFeedforward(
-            ShootingConstants.TURRET_KS.get(),
-            ShootingConstants.TURRET_KV.get(),
+            ShootingConstants.TURRET_KS,
+            ShootingConstants.TURRET_KV,
             ShootingConstants.TURRET_KA
     );
 
+    private double lastKP = ShootingConstants.TURRET_P;
+    private double lastKD = ShootingConstants.TURRET_D;
+    private double lastKS = ShootingConstants.TURRET_KS;
+    private double lastKV = ShootingConstants.TURRET_KV;
+
     public TurretSubsystem() {
+
+        initializePreferences();
 
         SparkFlexConfig turretMotorConfig = new SparkFlexConfig();
         SoftLimitConfig turretSoftLimits = new SoftLimitConfig();
@@ -56,6 +64,29 @@ public class TurretSubsystem extends SubsystemBase {
 
         turretMotor.configure(turretMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
+        updateCache();
+
+    }
+
+    private void initializePreferences() {
+        Preferences.initDouble("Turret/kP", ShootingConstants.TURRET_P);
+        Preferences.initDouble("Turret/kD", ShootingConstants.TURRET_D);
+        Preferences.initDouble("Turret/kV", ShootingConstants.TURRET_KS);
+        Preferences.initDouble("Turret/kS", ShootingConstants.TURRET_KS);
+    }
+
+    private void updateCache() {
+        lastKP = Preferences.getDouble("Turret/kP", ShootingConstants.TURRET_P);
+        lastKD = Preferences.getDouble("Turret/kD", ShootingConstants.TURRET_D);
+        lastKV = Preferences.getDouble("Turret/kV", ShootingConstants.TURRET_KV);
+        lastKS = Preferences.getDouble("Turret/kS", ShootingConstants.TURRET_KS);
+    }
+
+    private boolean preferencesChanged() {
+        return lastKP != Preferences.getDouble("Turret/kP", ShootingConstants.TURRET_P)
+                || lastKD != Preferences.getDouble("Turret/kD", ShootingConstants.TURRET_D)
+                || lastKV != Preferences.getDouble("Turret/kV", ShootingConstants.TURRET_KV)
+                || lastKS != Preferences.getDouble("Turret/kS", ShootingConstants.TURRET_KS);
     }
 
     public void zeroTurretEncoder() {
@@ -105,36 +136,31 @@ public class TurretSubsystem extends SubsystemBase {
         turretMotor.set(voltage);
     }
 
-    public void resetPID() {
+    public void valorantFlick() {
         turretPID.reset(turretMotor.getAbsoluteEncoder().getPosition());
+    }
+
+    public void resetPID() {
+        turretPID.reset(turretMotor.getEncoder().getPosition());
+    }
+
+    private void updatePreferences() {
+        turretPID.setP(Preferences.getDouble("Turret/kP", ShootingConstants.TURRET_P));
+        turretPID.setD(Preferences.getDouble("Turret/kD", ShootingConstants.TURRET_D));
+        turretFF.setKs(Preferences.getDouble("Turret/kS", ShootingConstants.TURRET_KS));
+        turretFF.setKv(Preferences.getDouble("Turret/kV", ShootingConstants.TURRET_KV));
     }
 
     @Override
     public void periodic() {
 
-        TunableNumber.ifChanged(
-                hashCode(),
-                () -> {
-                    turretPID.setP(ShootingConstants.TURRET_P.get());
-                    turretPID.setD(ShootingConstants.TURRET_D.get());
-                },
-                ShootingConstants.TURRET_P,
-                ShootingConstants.TURRET_D
-        );
+        if (preferencesChanged()) {
+            updatePreferences();
+        }
 
-        TunableNumber.ifChanged(
-                hashCode(),
-                () -> {
-                    turretFF.setKs(ShootingConstants.TURRET_KS.get());
-                    turretFF.setKv(ShootingConstants.TURRET_KV.get());
-                },
-                ShootingConstants.TURRET_KS,
-                ShootingConstants.TURRET_KV
-        );
+        Logger.recordOutput("Turret/turret angle", turretMotor.getEncoder().getPosition());
+        Logger.recordOutput("Turret/turret error", turretPID.getPositionError());
 
-        SmartDashboard.putNumber("Turret/turret angle", turretMotor.getEncoder().getPosition());
-        SmartDashboard.putNumber("Turret/turret error", turretPID.getPositionError());
-        SmartDashboard.putBoolean("Turret/turret linebreak", turretLinebreak.get());
     }
 
 }

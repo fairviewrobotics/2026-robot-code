@@ -16,11 +16,12 @@ public class LinearServo extends Servo {
     }
 
     /**
+     * Don't kill the actuators
      * @param setpoint Normalized position from 0.0 to 1.0
      */
 
     public void setClampedPosition(double setpoint) {
-        super.set(MathUtil.clamp(setpoint, 0.1, 0.9));
+        super.set(MathUtil.clamp(setpoint, 0.05, 0.9));
     }
 
     @Override

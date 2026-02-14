@@ -5,9 +5,6 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Meter;
-import static frc.robot.Constants.TARGET_POSE_ROTATION;
-
-
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -26,7 +23,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
-
+import org.littletonrobotics.junction.Logger;
 import java.io.File;
 import java.util.Arrays;
 import java.util.function.DoubleSupplier;
@@ -132,12 +129,7 @@ public class SwerveSubsystem extends SubsystemBase
 
         swerveDrive.updateOdometry();
         // Publish to AdvantageScope (X, Y, Rotation in RADIANS)
-        poseEntry.set(new Pose2d(
-            swerveDrive.swerveDrivePoseEstimator.getEstimatedPosition().getX(),
-            swerveDrive.swerveDrivePoseEstimator.getEstimatedPosition().getY(),
-            swerveDrive.swerveDrivePoseEstimator.getEstimatedPosition().getRotation()
-            )
-        );
+        Logger.recordOutput("Current Pose", swerveDrive.swerveDrivePoseEstimator.getEstimatedPosition());
 
 //        TunableNumber.ifChanged(
 //          hashCode(),
@@ -420,15 +412,6 @@ public class SwerveSubsystem extends SubsystemBase
       zeroGyro();
     }
   }
-
-private final StructPublisher<Pose2d> poseEntry = NetworkTableInstance.getDefault()
-  .getTable("Sim")
-  .getStructTopic("Current Pose", Pose2d.struct).publish();
-
-private final StructPublisher<Pose2d> targetPoseEntry = NetworkTableInstance.getDefault()
-  .getTable("Sim")
-  .getStructTopic("Target Pose", Pose2d.struct).publish();
-
 
   /**
    * Sets the drive motors to brake/coast mode.

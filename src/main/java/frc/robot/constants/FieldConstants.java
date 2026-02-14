@@ -16,8 +16,9 @@ public class FieldConstants {
 
     // Garage bullshit values
 
-    public static final Pose3d RED_HUB_POSE3D = new Pose3d(4.62534,4.034663,1.822, new Rotation3d(0,0,0));
-    public static final Pose3d BLUE_HUB_POSE3D = new Pose3d(4.62534 + 7.2898,4.034663,1.822, new Rotation3d(0,0,0));
+    public static final Pose3d BLUE_HUB_POSE3D = new Pose3d(4.62534,4.034663,1.822, new Rotation3d(0,0,0));
+    // public static final Pose3d RED_HUB_POSE3D = new Pose3d(3.5, 3.5, 1.822, Rotation3d.kZero);
+    public static final Pose3d RED_HUB_POSE3D = new Pose3d(4.62534 + 7.2898,4.034663,1.822, new Rotation3d(0,0,0));
 
     // 1 is center face from drive POV then go clockwise w/ driver POV
 
@@ -26,6 +27,6 @@ public class FieldConstants {
     public static final Pose2d RED_HUB_CENTER_POINT = new Pose2d(0, 0, Rotation2d.kZero);
     public static final Pose2d BLUE_HUB_CENTER_POINT = new Pose2d(0, 0, Rotation2d.kZero);
 
-
+    public static final Pose2d CARPET_POINT = new Pose2d(3.5, 3.5, Rotation2d.kCCW_90deg);
 
 }

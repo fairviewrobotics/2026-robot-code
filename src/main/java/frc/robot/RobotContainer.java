@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import dev.doglog.DogLog;
-import dev.doglog.DogLogOptions;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -29,8 +27,6 @@ import frc.robot.subsystems.*;
 
 import java.io.File;
 import java.util.Optional;
-
-import frc.robot.utils.NetworkTablesUtils;
 import swervelib.SwerveInputStream;
 
 /**
@@ -51,15 +47,15 @@ public class RobotContainer
   TurretSubsystem turretSubsystem = new TurretSubsystem();
   HoodSubsystem hoodSubsystem = new HoodSubsystem();
   // BallDetection ballDetection = new BallDetection();
-  // ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+  ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   // IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
-  NetworkTablesUtils NTAuto = NetworkTablesUtils.getTable("Autonomous");
 
-  public static SuperSecretMissileTech superSecretMissileTech;
+  SuperSecretMissileTech superSecretMissileTech = new SuperSecretMissileTech(drivebase);
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
    */
+
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
                   () -> primary_controller.getLeftY() * -1,
                   () -> primary_controller.getLeftX() * -1)
@@ -118,7 +114,6 @@ public class RobotContainer
           .translationHeadingOffset(Rotation2d.fromDegrees(
                   0));
 
-
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -165,11 +160,13 @@ public class RobotContainer
 
     // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
 
-    primary_controller.R1().whileTrue(new AimAtHub2(drivebase, turretSubsystem, true, 0.0));
-    primary_controller.circle().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(45.0)));
+    primary_controller.R1().whileTrue(new AimAtHub2(drivebase, turretSubsystem, false, 0.0));
+    primary_controller.circle().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(60.0)));
     primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-    primary_controller.square().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(20.0)));
-    primary_controller.options().whileTrue(Commands.none());
+    // primary_controller.square().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(15.0)));
+    primary_controller.square().onTrue(Commands.runOnce(turretSubsystem::zeroTurretEncoder));
+    // primary_controller.options().whileTrue(new ShooterCommand(shooterSubsystem, 1000, 1000));
+    primary_controller.options().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3.0, 3.0, Rotation2d.kZero))));
     // primary_controller.back().whileTrue(Commands.none());
     primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
 

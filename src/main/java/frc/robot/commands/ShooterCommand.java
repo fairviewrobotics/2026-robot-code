@@ -13,19 +13,18 @@ public class ShooterCommand extends Command {
     public ShooterCommand(ShooterSubsystem shooterSubsystem, double topShooterRPM, double bottomShooterRPM) {
         this.shooterSubsystem = shooterSubsystem;
         this.topShooterRPM = topShooterRPM;
-        this.bottomShooterRPM = bottomShooterRPM;
         addRequirements(shooterSubsystem);
     }
 
     @Override
     public void execute() {
-        shooterSubsystem.setMotorRPM(topShooterRPM);
-        shooterSubsystem.setMotorRPM(bottomShooterRPM);
+        shooterSubsystem.setLeftShooterMotorWithPreferences();
+        // shooterSubsystem.setMotorRPM(bottomShooterRPM);
     }
 
     @Override
     public void end(boolean interrupted) {
-        shooterSubsystem.setMotorRPM(0);
+        shooterSubsystem.setLeftShooterMotorVoltage(0);
     }
 
 }
