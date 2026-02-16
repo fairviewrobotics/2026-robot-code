@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import dev.doglog.DogLog;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -14,53 +15,82 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.utils.MathUtils;
 import org.littletonrobotics.junction.Logger;
 
+import java.util.function.Supplier;
+
 
 public class DriveToPoint extends Command {
 
     private ProfiledPIDController driveController;
-
-    private final ProfiledPIDController thetaController =
-            new ProfiledPIDController(
-                    Constants.DrivebaseConstants.AUTO_ROTATION_P.get(),
-                    0.0,
-                    0.0,
-                    new TrapezoidProfile.Constraints(
-                            Constants.MAX_ANGULAR_SPEED,
-                            Constants.MAX_ANGULAR_SPEED/2),
-                    0.02);
+    private ProfiledPIDController thetaController;
 
     private SwerveSubsystem swerveSubsystem;
-    private Pose2d currentPose;
     private double driveErrorAbs;
     private double thetaErrorAbs;
     private double ffMinRadius = 0.0, ffMaxRadius = 0.1;
     private Pose2d targetLocation;
+    private Supplier<Pose2d> targetLocationSupplier;
+
+    // Preference keys
+    private static final String AUTO_ROTATION_P_KEY = "DriveToPoint/AutoRotationP";
+    private static final String DECELERATION_P_KEY = "DriveToPoint/DecelerationP";
 
     public DriveToPoint(
             SwerveSubsystem swerveSubsystem,
-            Pose2d currentPose,
-            Pose2d targetLocation,
+            Supplier<Pose2d> targetLocationSupplier,
             double constraintFactor) {
         this.swerveSubsystem = swerveSubsystem;
-        this.targetLocation = targetLocation;
-        this.currentPose = currentPose;
+        this.targetLocationSupplier = targetLocationSupplier;
+
+        Preferences.initDouble(AUTO_ROTATION_P_KEY, Constants.DrivebaseConstants.AUTO_ROTATION_P.get());
+        Preferences.initDouble(DECELERATION_P_KEY, Constants.DrivebaseConstants.DECELERATION_P.get());
+
         this.driveController =
                 new ProfiledPIDController(
-                        Constants.DrivebaseConstants.DECELERATION_P.get(),
+                        Preferences.getDouble(DECELERATION_P_KEY, Constants.DrivebaseConstants.DECELERATION_P.get()),
                         0.0,
                         0.0,
                         new TrapezoidProfile.Constraints(
                                 Constants.MAX_SPEED * constraintFactor,
-                                Constants.MAX_SPEED/2
-                                        * constraintFactor),
+                                Constants.MAX_SPEED/2 * constraintFactor),
                         0.02);
+
+        this.thetaController =
+                new ProfiledPIDController(
+                        Preferences.getDouble(AUTO_ROTATION_P_KEY, Constants.DrivebaseConstants.AUTO_ROTATION_P.get()),
+                        0.0,
+                        0.0,
+                        new TrapezoidProfile.Constraints(
+                                Constants.MAX_ANGULAR_SPEED,
+                                Constants.MAX_ANGULAR_SPEED/2),
+                        0.02);
+
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
         addRequirements(swerveSubsystem);
     }
 
+    // Constructor for static target (like field positions)
+    public DriveToPoint(
+            SwerveSubsystem swerveSubsystem,
+            Pose2d targetLocation,
+            double constraintFactor) {
+        this(swerveSubsystem, () -> targetLocation, constraintFactor);
+    }
+
     @Override
     public void initialize() {
+        // Capture the target location at initialization time
+        this.targetLocation = targetLocationSupplier.get();
+
+        // If target is null, end immediately
+        if (targetLocation == null) {
+            return;
+        }
+
         Pose2d currentPose = swerveSubsystem.getPose();
+
+        // Update PID values from preferences
+        driveController.setP(Preferences.getDouble(DECELERATION_P_KEY, Constants.DrivebaseConstants.DECELERATION_P.get()));
+        thetaController.setP(Preferences.getDouble(AUTO_ROTATION_P_KEY, Constants.DrivebaseConstants.AUTO_ROTATION_P.get()));
 
         driveController.reset(
                 currentPose.getTranslation().getDistance(targetLocation.getTranslation()),
@@ -89,10 +119,14 @@ public class DriveToPoint extends Command {
 
     @Override
     public void execute() {
+        // Add safety check
+        if (targetLocation == null) {
+            return;
+        }
 
         Pose2d currentPose = swerveSubsystem.getPose();
-        DogLog.log("DriveToPose/current pose", currentPose);
-        DogLog.log("DriveToPose/target location", targetLocation);
+        Logger.recordOutput("DriveToPose/current pose", currentPose);
+        Logger.recordOutput("DriveToPose/target location", targetLocation);
 
         double currentDistance =
                 currentPose.getTranslation().getDistance(targetLocation.getTranslation());
@@ -100,7 +134,7 @@ public class DriveToPoint extends Command {
                 MathUtil.clamp(
                         (currentDistance - ffMinRadius) / (ffMaxRadius - ffMinRadius), 0.0, 1.0);
         driveErrorAbs = currentDistance;
-        DogLog.log("DriveToPose/ffScalar", ffScalar);
+        Logger.recordOutput("DriveToPose/ffScalar", ffScalar);
         double driveVelocityScalar =
                 driveController.getSetpoint().velocity * ffScalar
                         + driveController.calculate(driveErrorAbs, 0.0);
@@ -143,7 +177,7 @@ public class DriveToPoint extends Command {
 
     @Override
     public boolean isFinished() {
-        return targetLocation.equals(null)
+        return targetLocation == null
                 || (driveController.atGoal() && thetaController.atGoal());
     }
 

@@ -35,24 +35,40 @@ public class ShooterSubsystem extends SubsystemBase {
     public ShooterSubsystem() {
         initializePreferences();
 
-        TalonFXConfiguration shooterMotorConfig = new TalonFXConfiguration();
-        shooterMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        shooterMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        TalonFXConfiguration leftShooterMotorConfig = new TalonFXConfiguration();
+        leftShooterMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        leftShooterMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
-        shooterMotorConfig.Slot0.kP = Preferences.getDouble("Shooter/kP", DEFAULT_KP);
-        shooterMotorConfig.Slot0.kI = Preferences.getDouble("Shooter/kI", DEFAULT_KI);
-        shooterMotorConfig.Slot0.kD = Preferences.getDouble("Shooter/kD", DEFAULT_KD);
-        shooterMotorConfig.Slot0.kV = Preferences.getDouble("Shooter/kV", DEFAULT_KV);
-        shooterMotorConfig.Slot0.kS = Preferences.getDouble("Shooter/kS", DEFAULT_KS);
+        leftShooterMotorConfig.Slot0.kP = Preferences.getDouble("Shooter/kP", DEFAULT_KP);
+        leftShooterMotorConfig.Slot0.kI = Preferences.getDouble("Shooter/kI", DEFAULT_KI);
+        leftShooterMotorConfig.Slot0.kD = Preferences.getDouble("Shooter/kD", DEFAULT_KD);
+        leftShooterMotorConfig.Slot0.kV = Preferences.getDouble("Shooter/kV", DEFAULT_KV);
+        leftShooterMotorConfig.Slot0.kS = Preferences.getDouble("Shooter/kS", DEFAULT_KS);
 
-        shooterMotorConfig.CurrentLimits.StatorCurrentLimit = 40.0;
-        shooterMotorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+        leftShooterMotorConfig.CurrentLimits.StatorCurrentLimit = 40.0;
+        leftShooterMotorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
 
-        shooterMotorConfig.MotorOutput.PeakForwardDutyCycle = 1.0;
-        shooterMotorConfig.MotorOutput.PeakReverseDutyCycle = 0.0;
+        leftShooterMotorConfig.MotorOutput.PeakForwardDutyCycle = 1.0;
+        leftShooterMotorConfig.MotorOutput.PeakReverseDutyCycle = 0.0;
 
-        leftShooterMotor.getConfigurator().apply(shooterMotorConfig);
-        rightShooterMotor.getConfigurator().apply(shooterMotorConfig);
+        TalonFXConfiguration rightShooterMotorConfig = new TalonFXConfiguration();
+        rightShooterMotorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        rightShooterMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+
+        rightShooterMotorConfig.Slot0.kP = Preferences.getDouble("Shooter/kP", DEFAULT_KP);
+        rightShooterMotorConfig.Slot0.kI = Preferences.getDouble("Shooter/kI", DEFAULT_KI);
+        rightShooterMotorConfig.Slot0.kD = Preferences.getDouble("Shooter/kD", DEFAULT_KD);
+        rightShooterMotorConfig.Slot0.kV = Preferences.getDouble("Shooter/kV", DEFAULT_KV);
+        rightShooterMotorConfig.Slot0.kS = Preferences.getDouble("Shooter/kS", DEFAULT_KS);
+
+        rightShooterMotorConfig.CurrentLimits.StatorCurrentLimit = 40.0;
+        rightShooterMotorConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+
+        rightShooterMotorConfig.MotorOutput.PeakForwardDutyCycle = 1.0;
+        rightShooterMotorConfig.MotorOutput.PeakReverseDutyCycle = 0.0;
+
+        leftShooterMotor.getConfigurator().apply(leftShooterMotorConfig);
+        rightShooterMotor.getConfigurator().apply(rightShooterMotorConfig);
 
         updateCache();
     }
@@ -141,12 +157,21 @@ public class ShooterSubsystem extends SubsystemBase {
         leftShooterMotor.setControl(new VelocityVoltage(rpm/60));
     }
 
+    public void setRightShooterMotor(double rpm) {
+        rightShooterMotor.setControl(new VelocityVoltage(rpm/60));
+    }
+
     public void setLeftShooterMotorVoltage(double voltage) {
         leftShooterMotor.setVoltage(voltage);
     }
 
     public void setLeftShooterMotorWithPreferences() {
         this.setLeftShooterMotor(Preferences.getDouble("Shooter/LEFT_RPM_SETPOINT", ShootingConstants.LEFT_SHOOTER_RPM));
+    }
+
+    public void setBothMotorsPreferences() {
+        setLeftShooterMotor(Preferences.getDouble("Shooter/LEFT_RPM_SETPOINT", ShootingConstants.LEFT_SHOOTER_RPM));
+        setRightShooterMotor(Preferences.getDouble("Shooter/RIGHT_RPM_SETPOINT", ShootingConstants.RIGHT_SHOOTER_RPM));
     }
 
 }

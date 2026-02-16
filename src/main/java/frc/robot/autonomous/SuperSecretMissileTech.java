@@ -15,7 +15,7 @@ public class SuperSecretMissileTech {
     public SuperSecretMissileTech(SwerveSubsystem swerveSubsystem) {
         superSecretMissileTech.setDefaultOption("NOTHING", new SequentialCommandGroup());
         superSecretMissileTech.addOption("TEST AUTO", new TestAuto(swerveSubsystem));
-        SmartDashboard.putData("Autonomus Selector", superSecretMissileTech);
+        SmartDashboard.putData("Autonomous Selector", superSecretMissileTech);
     }
 
     public SequentialCommandGroup getSelected() {

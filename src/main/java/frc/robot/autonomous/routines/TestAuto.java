@@ -11,7 +11,9 @@ public class TestAuto extends SequentialCommandGroup {
         setName("TEST AUTO");
         addRequirements(swerveSubsystem);
         addCommands(
-            new DriveToPoint(swerveSubsystem, swerveSubsystem.getPose(), FieldConstants.CARPET_POINT, 0.25)
+            new DriveToPoint(swerveSubsystem, FieldConstants.CARPET_POINT, 0.5),
+            new DriveToPoint(swerveSubsystem, FieldConstants.ODOMETRY_RESET_POINT, 0.5),
+            new DriveToPoint(swerveSubsystem, FieldConstants.CARPET_POINT2, 0.5)
         );
     }
 }

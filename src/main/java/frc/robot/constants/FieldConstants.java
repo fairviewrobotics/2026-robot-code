@@ -27,6 +27,8 @@ public class FieldConstants {
     public static final Pose2d RED_HUB_CENTER_POINT = new Pose2d(0, 0, Rotation2d.kZero);
     public static final Pose2d BLUE_HUB_CENTER_POINT = new Pose2d(0, 0, Rotation2d.kZero);
 
-    public static final Pose2d CARPET_POINT = new Pose2d(3.5, 3.5, Rotation2d.kCCW_90deg);
+    public static final Pose2d CARPET_POINT = new Pose2d(3.8, 3.8, Rotation2d.kCCW_90deg);
+    public static final Pose2d CARPET_POINT2 = new Pose2d(3.8, 3.8, Rotation2d.k180deg);
+    public static final Pose2d ODOMETRY_RESET_POINT = new Pose2d(3, 3, Rotation2d.kZero);
 
 }

@@ -27,6 +27,8 @@ import frc.robot.subsystems.*;
 
 import java.io.File;
 import java.util.Optional;
+
+import org.photonvision.PhotonCamera;
 import swervelib.SwerveInputStream;
 
 /**
@@ -46,7 +48,7 @@ public class RobotContainer
   private final Vision vision;
   TurretSubsystem turretSubsystem = new TurretSubsystem();
   HoodSubsystem hoodSubsystem = new HoodSubsystem();
-  // BallDetection ballDetection = new BallDetection();
+  BallDetection ballDetection = new BallDetection(new PhotonCamera("limelight bumper cam"), drivebase);
   ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   // IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
 
@@ -158,17 +160,20 @@ public class RobotContainer
 //    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShootingConstants.TOP_SHOOTER_RPM.get(), ShootingConstants.BOTTOM_SHOOTER_RPM.get()));
 //    secondary_controller.a().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, IntakeConstants.INTAKING_VOLTAGE));
 
-    // primary_controller.L1().whileTrue(new DriveToPoint(drivebase, robotState.getPose(), ballDetection.getBallPose(), 0.25));
+    primary_controller.L1().whileTrue(
+            new DriveToPoint(drivebase, () -> ballDetection.getBallPose(), 0.25)
+                    .onlyIf(ballDetection::hasBall)
+    );
 
     primary_controller.R1().whileTrue(new AimAtHub2(drivebase, turretSubsystem, false, 0.0));
     primary_controller.circle().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(60.0)));
     primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
     // primary_controller.square().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(15.0)));
-    primary_controller.square().onTrue(Commands.runOnce(turretSubsystem::zeroTurretEncoder));
-    // primary_controller.options().whileTrue(new ShooterCommand(shooterSubsystem, 1000, 1000));
+    // primary_controller.square().onTrue(Commands.runOnce(turretSubsystem::zeroTurretEncoder));
+    primary_controller.square().whileTrue(new ShooterCommand(shooterSubsystem, 1000, 1000));
     primary_controller.options().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3.0, 3.0, Rotation2d.kZero))));
     // primary_controller.back().whileTrue(Commands.none());
-    primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
+    // primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
 
     if (RobotBase.isSimulation())
     {

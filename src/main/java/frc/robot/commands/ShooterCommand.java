@@ -18,13 +18,13 @@ public class ShooterCommand extends Command {
 
     @Override
     public void execute() {
-        shooterSubsystem.setLeftShooterMotorWithPreferences();
+        shooterSubsystem.setBothMotorsPreferences();
         // shooterSubsystem.setMotorRPM(bottomShooterRPM);
     }
 
     @Override
     public void end(boolean interrupted) {
-        shooterSubsystem.setLeftShooterMotorVoltage(0);
+        shooterSubsystem.stopMotors();
     }
 
 }
