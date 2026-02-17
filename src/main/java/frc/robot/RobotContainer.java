@@ -165,7 +165,7 @@ public class RobotContainer
                     .onlyIf(ballDetection::hasBall)
     );
 
-    primary_controller.R1().whileTrue(new AimAtHub2(drivebase, turretSubsystem, false, 0.0));
+    primary_controller.R1().whileTrue(new AimAtHub2(drivebase, turretSubsystem, false, 2.0));
     primary_controller.circle().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(60.0)));
     primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
     // primary_controller.square().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(15.0)));
