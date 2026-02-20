@@ -12,7 +12,7 @@ public class FieldConstants {
     public static final double FIELD_LENGTH_METERS = Units.inchesToMeters(651.21);
     public static final double FIELD_WIDTH_METERS = Units.inchesToMeters(317.7);
 
-    public static final double BALL_HEIGHT_METERS = Units.inchesToMeters(6);
+    public static final double BALL_HEIGHT_METERS = Units.inchesToMeters(6.0);
 
     // Garage bullshit values
 

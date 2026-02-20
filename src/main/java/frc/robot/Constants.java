@@ -43,10 +43,10 @@ public final class Constants
 
     // Hold time on motor brakes when disabled
     public static final double WHEEL_LOCK_TIME = 10; // seconds
-    public static TunableNumber DECELERATION_P = new TunableNumber("drive_controller_p",6.0);
-    public static TunableNumber DECELERATION_D = new TunableNumber("drive_controller_d", 0.0);
-    public static TunableNumber AUTO_ROTATION_P = new TunableNumber("rotation_controller_p", 6); //4?
-    public static TunableNumber AUTO_ROTATION_D = new TunableNumber("rotation_controller_d", 0.0);
+    public static double DECELERATION_P = 6.0;
+    public static double DECELERATION_D = 0.0;
+    public static double AUTO_ROTATION_P = 6; //4?
+    public static double AUTO_ROTATION_D = 0.0;
     public static final TrapezoidProfile.Constraints TRANSLATION_ALIGN_CONSTRAINTS = new TrapezoidProfile.Constraints(MAX_SPEED, 2.0);
     public static final TrapezoidProfile.Constraints ROTATION_ALIGN_CONSTRAINTS = new TrapezoidProfile.Constraints(MAX_ANGULAR_SPEED, 0.25);
   }

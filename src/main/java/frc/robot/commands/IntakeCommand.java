@@ -6,14 +6,11 @@ import frc.robot.subsystems.ShooterSubsystem;
 
 public class IntakeCommand extends Command {
     private final IntakeSubsystem intakeSubsystem;
-    private final ShooterSubsystem shooterSubsystem;
-    private final double intakeVoltage;
-
-    public IntakeCommand(IntakeSubsystem intakeSubsystem, ShooterSubsystem shooterSubsystem, double intakeVoltage) {
+    private double voltage;
+    public IntakeCommand(IntakeSubsystem intakeSubsystem, double voltage) {
         this.intakeSubsystem = intakeSubsystem;
-        this.shooterSubsystem = shooterSubsystem;
-        this.intakeVoltage = intakeVoltage;
-        addRequirements(intakeSubsystem, shooterSubsystem);
+        this.voltage = voltage;
+        addRequirements(intakeSubsystem);
     }
 
     @Override
@@ -23,8 +20,7 @@ public class IntakeCommand extends Command {
 
     @Override
     public void execute() {
-        // intakeSubsystem.setVoltage(intakeVoltage);
-        // intakeSubsystem.setIndexerVoltage(intakeVoltage);
+        intakeSubsystem.setIntakeRollerMotorWithPreferences();
     }
 
     @Override

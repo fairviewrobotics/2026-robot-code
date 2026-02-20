@@ -79,7 +79,6 @@ public class Vision extends SubsystemBase {
     @Override
     public void periodic() {
         updatePose();
-        Logger.recordOutput("Vision/Pose", getRobotPose());
     }
 
 
@@ -128,7 +127,6 @@ public class Vision extends SubsystemBase {
 
                     if (distance < VisionConstants.MAX_ACCEPTABLE_TAG_RANGE) {
                         tagPoses.add(tagPose);
-                        Logger.recordOutput("Vision/out-of-range", true);
                     } else {
                         return;
                     }
@@ -149,18 +147,15 @@ public class Vision extends SubsystemBase {
                         || robotPoseEstimation.getX() > FieldConstants.FIELD_LENGTH_METERS + FieldConstants.FIELD_BORDER_MARGIN_METERS
                         || robotPoseEstimation.getY() < -FieldConstants.FIELD_BORDER_MARGIN_METERS
                         || robotPoseEstimation.getY() > FieldConstants.FIELD_WIDTH_METERS + FieldConstants.FIELD_BORDER_MARGIN_METERS) {
-                    Logger.recordOutput("Vision/out-of-field", true);
                     return;
                 }
 
                 if (robotPoseEstimation3d.getZ() > VisionConstants.MAX_Z_ERROR) {
-                    Logger.recordOutput("Vision/too high", true);
                     return;
                 }
 
                 if (!latestResult.targets.isEmpty()
                         && latestResult.targets.get(0).getPoseAmbiguity() > VisionConstants.MAX_POSE_AMBIGUITY) {
-                    Logger.recordOutput("Vision/bad ambiguity", true);
                     return;
                 }
 
@@ -193,6 +188,8 @@ public class Vision extends SubsystemBase {
                                 .transformBy(MathUtils.getTransform3dFromPose3d(cameraPoses[cameraIndex]).inverse());
 
                 double distance = singleTagPose.getTranslation().getDistance(cameraPose.getTranslation());
+
+                Logger.recordOutput("Vision/Distance to tag", distance);
                 
                 boolean rejectPose =
                         VisionConstants.MAX_ACCEPTABLE_TAG_RANGE < distance ||

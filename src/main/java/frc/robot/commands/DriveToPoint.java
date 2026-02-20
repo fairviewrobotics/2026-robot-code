@@ -41,12 +41,12 @@ public class DriveToPoint extends Command {
         this.swerveSubsystem = swerveSubsystem;
         this.targetLocationSupplier = targetLocationSupplier;
 
-        Preferences.initDouble(AUTO_ROTATION_P_KEY, Constants.DrivebaseConstants.AUTO_ROTATION_P.get());
-        Preferences.initDouble(DECELERATION_P_KEY, Constants.DrivebaseConstants.DECELERATION_P.get());
+        Preferences.initDouble(AUTO_ROTATION_P_KEY, Constants.DrivebaseConstants.AUTO_ROTATION_P);
+        Preferences.initDouble(DECELERATION_P_KEY, Constants.DrivebaseConstants.DECELERATION_P);
 
         this.driveController =
                 new ProfiledPIDController(
-                        Preferences.getDouble(DECELERATION_P_KEY, Constants.DrivebaseConstants.DECELERATION_P.get()),
+                        Preferences.getDouble(DECELERATION_P_KEY, Constants.DrivebaseConstants.DECELERATION_P),
                         0.0,
                         0.0,
                         new TrapezoidProfile.Constraints(
@@ -56,12 +56,12 @@ public class DriveToPoint extends Command {
 
         this.thetaController =
                 new ProfiledPIDController(
-                        Preferences.getDouble(AUTO_ROTATION_P_KEY, Constants.DrivebaseConstants.AUTO_ROTATION_P.get()),
+                        Preferences.getDouble(AUTO_ROTATION_P_KEY, Constants.DrivebaseConstants.AUTO_ROTATION_P),
                         0.0,
                         0.0,
                         new TrapezoidProfile.Constraints(
                                 Constants.MAX_ANGULAR_SPEED,
-                                Constants.MAX_ANGULAR_SPEED/2),
+                                Constants.MAX_ANGULAR_SPEED*2),
                         0.02);
 
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
@@ -89,8 +89,8 @@ public class DriveToPoint extends Command {
         Pose2d currentPose = swerveSubsystem.getPose();
 
         // Update PID values from preferences
-        driveController.setP(Preferences.getDouble(DECELERATION_P_KEY, Constants.DrivebaseConstants.DECELERATION_P.get()));
-        thetaController.setP(Preferences.getDouble(AUTO_ROTATION_P_KEY, Constants.DrivebaseConstants.AUTO_ROTATION_P.get()));
+        driveController.setP(Preferences.getDouble(DECELERATION_P_KEY, Constants.DrivebaseConstants.DECELERATION_P));
+        thetaController.setP(Preferences.getDouble(AUTO_ROTATION_P_KEY, Constants.DrivebaseConstants.AUTO_ROTATION_P));
 
         driveController.reset(
                 currentPose.getTranslation().getDistance(targetLocation.getTranslation()),

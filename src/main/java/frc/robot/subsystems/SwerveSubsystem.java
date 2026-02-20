@@ -515,6 +515,10 @@ public class SwerveSubsystem extends SubsystemBase
     return swerveDrive.swerveDriveConfiguration;
   }
 
+  public double getGyroHeading() {
+    return swerveDrive.getGyro().getRotation3d().getZ();
+  }
+
   /**
    * Lock the swerve drive to prevent it from moving.
    */

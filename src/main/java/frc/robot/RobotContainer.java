@@ -48,9 +48,9 @@ public class RobotContainer
   private final Vision vision;
   TurretSubsystem turretSubsystem = new TurretSubsystem();
   HoodSubsystem hoodSubsystem = new HoodSubsystem();
-  BallDetection ballDetection = new BallDetection(new PhotonCamera("limelight bumper cam"), drivebase);
+  BallDetection ballDetection = new BallDetection(new PhotonCamera("limelight ball cam"), drivebase);
   ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
-  // IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
 
   SuperSecretMissileTech superSecretMissileTech = new SuperSecretMissileTech(drivebase);
 
@@ -59,8 +59,8 @@ public class RobotContainer
    */
 
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                  () -> primary_controller.getLeftY() * -1,
-                  () -> primary_controller.getLeftX() * -1)
+                  () -> primary_controller.getLeftY() * 1,
+                  () -> primary_controller.getLeftX() * 1)
           .withControllerRotationAxis(() -> primary_controller.getRightX() * -1)
           .deadband(OperatorConstants.DEADBAND)
           .scaleTranslation(0.8)
@@ -165,7 +165,11 @@ public class RobotContainer
                     .onlyIf(ballDetection::hasBall)
     );
 
-    primary_controller.R1().whileTrue(new AimAtHub2(drivebase, turretSubsystem, false, 0.0));
+//    primary_controller.L1().whileTrue(new IntakeCommand(intakeSubsystem, 2.0));
+    primary_controller.R1().whileTrue(new AimAtHubWithChassis(drivebase, false, () -> -4 * primary_controller.getLeftY(),
+            () -> -4 * primary_controller.getLeftX()));
+
+   // primary_controller.R1().whileTrue(new AimAtHub2(drivebase, turretSubsystem, false, 0.0));
     primary_controller.circle().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(60.0)));
     primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
     // primary_controller.square().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(15.0)));

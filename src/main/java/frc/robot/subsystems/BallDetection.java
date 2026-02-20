@@ -27,9 +27,9 @@ public class BallDetection extends SubsystemBase {
 
     private Pose3d getAdjustedCameraPose() {
         return new Pose3d(
-                VisionConstants.BALL_CAM_POSE_X + Units.inchesToMeters(VisionConstants.BALL_CAM_ADJUST_X.get()),
-                VisionConstants.BALL_CAM_POSE_Y + Units.inchesToMeters(VisionConstants.BALL_CAM_ADJUST_Y.get()),
-                VisionConstants.BALL_CAM_POSE_Z + Units.inchesToMeters(VisionConstants.BALL_CAM_ADJUST_Z.get()),
+                Units.inchesToMeters(VisionConstants.BALL_CAM_POSE_X) + Units.inchesToMeters(VisionConstants.BALL_CAM_ADJUST_X.get()),
+                Units.inchesToMeters(VisionConstants.BALL_CAM_POSE_Y) + Units.inchesToMeters(VisionConstants.BALL_CAM_ADJUST_Y.get()),
+                Units.inchesToMeters(VisionConstants.BALL_CAM_POSE_Z) + Units.inchesToMeters(VisionConstants.BALL_CAM_ADJUST_Z.get()),
                 new Rotation3d(
                         Units.degreesToRadians(VisionConstants.BALL_CAM_POSE_ROLL + VisionConstants.BALL_CAM_ADJUST_ROLL.get()),
                         Units.degreesToRadians(VisionConstants.BALL_CAM_POSE_PITCH + VisionConstants.BALL_CAM_ADJUST_PITCH.get()),
