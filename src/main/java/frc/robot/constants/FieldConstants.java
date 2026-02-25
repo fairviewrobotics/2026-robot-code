@@ -5,30 +5,29 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
+import frc.robot.utils.Bounds;
 
 public class FieldConstants {
 
     public static final double FIELD_BORDER_MARGIN_METERS = 0.5;
-    public static final double FIELD_LENGTH_METERS = Units.inchesToMeters(651.21);
-    public static final double FIELD_WIDTH_METERS = Units.inchesToMeters(317.7);
+    public static final double FIELD_LENGTH_METERS = 16.54;
+    public static final double FIELD_WIDTH_METERS = 8.00;
 
     public static final double BALL_HEIGHT_METERS = Units.inchesToMeters(6.0);
 
-    // Garage bullshit values
+    public static final Pose3d BLUE_HUB_POSE3D = new Pose3d(4.62534,4.034663,1.822, Rotation3d.kZero);
+    public static final Pose3d RED_HUB_POSE3D = new Pose3d(4.62534 + 7.2898,4.034663,1.822, Rotation3d.kZero);
 
-    public static final Pose3d BLUE_HUB_POSE3D = new Pose3d(4.62534,4.034663,1.822, new Rotation3d(0,0,0));
-    // public static final Pose3d RED_HUB_POSE3D = new Pose3d(3.5, 3.5, 1.822, Rotation3d.kZero);
-    public static final Pose3d RED_HUB_POSE3D = new Pose3d(4.62534 + 7.2898,4.034663,1.822, new Rotation3d(0,0,0));
+    public static final Pose2d BLUE_TRENCH_LEFT = new Pose2d(4.511, 7.415, Rotation2d.kZero);
+    public static final Pose2d BLUE_TRENCH_LEFT_TRANSITION_PICKUP = new Pose2d(7.657, 7.415, Rotation2d.kCW_90deg);
+    public static final Pose2d BLUE_TRENCH_LEFT_PICKUP_END = new Pose2d(7.805, 4.611, Rotation2d.kCW_90deg);
+    public static final Pose2d BLUE_AUTO_SHOOT_LEFT_POINT = new Pose2d(3.064, 7.415, new Rotation2d( -Math.PI / 3 - 0.4));
 
-    // 1 is center face from drive POV then go clockwise w/ driver POV
-
-    // Should just be ID 10, 5, 2 pose
-
-    public static final Pose2d RED_HUB_CENTER_POINT = new Pose2d(0, 0, Rotation2d.kZero);
-    public static final Pose2d BLUE_HUB_CENTER_POINT = new Pose2d(0, 0, Rotation2d.kZero);
-
+//
     public static final Pose2d CARPET_POINT = new Pose2d(3.8, 3.8, Rotation2d.kCCW_90deg);
     public static final Pose2d CARPET_POINT2 = new Pose2d(3.8, 3.8, Rotation2d.k180deg);
     public static final Pose2d ODOMETRY_RESET_POINT = new Pose2d(3, 3, Rotation2d.kZero);
+
+    public static final Bounds TRENCH_BOUNDS = new Bounds(4, 5.25, 0, 8.5);
 
 }

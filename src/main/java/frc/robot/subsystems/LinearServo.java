@@ -7,6 +7,7 @@ import frc.robot.constants.ShootingConstants;
 
 public class LinearServo extends Servo {
     private final double length;
+    public static double position;
 
     public LinearServo(int channel, int length, int speed) {
         super(channel);

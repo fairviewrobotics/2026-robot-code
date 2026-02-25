@@ -5,20 +5,14 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Meter;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
@@ -42,10 +36,6 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 public class SwerveSubsystem extends SubsystemBase
 {
-  //TODO: add swerve constants
-  private final ProfiledPIDController decelerationPID = new ProfiledPIDController(Constants.DrivebaseConstants.DECELERATION_P.get(), 0, Constants.DrivebaseConstants.DECELERATION_P.get(), Constants.DrivebaseConstants.TRANSLATION_ALIGN_CONSTRAINTS);
-  private final ProfiledPIDController autoRotationPID = new ProfiledPIDController(Constants.DrivebaseConstants.AUTO_ROTATION_P.get(), 0, Constants.DrivebaseConstants.AUTO_ROTATION_D.get(), Constants.DrivebaseConstants.ROTATION_ALIGN_CONSTRAINTS);
-
   private final SlewRateLimiter xyLimiter = new SlewRateLimiter(0);
   private final SlewRateLimiter omegaLimiter = new SlewRateLimiter(0);
 
@@ -126,24 +116,10 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
-
+        // How is this loop overrunning 😭
         swerveDrive.updateOdometry();
         // Publish to AdvantageScope (X, Y, Rotation in RADIANS)
         Logger.recordOutput("Current Pose", swerveDrive.swerveDrivePoseEstimator.getEstimatedPosition());
-
-//        TunableNumber.ifChanged(
-//          hashCode(),
-//          () -> {
-//            targetPoseEntry.set(new Pose2d(
-//              Constants.TARGET_POSE_X.get(),
-//              Constants.TARGET_POSE_Y.get(),
-//              Rotation2d.fromDegrees(TARGET_POSE_ROTATION.get())
-//            ));
-//          },
-//          Constants.TARGET_POSE_X,
-//          Constants.TARGET_POSE_Y,
-//          TARGET_POSE_ROTATION
-//        );
 
   }
 

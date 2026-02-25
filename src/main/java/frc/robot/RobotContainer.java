@@ -39,15 +39,13 @@ import swervelib.SwerveInputStream;
 public class RobotContainer
 {
 
-  // Replace with CommandPS4Controller or CommandJoystick if needed
   final CommandPS5Controller primary_controller = new CommandPS5Controller(0);
   final CommandXboxController secondary_controller = new CommandXboxController(1);
-  // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
           "swerve"));
   private final Vision vision;
   TurretSubsystem turretSubsystem = new TurretSubsystem();
-  HoodSubsystem hoodSubsystem = new HoodSubsystem();
+  HoodSubsystem hoodSubsystem = new HoodSubsystem(drivebase);
   BallDetection ballDetection = new BallDetection(new PhotonCamera("limelight ball cam"), drivebase);
   ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
@@ -126,10 +124,6 @@ public class RobotContainer
     // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
-//    DogLog.setOptions(new DogLogOptions()
-//            .withNtPublish(false)
-//            .withNtTunables(true)
-//    );
   }
 
   /**
@@ -139,6 +133,7 @@ public class RobotContainer
    * {@link CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
    * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
    */
+
   private void configureBindings()
   {
     Command driveFieldOrientedDirectAngle      = drivebase.driveFieldOriented(driveDirectAngle);
@@ -156,7 +151,7 @@ public class RobotContainer
             () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
 
 
-//    secondary_controller.x().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, -IntakeConstants.INTAKING_VOLTAGE));
+    // secondary_controller.x().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, -IntakeConstants.INTAKING_VOLTAGE));
 //    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShootingConstants.TOP_SHOOTER_RPM.get(), ShootingConstants.BOTTOM_SHOOTER_RPM.get()));
 //    secondary_controller.a().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, IntakeConstants.INTAKING_VOLTAGE));
 
@@ -170,7 +165,8 @@ public class RobotContainer
             () -> -4 * primary_controller.getLeftX()));
 
    // primary_controller.R1().whileTrue(new AimAtHub2(drivebase, turretSubsystem, false, 0.0));
-    primary_controller.circle().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(60.0)));
+//     primary_controller.circle().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(15.0)));
+//     primary_controller.triangle().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(60.0)));
     primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
     // primary_controller.square().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(15.0)));
     // primary_controller.square().onTrue(Commands.runOnce(turretSubsystem::zeroTurretEncoder));
@@ -214,30 +210,6 @@ public class RobotContainer
 
   }
 
-  public Command getAimAtHubCommand() {
-      // RobotState robotState = RobotState.getInstance();
-      Optional<DriverStation.Alliance> allianceOpt = DriverStation.getAlliance();
-
-      if (allianceOpt.isEmpty()) {
-        return Commands.none(); // or some fallback command
-      }
-
-      DriverStation.Alliance alliance = allianceOpt.get();
-      Pose2d targetPose = (alliance == DriverStation.Alliance.Red)
-              ? FieldConstants.RED_HUB_CENTER_POINT
-              : FieldConstants.BLUE_HUB_CENTER_POINT;
-
-      // Rotation2d targetAngle = robotState.getPose().minus(targetPose).getRotation();
-      // double distance = robotState.getPose().getTranslation().getDistance(targetPose.getTranslation());
-
-      // distance : hood angle map 8" increments
-      double hoodAngle;
-
-      return new ParallelCommandGroup(
-              // set hood, rotate to angle
-      );
-  }
-
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *
@@ -253,8 +225,5 @@ public class RobotContainer
   {
     drivebase.setMotorBrake(brake);
   }
-
-
-
 
 }

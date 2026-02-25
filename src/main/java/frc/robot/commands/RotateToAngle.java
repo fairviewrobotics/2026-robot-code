@@ -14,7 +14,7 @@ public class RotateToAngle extends Command {
 
     private final ProfiledPIDController thetaController =
             new ProfiledPIDController(
-                    Constants.DrivebaseConstants.AUTO_ROTATION_P.get(),
+                    Constants.DrivebaseConstants.AUTO_ROTATION_P,
                     0.0,
                     0.0,
                     new TrapezoidProfile.Constraints(

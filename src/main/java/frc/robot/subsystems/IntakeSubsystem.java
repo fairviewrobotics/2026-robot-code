@@ -106,17 +106,14 @@ public class IntakeSubsystem extends SubsystemBase {
         double currentPosition = intakeDeployMotor.getEncoder().getPosition();
         double error = position - currentPosition;
 
-        // 1. Determine if we are "At Goal"
         boolean atGoal = Math.abs(error) < errorThreshold;
 
         if (!atGoal) {
-            // MOVING STATE: High strength to get there
             setDeployCurrentLimit(40);
             double pidOutput = intakePID.calculate(currentPosition, position);
             intakeDeployMotor.set(pidOutput);
         } else {
             // HOLDING STATE: Become "Squishy"
-            // Drop current limit so it can be back-driven by a hit
             setDeployCurrentLimit(Preferences.getInt("Intake/DeployCurrentLimit", IntakeConstants.DEPLOYED_CURRENT_LIMIT));
             intakeDeployMotor.setVoltage(0.5);
         }

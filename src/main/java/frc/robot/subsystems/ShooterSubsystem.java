@@ -5,6 +5,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -23,7 +24,6 @@ public class ShooterSubsystem extends SubsystemBase {
     private static final double DEFAULT_KV = 0.115;
     private static final double DEFAULT_KS = 0.2;
 
-    // Cache for previous values to detect changes
     private double lastKP = DEFAULT_KP;
     private double lastKI = DEFAULT_KI;
     private double lastKD = DEFAULT_KD;
@@ -32,11 +32,17 @@ public class ShooterSubsystem extends SubsystemBase {
     private double lastLRPM = ShootingConstants.LEFT_SHOOTER_RPM;
     private double lastRRPM = ShootingConstants.RIGHT_SHOOTER_RPM;
 
+    private final InterpolatingDoubleTreeMap DistanceToRPM =
+            new InterpolatingDoubleTreeMap();
+
+    private final InterpolatingDoubleTreeMap DistanceToShotTime =
+            new InterpolatingDoubleTreeMap();
+
     public ShooterSubsystem() {
         initializePreferences();
 
         TalonFXConfiguration leftShooterMotorConfig = new TalonFXConfiguration();
-        leftShooterMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        leftShooterMotorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
         leftShooterMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
         leftShooterMotorConfig.Slot0.kP = Preferences.getDouble("Shooter/kP", DEFAULT_KP);
@@ -52,7 +58,7 @@ public class ShooterSubsystem extends SubsystemBase {
         leftShooterMotorConfig.MotorOutput.PeakReverseDutyCycle = 0.0;
 
         TalonFXConfiguration rightShooterMotorConfig = new TalonFXConfiguration();
-        rightShooterMotorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        rightShooterMotorConfig.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
         rightShooterMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
 
         rightShooterMotorConfig.Slot0.kP = Preferences.getDouble("Shooter/kP", DEFAULT_KP);
@@ -173,5 +179,16 @@ public class ShooterSubsystem extends SubsystemBase {
         setLeftShooterMotor(Preferences.getDouble("Shooter/LEFT_RPM_SETPOINT", ShootingConstants.LEFT_SHOOTER_RPM));
         setRightShooterMotor(Preferences.getDouble("Shooter/RIGHT_RPM_SETPOINT", ShootingConstants.RIGHT_SHOOTER_RPM));
     }
+
+    private void createDistanceToRPMMap() {
+        DistanceToRPM.put(0.0, 0.0);
+    }
+
+    private void createDistanceToShotTimeMap() {
+        DistanceToShotTime.put(0.0, 0.0);
+    }
+
+    public double getDistanceToRPMMap(double distance) {return DistanceToRPM.get(distance);}
+    public double getDistanceToShotTime(double distance) {return DistanceToShotTime.get(distance);}
 
 }

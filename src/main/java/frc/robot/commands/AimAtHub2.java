@@ -94,13 +94,13 @@ public class AimAtHub2 extends Command {
         return new Pose3d(currentPose.getTranslation().plus(rotatedOffset), currentPose.getRotation());
     }
 
-
     private static Pose3d getRelativePose3d(Pose3d targetPose, Pose3d turretPose, Translation2d robotVelocity, Translation2d robotAcceleration, double time) {
         return new Pose3d(targetPose.getX() - (turretPose.getX() + (robotVelocity.getX()* time) + (0.5 * robotAcceleration.getX() * time * time )),
                 targetPose.getY() - (turretPose.getY() + (robotVelocity.getY() * time) + (0.5 * robotAcceleration.getY() * time * time)),
                 targetPose.getZ() - turretPose.getZ(),
                 targetPose.getRotation());
     }
+
     private static Pose3d getEstimatedPose3d(Pose3d turretPose, Translation2d robotVelocity, Translation2d robotAcceleration, double time){
         return new Pose3d((turretPose.getX() + (robotVelocity.getX()* time) + (0.5 * robotAcceleration.getX() * time * time )),
                 (turretPose.getY() + (robotVelocity.getY() * time) + (0.5 * robotAcceleration.getY() * time * time)),
