@@ -27,7 +27,7 @@ public class AimAtHub3 extends Command {
                 swerve.getFieldVelocity().vyMetersPerSecond * 0.1,
                 swerve.getFieldVelocity().omegaRadiansPerSecond * 0.1
         ));
-        Pose2d shooterPose = futerPose.transformBy(ShootingConstants.TURRET_OFFSET);
+        Pose2d shooterPose = futerPose.transformBy(ShootingConstants.TURRET_OFFSET2D);
         double shooterDistance = target.getDistance(shooterPose.getTranslation());
         double shootTime = shooter.getDistanceToShotTime(shooterDistance);
         double RPM = shooter.getDistanceToRPMMap(shooterDistance);

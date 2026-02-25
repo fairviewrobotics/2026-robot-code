@@ -60,7 +60,7 @@ public class HoodSubsystem extends SubsystemBase {
         setHood(finalSetpoint);
     }
 
-    private void setHood(double angle) {
+    public void setHood(double angle) {
         double percentage = (angle - ShootingConstants.HOOD_MIN_ANGLE_DEGREES) /
                 (ShootingConstants.HOOD_MAX_ANGLE_DEGREES - ShootingConstants.HOOD_MIN_ANGLE_DEGREES);
         hoodActuator.setClampedPosition(percentage);
