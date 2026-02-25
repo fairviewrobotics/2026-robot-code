@@ -126,7 +126,7 @@ public class ShooterSubsystem extends SubsystemBase {
     public void setMotorRPM(double rpm) {
         double rps = rpm / 60.0;
         leftShooterMotor.setControl(new VelocityVoltage(rps));
-        //rightShooterMotor.setControl(new VelocityVoltage(rps));
+        rightShooterMotor.setControl(new VelocityVoltage(rps));
     }
 
     @Override

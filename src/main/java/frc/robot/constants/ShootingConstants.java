@@ -1,5 +1,8 @@
 package frc.robot.constants;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.robot.utils.TunableNumber;
 
@@ -53,5 +56,6 @@ public class ShootingConstants {
 
     // Just make it spun up the entire time unc
     public static final double AUTO_SHOOTER_TIMEOUT_SECONDS = 2.0;
+    public static final Transform2d TURRET_OFFSET =  new Transform2d(0.0, 0.0, Rotation2d.kZero); //TODO: get offset
 
 }
