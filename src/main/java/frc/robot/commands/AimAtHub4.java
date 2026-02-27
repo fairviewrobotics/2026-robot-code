@@ -70,10 +70,10 @@ public class AimAtHub4 extends Command {
         double d = Math.hypot(dx, dy);
         double g = 9.8;
         double v2 = velocity * velocity;
-        double discriminant = v2*v2 - g*(g*dx*dx + 2*dz*v2);
+        double discriminant = v2 * v2 - g * (g * Math.pow(d, 2) + 2 * dz * v2);
         if (discriminant < 0) return -1; // unreachable
-        double angleLow = Math.atan((v2 - Math.sqrt(discriminant)) / (g * dx));
-        double angleHigh =  Math.atan((v2 + Math.sqrt(discriminant)) / (g * dx));
+        double angleLow = Math.atan((v2 - Math.sqrt(discriminant)) / (g * d));
+        double angleHigh =  Math.atan((v2 + Math.sqrt(discriminant)) / (g * d));
         if(low) {
             return angleLow;
         }
@@ -83,7 +83,7 @@ public class AimAtHub4 extends Command {
     public double TurretAngle(){
         double turretAngle = Math.atan2(relativePose.getY(),relativePose.getX());
         if(turretAngle < 0){
-            turretAngle = Math.PI*2 + turretAngle;
+            turretAngle = Math.PI * 2 + turretAngle;
         }
         return turretAngle;
     }
