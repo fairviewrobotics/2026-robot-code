@@ -34,7 +34,7 @@ public class AimAtHub3 extends Command {
                 swerve.getRobotVelocity().omegaRadiansPerSecond * 0.1
         ));
 
-        Translation2d shooterTranslation = robotAtRelease.transformBy(ShootingConstants.TURRET_OFFSET).getTranslation();
+        Translation2d shooterTranslation = robotAtRelease.transformBy(ShootingConstants.TURRET_OFFSET2D).getTranslation();
 
         double shooterDistance = target.getDistance(shooterTranslation);
         Translation2d virtualTarget = target;
@@ -69,4 +69,5 @@ public class AimAtHub3 extends Command {
         shooter.setMotorRPM(0);
         // turret.setTurret(0);
     }
+
 }

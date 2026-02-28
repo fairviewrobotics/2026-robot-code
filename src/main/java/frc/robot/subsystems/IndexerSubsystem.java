@@ -64,8 +64,8 @@ public class IndexerSubsystem extends SubsystemBase {
     }
 
     public void setKickerWithPreferences() {
-        double pidOutput = kickerPID.calculate(kickerMotor.get(), Preferences.getDouble("Kicker/KICKER_RPM", IndexerConstants.KICKER_RPM));
-        kickerMotor.set(pidOutput);
+        double pidOutput = kickerPID.calculate(kickerMotor.getEncoder().getVelocity(), Preferences.getDouble("Kicker/KICKER_RPM", IndexerConstants.KICKER_RPM));
+        kickerMotor.setVoltage(pidOutput);
     }
 
     public void setKickerMotorVoltage(double voltage) {
@@ -87,6 +87,8 @@ public class IndexerSubsystem extends SubsystemBase {
     public void periodic() {
         Logger.recordOutput("Kicker/KICKER_RPM", kickerMotor.getEncoder().getVelocity());
         Logger.recordOutput("Hopper/HOPPER_RPM", hopperMotor.getEncoder().getVelocity());
+        kickerPID.setP(Preferences.getDouble("Kicker/kP", IndexerConstants.KICKER_P));
+        kickerPID.setD(Preferences.getDouble("Kicker/kD", IndexerConstants.KICKER_D));
     }
 
 }

@@ -49,7 +49,7 @@ public class HoodSubsystem extends SubsystemBase {
         ChassisSpeeds speeds = swerveSubsystem.getRobotVelocity();
 
         // 1.25s for hood to go from fully extended to retracted
-        double lookaheadTime = 1.25;
+        double lookaheadTime = 1.0;
 
         Pose2d futurePose = swerveSubsystem.getPose().exp(
                 new Twist2d(

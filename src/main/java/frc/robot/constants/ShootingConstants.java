@@ -18,6 +18,10 @@ public class ShootingConstants {
 
     public static final double HOOD_MAX_ANGLE_DEGREES = 60.0;
     public static final double HOOD_MIN_ANGLE_DEGREES = 15.0;
+    public static final double HOOD_AGAINST_THE_HUB_ANGLE_DEGREES = 60.0;
+    public static final double HOOD_TRENCH_ANGLE = 45.0;
+    public static final double HOOD_CORNER_ANGLE = 30.0;
+
 
     public static double TURRET_P = 8.0;
     public static double TURRET_D = 0.0;
@@ -26,6 +30,11 @@ public class ShootingConstants {
     public static double TURRET_KS = 0.0;
     public static double TURRET_KV = 0.0;
     public static double TURRET_KA = 0.0;
+
+    public static final double TURRET_CORNER_LEFT_ANGLE_DEGREES = 60.0;
+    public static final double TURRET_TRENCH_LEFT_ANGLE_DEGREES = 15.0;
+    public static final double TURRET_CORNER_RIGHT_ANGLE_DEGREES = 60.0;
+    public static final double TURRET_TRENCH_RIGHT_ANGLE_DEGREES = 15.0;
 
     public static final double HOOD_MOTOR_GEAR_RATIO = 0.0;
 
@@ -38,6 +47,9 @@ public class ShootingConstants {
 
     public static final double LEFT_SHOOTER_RPM = 2500;
     public static final double RIGHT_SHOOTER_RPM = 6500;
+    public static final double SHOOTER_AGAINST_THE_HUB_RPM = 1875;
+    public static final double SHOOTER_TRENCH_RPM = 3000;
+    public static final double SHOOTER_CORNER_RPM = 4000;
 
     // Just make it spun up the entire time unc
     public static final double AUTO_SHOOTER_TIMEOUT_SECONDS = 2.0;

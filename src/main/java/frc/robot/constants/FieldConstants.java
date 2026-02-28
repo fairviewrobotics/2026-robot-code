@@ -17,6 +17,9 @@ public class FieldConstants {
 
     public static final Pose3d BLUE_HUB_POSE3D = new Pose3d(4.62534,4.034663,1.822, Rotation3d.kZero);
     public static final Pose3d RED_HUB_POSE3D = new Pose3d(4.62534 + 7.2898,4.034663,1.822, Rotation3d.kZero);
+    public static final Pose2d BLUE_PASS_RIGHT_POSE = new Pose2d(0.6, 7.4, Rotation2d.kZero);
+    public static final Pose2d BLUE_PASS_LEFT_POSE = new Pose2d(0.6, 0.6, Rotation2d.kZero);
+
 
     public static final Pose2d BLUE_TRENCH_LEFT = new Pose2d(4.511, 7.415, Rotation2d.kZero);
     public static final Pose2d BLUE_TRENCH_LEFT_TRANSITION_PICKUP = new Pose2d(7.657, 7.415, Rotation2d.kCW_90deg);

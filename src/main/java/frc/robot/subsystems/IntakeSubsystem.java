@@ -127,9 +127,17 @@ public class IntakeSubsystem extends SubsystemBase {
         setIntakeRollerMotor(Preferences.getDouble("Intake/ROLLER_RPM", IntakeConstants.INTAKING_RPM));
     }
 
+    public void zeroIntakeDeployEncoder(){
+        intakeDeployMotor.getEncoder().setPosition(0);
+    }
+
     public void stopMotors() {
         intakeDeployMotor.stopMotor();
         intakeRollerMotor.stopMotor();
+    }
+
+    public double getDeployMotorPosition() {
+        return intakeDeployMotor.getEncoder().getPosition();
     }
 
     public void setIntakeDeployMotorVoltage(double voltage) {
