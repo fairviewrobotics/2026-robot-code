@@ -18,16 +18,15 @@ public class IndexerSubsystem extends SubsystemBase {
     private final SparkFlex kickerMotor = new SparkFlex(IndexerConstants.KICKER_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
     private final SparkFlex hopperMotor = new SparkFlex(IndexerConstants.HOPPER_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
 
-    private SparkFlexConfig kickerMotorConfig = new SparkFlexConfig();
-    private SparkFlexConfig hopperMotorConfig = new SparkFlexConfig();
-
     public IndexerSubsystem() {
 
+        SparkFlexConfig kickerMotorConfig = new SparkFlexConfig();
         kickerMotorConfig
                 .smartCurrentLimit(40)
                 .idleMode(SparkBaseConfig.IdleMode.kCoast)
                 .inverted(false);
 
+        SparkFlexConfig hopperMotorConfig = new SparkFlexConfig();
         hopperMotorConfig
                 .smartCurrentLimit(40)
                 .idleMode(SparkBaseConfig.IdleMode.kCoast)
@@ -39,15 +38,17 @@ public class IndexerSubsystem extends SubsystemBase {
         initializePreferences();
     }
 
-    private final PIDController intakePID = new PIDController(
-            Preferences.getDouble("Intake/kP", IntakeConstants.INTAKE_DEPLOY_P),
+    private final PIDController kickerPID = new PIDController(
+            Preferences.getDouble("Kicker/kP", IndexerConstants.KICKER_P),
             0.0,
-            Preferences.getDouble("Intake/kD", IntakeConstants.INTAKE_DEPLOY_D)
+            Preferences.getDouble("Kicker/kD", IndexerConstants.KICKER_D)
     );
 
     private void initializePreferences() {
-        Preferences.initDouble("Indexer/KICKER_RPM", IntakeConstants.INTAKING_RPM);
-        Preferences.initDouble("Indexer/HOPPER_RPM", 0.0);
+        Preferences.initDouble("Kicker/KICKER_RPM", IndexerConstants.KICKER_RPM);
+        Preferences.initDouble("Hopper/HOPPER_RPM", 0.0);
+        Preferences.initDouble("Kicker/kP", IndexerConstants.KICKER_P);
+        Preferences.initDouble("Kicker/kD", IndexerConstants.KICKER_D);
     }
 
     public void setHopperMotorRPM(double speed) {
@@ -59,11 +60,12 @@ public class IndexerSubsystem extends SubsystemBase {
     }
 
     public void setHopperWithPreferences() {
-        hopperMotor.set(Preferences.getDouble("Indexer/HOPPER_RPM", IndexerConstants.HOPPER_MOTOR_RPM));
+        hopperMotor.set(Preferences.getDouble("Hopper/HOPPER_RPM", IndexerConstants.HOPPER_MOTOR_RPM));
     }
 
     public void setKickerWithPreferences() {
-        kickerMotor.set(Preferences.getDouble("Indexer/KICKER_RPM", IndexerConstants.KICKER_RPM));
+        double pidOutput = kickerPID.calculate(kickerMotor.get(), Preferences.getDouble("Kicker/KICKER_RPM", IndexerConstants.KICKER_RPM));
+        kickerMotor.set(pidOutput);
     }
 
     public void setKickerMotorVoltage(double voltage) {
@@ -83,8 +85,8 @@ public class IndexerSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Logger.recordOutput("Indexer/KICKER_RPM", kickerMotor.getEncoder().getVelocity());
-        Logger.recordOutput("Indexer/HOPPER_RPM", hopperMotor.getEncoder().getVelocity());
+        Logger.recordOutput("Kicker/KICKER_RPM", kickerMotor.getEncoder().getVelocity());
+        Logger.recordOutput("Hopper/HOPPER_RPM", hopperMotor.getEncoder().getVelocity());
     }
 
 }

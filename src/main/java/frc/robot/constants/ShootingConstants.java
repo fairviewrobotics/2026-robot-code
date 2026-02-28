@@ -10,26 +10,13 @@ public class ShootingConstants {
 
     public static final int LEFT_SHOOTER_MOTOR_ID = 17;
     public static final int RIGHT_SHOOTER_MOTOR_ID = 16;
-    public static final int INDEXER_MOTOR_ID = 22;
     public static final int HOOD_ACTUATOR_ID = 0;
     public static final int TURRET_MOTOR_ID = 14;
-    public static final int TURRET_LINEBREAK_ID = 2;
-    public static final double TURRET_GEAR_RATIO = 0.020202; // 1 : 45
+    public static final double TURRET_GEAR_RATIO = 0.02610966057; // 1 : 38.3
     public static final double TURRET_ENCODER_TO_RADIANS_CONVERSION_FACTOR = 2 * Math.PI * TURRET_GEAR_RATIO;
-    public static final double TURRET_PINION_CIRCUMFERENCE = 0.0958;
-    public static final double  TURRET_SPUR_GEAR_RADIUS = 0.1295;
-    public static final double TURRET_FORWARD_LIMIT_DEGREES = 400;
+    public static final double TURRET_FORWARD_LIMIT_DEGREES = 360;
     public static final double TURRET_REVERSE_LIMIT_DEGREES = 0;
 
-    public static final double SHOOTER_VELOCITY_CONVERSION_FACTOR = 2 * Math.PI / 60;
-
-    public static final TunableNumber SHOOTER_KS = new TunableNumber("shooter_ks", 0.09);
-    public static final TunableNumber SHOOTER_KV = new TunableNumber("shooter_kv", 0.0165);
-    public static final double SHOOTER_KA = 0.0;
-
-    public static final TunableNumber SHOOTER_P = new TunableNumber("shooter_p", 0.0);
-    public static final double SHOOTER_I = 0.0;
-    public static final TunableNumber SHOOTER_D = new TunableNumber("shooter_d", 0.0);
 
     public static final double HOOD_MAX_ANGLE_DEGREES = 60.0;
     public static final double HOOD_MIN_ANGLE_DEGREES = 15.0;

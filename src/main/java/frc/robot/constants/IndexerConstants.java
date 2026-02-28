@@ -8,4 +8,7 @@ public class IndexerConstants {
     public static final double KICKER_RPM = 2500;
     public static final double HOPPER_MOTOR_RPM = 4000;
 
+    public static final double KICKER_P = 0.1;
+    public static final double KICKER_D = 0.0;
+
 }

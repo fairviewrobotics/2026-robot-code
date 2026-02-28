@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.constants.FieldConstants;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -24,13 +25,11 @@ public class AimAtHubWithChassis extends Command {
     private final DoubleSupplier xSupplier;
     private final DoubleSupplier ySupplier;
 
-    // PID constants - tune these for your robot
     private static final double kP = 3.0;
     private static final double kI = 0.0;
     private static final double kD = 0.1;
 
-    // Tolerance for considering the robot "on target" (radians)
-    private static final double ANGLE_TOLERANCE = Math.toRadians(2.0);
+    private static final double ANGLE_TOLERANCE = Units.degreesToRadians(2.0);
 
     /**
      * Creates a command that aims the robot at the hub while allowing manual translation control.
@@ -93,17 +92,12 @@ public class AimAtHubWithChassis extends Command {
      * Calculates the angle the robot should face to aim at the target.
      * Simple calculation based on current position only.
      */
+
     private double calculateTargetAngle(Pose2d currentPose) {
-        // Calculate vector from current robot position to target
         double dx = targetPose.getX() - currentPose.getX();
         double dy = targetPose.getY() - currentPose.getY();
 
-        // Calculate angle to target
-        double angleToTarget = Math.atan2(dy, dx);
-
-        Logger.recordOutput("AimSwerve/TargetPose", targetPose);
-
-        return angleToTarget;
+        return Math.atan2(dy, dx);
     }
 
     @Override
@@ -115,14 +109,7 @@ public class AimAtHubWithChassis extends Command {
 
     @Override
     public void end(boolean interrupted) {
-        // Stop the robot when command ends
         swerveSubsystem.drive(Translation2d.kZero, 0.0, true);
     }
 
-    /**
-     * Returns true if the robot is currently aimed at the target within tolerance.
-     */
-    public boolean isOnTarget() {
-        return rotationController.atSetpoint();
-    }
 }

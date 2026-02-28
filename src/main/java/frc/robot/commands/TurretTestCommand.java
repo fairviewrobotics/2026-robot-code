@@ -29,7 +29,6 @@ public class TurretTestCommand extends Command {
     public void execute() {
 
         Pose2d currentPose = swerveSubsystem.getPose();
-        Logger.recordOutput("Turret/CommandPose", currentPose);
         Logger.recordOutput("Turret/TargetPose", targetPose);
         double targetAngle = targetPose.getTranslation().
                 minus(currentPose.getTranslation())

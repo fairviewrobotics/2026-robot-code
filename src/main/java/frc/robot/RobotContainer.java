@@ -144,6 +144,7 @@ public class RobotContainer
     Command driveFieldOrientedDirectAngleKeyboard      = drivebase.driveFieldOriented(driveDirectAngleKeyboard);
     Command driveFieldOrientedAnglularVelocityKeyboard = drivebase.driveFieldOriented(driveAngularVelocityKeyboard);
 
+    primary_controller.L1().whileTrue(new RunCommand(() -> turretSubsystem.setVoltage(-2.0)));
     primary_controller.options().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3, 3, new Rotation2d()))));
     primary_controller.pov(0).whileTrue(drivebase.sysIdDriveMotorCommand());
     primary_controller.pov(90).whileTrue(drivebase.sysIdAngleMotorCommand());

@@ -36,10 +36,8 @@ import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 public class SwerveSubsystem extends SubsystemBase
 {
-  private final SlewRateLimiter xyLimiter = new SlewRateLimiter(0);
-  private final SlewRateLimiter omegaLimiter = new SlewRateLimiter(0);
 
-  /**
+    /**
    * Swerve drive object.
    */
   private final SwerveDrive swerveDrive;
@@ -76,6 +74,8 @@ public class SwerveSubsystem extends SubsystemBase
     {
       throw new RuntimeException(e);
     }
+    SlewRateLimiter xyLimiter = new SlewRateLimiter(0);
+    SlewRateLimiter omegaLimiter = new SlewRateLimiter(0);
     swerveDrive.swerveController.addSlewRateLimiters(xyLimiter, xyLimiter, omegaLimiter);
     swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via angle.
     swerveDrive.setCosineCompensator(false);//!SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for simulations since it causes discrepancies not seen in real life.
@@ -511,14 +511,6 @@ public class SwerveSubsystem extends SubsystemBase
   public Rotation2d getPitch()
   {
     return swerveDrive.getPitch();
-  }
-
-  /**
-   * Add a fake vision reading for testing purposes.
-   */
-  public void addFakeVisionReading()
-  {
-    swerveDrive.addVisionMeasurement(new Pose2d(3, 3, Rotation2d.fromDegrees(65)), Timer.getFPGATimestamp());
   }
 
   /**

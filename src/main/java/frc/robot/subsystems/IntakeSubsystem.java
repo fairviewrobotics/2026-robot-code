@@ -23,17 +23,16 @@ public class IntakeSubsystem extends SubsystemBase {
     private SparkFlexConfig intakeDeployMotorConfig = new SparkFlexConfig();
     private SparkFlexConfig intakeRollerMotorConfig = new SparkFlexConfig();
 
-    private double errorThreshold = 1.0; // inches - only check if we're this far from target
+    private double errorThreshold = 0.5;
     private static final int STALL_SAMPLES_REQUIRED = 10; // ~200ms at 20ms loop
 
     double lastKP = IntakeConstants.INTAKE_DEPLOY_P;
     double lastKD = IntakeConstants.INTAKE_DEPLOY_D;
     double lastRollerRPM = IntakeConstants.INTAKING_RPM;
     double lastDeploySetpoint = 0.0;
+    double lastDeployCurrent = IntakeConstants.DEPLOYED_CURRENT_LIMIT;
 
     public IntakeSubsystem() {
-
-
         intakeDeployMotorConfig
                 .idleMode(SparkBaseConfig.IdleMode.kCoast)
                 .inverted(false)
@@ -77,7 +76,8 @@ public class IntakeSubsystem extends SubsystemBase {
         return lastKP != Preferences.getDouble("Intake/kP", IntakeConstants.INTAKE_DEPLOY_P)
                 || lastKD != Preferences.getDouble("Intake/kD", IntakeConstants.INTAKE_DEPLOY_D)
                 || lastDeploySetpoint != Preferences.getDouble("Intake/DEPLOY_SETPOINT", 0.0)
-                || lastRollerRPM != Preferences.getDouble("Intake/ROLLER_RPM", IntakeConstants.INTAKING_RPM);
+                || lastRollerRPM != Preferences.getDouble("Intake/ROLLER_RPM", IntakeConstants.INTAKING_RPM)
+                || lastDeployCurrent != Preferences.getDouble("Intake/DEPLOY_CURRENT_LIMIT", 0);
     }
 
     public void setDeployCurrentLimit(int amps) {
@@ -143,6 +143,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+
         if (preferencesChanged()) {
             updateValues();
         }
