@@ -115,6 +115,8 @@ public class Vision extends SubsystemBase {
 
                 List<Pose3d> tagPoses = new ArrayList<>();
 
+                double totalDistance = 0.0;
+
                 for (int id : latestResult.getMultiTagResult().get().fiducialIDsUsed) {
 
                     // remove bad tags from the map at some point
@@ -127,6 +129,7 @@ public class Vision extends SubsystemBase {
 
                     if (distance < VisionConstants.MAX_ACCEPTABLE_TAG_RANGE) {
                         tagPoses.add(tagPose);
+                        totalDistance += tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
                     } else {
                         return;
                     }
@@ -160,10 +163,10 @@ public class Vision extends SubsystemBase {
                 }
 
                 // Calculate average distance to tags
-                double totalDistance = 0.0;
-                for (Pose3d tagPose : tagPoses) {
-                    totalDistance += tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
-                }
+//                double totalDistance = 0.0;
+//                for (Pose3d tagPose : tagPoses) {
+//                    totalDistance += tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
+//                }
                 double avgDistance = totalDistance / tagPoses.size();
 
                 // Calculate dynamic standard deviations
