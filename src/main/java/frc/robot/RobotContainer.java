@@ -49,6 +49,7 @@ public class RobotContainer
   BallDetection ballDetection = new BallDetection(new PhotonCamera("limelight ball cam"), drivebase);
   ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  IndexerSubsystem indexerSubsystem = new IndexerSubsystem();
 
   SuperSecretMissileTech superSecretMissileTech = new SuperSecretMissileTech(drivebase);
 
@@ -176,6 +177,16 @@ public class RobotContainer
     // primary_controller.back().whileTrue(Commands.none());
     // primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
 
+    secondary_controller.a().whileTrue(new RunCommand(() -> intakeSubsystem.setIntakeRollerMotorVoltage(2)));
+    secondary_controller.leftBumper().whileTrue(new RunCommand(() -> intakeSubsystem.setIntakeDeployMotorVoltage(2)));
+    secondary_controller.rightBumper().whileTrue(new RunCommand(() -> intakeSubsystem.setIntakeDeployMotorVoltage(-2)));
+    secondary_controller.b().whileTrue(new RunCommand(() -> indexerSubsystem.setHopperMotorVoltage(2)));
+    secondary_controller.x().whileTrue(new RunCommand(() -> indexerSubsystem.setKickerMotorVoltage(2)));
+    secondary_controller.y().whileTrue(new RunCommand(() -> shooterSubsystem.setMotorRPM(1000)));
+    secondary_controller.pov(0).onTrue(Commands.runOnce(() ->hoodSubsystem.setHood(50)));
+    secondary_controller.pov(180).onTrue(Commands.runOnce(() -> hoodSubsystem.setHood(15)));
+    secondary_controller.pov(90).onTrue(Commands.runOnce(() -> turretSubsystem.setTurret(15)));
+    secondary_controller.pov(270).onTrue(Commands.runOnce(() -> turretSubsystem.setTurret(60)));
     if (RobotBase.isSimulation())
     {
       drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
