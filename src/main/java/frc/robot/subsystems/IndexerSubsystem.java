@@ -28,9 +28,9 @@ public class IndexerSubsystem extends SubsystemBase {
 
         SparkFlexConfig hopperMotorConfig = new SparkFlexConfig();
         hopperMotorConfig
-                .smartCurrentLimit(40)
+                .smartCurrentLimit(60)
                 .idleMode(SparkBaseConfig.IdleMode.kCoast)
-                .inverted(false);
+                .inverted(true);
 
         kickerMotor.configure(kickerMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         hopperMotor.configure(hopperMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -60,7 +60,7 @@ public class IndexerSubsystem extends SubsystemBase {
     }
 
     public void setHopperWithPreferences() {
-        hopperMotor.set(Preferences.getDouble("Hopper/HOPPER_RPM", IndexerConstants.HOPPER_MOTOR_RPM));
+        hopperMotor.set(Preferences.getDouble("Hopper/HOPPER_RPM", IndexerConstants.HOPPER_MOTOR_RPM)/6000);
     }
 
     public void setKickerWithPreferences() {

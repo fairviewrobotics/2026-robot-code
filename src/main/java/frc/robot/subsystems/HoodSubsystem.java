@@ -20,6 +20,7 @@ public class HoodSubsystem extends SubsystemBase {
 
     public HoodSubsystem(SwerveSubsystem swerveSubsystem) {
         createHoodSetpointMap();
+        initializePreferences();
         this.swerveSubsystem = swerveSubsystem;
     }
 
@@ -76,7 +77,7 @@ public class HoodSubsystem extends SubsystemBase {
 
     // Delete later
     public void setHoodWithPreferences() {
-        hoodActuator.setClampedPosition(Preferences.getDouble("Hood/HOOD_SETPOINT_PERCENTAGE", 0.05));
+        hoodActuator.setClampedPosition(Preferences.getDouble("Hood/HOOD_SETPOINT", 0.05));
     }
 
 }

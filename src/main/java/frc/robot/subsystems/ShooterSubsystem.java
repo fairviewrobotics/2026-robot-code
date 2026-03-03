@@ -1,10 +1,12 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.math.controller.BangBangController;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -37,6 +39,8 @@ public class ShooterSubsystem extends SubsystemBase {
 
     private final InterpolatingDoubleTreeMap DistanceToShotTime =
             new InterpolatingDoubleTreeMap();
+
+    private final BangBangController shooterBangController = new BangBangController();
 
     public ShooterSubsystem() {
         initializePreferences();
@@ -127,6 +131,16 @@ public class ShooterSubsystem extends SubsystemBase {
         double rps = rpm / 60.0;
         leftShooterMotor.setControl(new VelocityVoltage(rps));
         rightShooterMotor.setControl(new VelocityVoltage(rps));
+    }
+
+    public void setMotorRPMBangBang(double rpm) {
+        double bangOutput = shooterBangController.calculate(leftShooterMotor.getVelocity().getValueAsDouble() * 60, rpm);
+        leftShooterMotor.setVoltage(bangOutput * 12.0);
+        rightShooterMotor.setVoltage(bangOutput * 12.0);
+    }
+
+    public void setMotorRPMBangBangWithPreferences() {
+        this.setMotorRPMBangBang(Preferences.getDouble("Shooter/LEFT_RPM_SETPOINT", ShootingConstants.LEFT_SHOOTER_RPM));
     }
 
     @Override

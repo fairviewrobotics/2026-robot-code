@@ -2,7 +2,7 @@ package frc.robot.constants;
 
 public class IntakeConstants {
     public static final int INTAKE_DEPLOY_MOTOR_ID = 18;
-    public static final int INTAKE_ROLLER_MOTOR_ID = 22;
+    public static final int INTAKE_ROLLER_MOTOR_ID = 21;
 
     public static final double INTAKING_RPM = 3000;
     public static final double INTAKING_TIMEOUT_SECONDS = 2.0;

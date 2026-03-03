@@ -6,6 +6,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.constants.FieldConstants;
 import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.utils.AllianceFlipUtil;
 import org.littletonrobotics.junction.Logger;
 
 import java.util.function.DoubleSupplier;
@@ -31,27 +32,12 @@ public class AimAtHubWithChassis extends Command {
 
     private static final double ANGLE_TOLERANCE = Units.degreesToRadians(2.0);
 
-    /**
-     * Creates a command that aims the robot at the hub while allowing manual translation control.
-     *
-     * @param swerveSubsystem The swerve drive subsystem
-     * @param red True if aiming at red alliance hub, false for blue alliance
-     * @param xSupplier Supplier for X axis input (forward/back), typically from joystick
-     * @param ySupplier Supplier for Y axis input (left/right), typically from joystick
-     */
-
-
-    public AimAtHubWithChassis(SwerveSubsystem swerveSubsystem, boolean red, DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
+    public AimAtHubWithChassis(SwerveSubsystem swerveSubsystem, DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
         this.swerveSubsystem = swerveSubsystem;
         this.xSupplier = xSupplier;
         this.ySupplier = ySupplier;
 
-        // Set target pose based on alliance color
-        if (red) {
-            this.targetPose = FieldConstants.RED_HUB_POSE3D;
-        } else {
-            this.targetPose = FieldConstants.BLUE_HUB_POSE3D;
-        }
+        this.targetPose = AllianceFlipUtil.apply(FieldConstants.BLUE_HUB_POSE3D);
 
         // Initialize PID controller for rotation
         this.rotationController = new PIDController(kP, kI, kD);
@@ -68,23 +54,17 @@ public class AimAtHubWithChassis extends Command {
 
     @Override
     public void execute() {
-        // Get current robot pose
         Pose2d currentPose = swerveSubsystem.getPose();
 
-        // Calculate the angle to the target (simple, no motion compensation)
         double targetAngle = calculateTargetAngle(currentPose);
 
-        // Get current robot heading
         double currentHeading = swerveSubsystem.getGyroHeading();
 
-        // Calculate rotation speed using PID
         double rotationSpeed = rotationController.calculate(currentHeading, targetAngle);
 
-        // Get joystick inputs for translation
         double xSpeed = xSupplier.getAsDouble();
         double ySpeed = ySupplier.getAsDouble();
 
-        // Drive the robot - joystick controls translation, PID controls rotation
         swerveSubsystem.drive(new Translation2d(xSpeed, ySpeed), rotationSpeed, true);
     }
 

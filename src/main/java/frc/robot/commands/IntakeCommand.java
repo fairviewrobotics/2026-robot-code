@@ -18,7 +18,7 @@ public class IntakeCommand extends Command {
 
     @Override
     public void execute() {
-        intakeSubsystem.deployIntakeToPositionWithPreferences();
+        intakeSubsystem.setIntakeDeployMotorVoltage(-2);
         intakeSubsystem.setIntakeRollerMotorWithPreferences();
     }
 

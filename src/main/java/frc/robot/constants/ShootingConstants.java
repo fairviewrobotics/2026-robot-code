@@ -6,14 +6,14 @@ import frc.robot.utils.TunableNumber;
 
 public class ShootingConstants {
 
-    public static final int LEFT_SHOOTER_MOTOR_ID = 17;
-    public static final int RIGHT_SHOOTER_MOTOR_ID = 16;
-    public static final int HOOD_ACTUATOR_ID = 0;
-    public static final int TURRET_MOTOR_ID = 14;
-    public static final double TURRET_GEAR_RATIO = 0.02610966057; // 1 : 38.3
+    public static final int LEFT_SHOOTER_MOTOR_ID = 23;
+    public static final int RIGHT_SHOOTER_MOTOR_ID = 22;
+    public static final int HOOD_ACTUATOR_ID = 1;
+    public static final int TURRET_MOTOR_ID = 17;
+    public static final double TURRET_GEAR_RATIO = 0.025; // 1 : 40
     public static final double TURRET_ENCODER_TO_RADIANS_CONVERSION_FACTOR = 2 * Math.PI * TURRET_GEAR_RATIO;
-    public static final double TURRET_FORWARD_LIMIT_DEGREES = 360;
-    public static final double TURRET_REVERSE_LIMIT_DEGREES = 0;
+    public static final double TURRET_FORWARD_LIMIT_DEGREES = 360.0;
+    public static final double TURRET_REVERSE_LIMIT_DEGREES = 0.0;
 
 
     public static final double HOOD_MAX_ANGLE_DEGREES = 60.0;
@@ -25,7 +25,7 @@ public class ShootingConstants {
 
     public static double TURRET_P = 8.0;
     public static double TURRET_D = 0.0;
-    public static final TrapezoidProfile.Constraints TURRET_CONSTRAINTS = new TrapezoidProfile.Constraints(8 * Math.PI, 32 * Math.PI);
+    public static final TrapezoidProfile.Constraints TURRET_CONSTRAINTS = new TrapezoidProfile.Constraints(4.0 * Math.PI, 8.0 * Math.PI);
 
     public static double TURRET_KS = 0.0;
     public static double TURRET_KV = 0.0;

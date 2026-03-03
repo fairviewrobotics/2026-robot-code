@@ -34,8 +34,9 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public IntakeSubsystem() {
         intakeDeployMotorConfig
+                .smartCurrentLimit(40)
                 .idleMode(SparkBaseConfig.IdleMode.kCoast)
-                .inverted(false)
+                .inverted(true)
                 .encoder.positionConversionFactor(IntakeConstants.INTAKE_DEPLOY_MOTOR_CONVERSION_FACTOR)
                 .velocityConversionFactor(IntakeConstants.INTAKE_DEPLOY_MOTOR_CONVERSION_FACTOR / 60.0); // Convert RPM to units/sec
 
@@ -124,7 +125,7 @@ public class IntakeSubsystem extends SubsystemBase {
     }
 
     public void setIntakeRollerMotorWithPreferences() {
-        setIntakeRollerMotor(Preferences.getDouble("Intake/ROLLER_RPM", IntakeConstants.INTAKING_RPM));
+        setIntakeRollerMotor(Preferences.getDouble("Intake/ROLLER_RPM", IntakeConstants.INTAKING_RPM)/6000);
     }
 
     public void zeroIntakeDeployEncoder(){

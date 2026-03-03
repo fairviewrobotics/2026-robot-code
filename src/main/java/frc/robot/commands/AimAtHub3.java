@@ -29,9 +29,9 @@ public class AimAtHub3 extends Command {
         ChassisSpeeds fieldVel = swerve.getFieldVelocity();
 
         Pose2d robotAtRelease = currentPose.exp(new Twist2d(
-                swerve.getRobotVelocity().vxMetersPerSecond * 0.1,
-                swerve.getRobotVelocity().vyMetersPerSecond * 0.1,
-                swerve.getRobotVelocity().omegaRadiansPerSecond * 0.1
+                swerve.getRobotVelocity().vxMetersPerSecond * 0.05,
+                swerve.getRobotVelocity().vyMetersPerSecond * 0.05,
+                swerve.getRobotVelocity().omegaRadiansPerSecond * 0.05
         ));
 
         Translation2d shooterTranslation = robotAtRelease.transformBy(ShootingConstants.TURRET_OFFSET2D).getTranslation();
@@ -43,7 +43,7 @@ public class AimAtHub3 extends Command {
         for (int i = 0; i < 10; i++) {
             timeOfFlight = shooter.getDistanceToShotTime(shooterDistance);
 
-            virtualTarget = target.minus(new Translation2d(
+            virtualTarget = target.plus(new Translation2d(
                     fieldVel.vxMetersPerSecond * timeOfFlight,
                     fieldVel.vyMetersPerSecond * timeOfFlight
             ));
@@ -63,7 +63,7 @@ public class AimAtHub3 extends Command {
         turret.setTurret(robotRelativeTurretAngle.getRadians());
     }
 
-    public void end() {
+    public void end(boolean interrupted) {
         // Lowest point of hood, highest exit angle
         hood.setHood(ShootingConstants.HOOD_MAX_ANGLE_DEGREES);
         shooter.setMotorRPM(0);
