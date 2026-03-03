@@ -7,6 +7,7 @@ import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -98,6 +99,14 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeDeployMotor.set(speed);
     }
 
+    public void moveIntakeWithVoltage(double voltage){
+        if (intakeDeployMotor.getEncoder().getVelocity() < 0.5){
+            intakeDeployMotor.setVoltage(0);
+        }
+        else{
+            intakeDeployMotor.setVoltage(voltage);
+        }
+    }
     /**
      * Deploy the intake based on linear distance with collision detection
      * @param position linear distance (inches)

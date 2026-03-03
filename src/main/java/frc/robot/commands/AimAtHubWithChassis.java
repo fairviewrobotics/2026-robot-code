@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.util.Units;
@@ -7,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.constants.FieldConstants;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.utils.AllianceFlipUtil;
+import frc.robot.utils.MathUtils;
 import org.littletonrobotics.junction.Logger;
 
 import java.util.function.DoubleSupplier;
@@ -57,7 +59,8 @@ public class AimAtHubWithChassis extends Command {
         Pose2d currentPose = swerveSubsystem.getPose();
 
         double targetAngle = calculateTargetAngle(currentPose);
-
+        targetAngle += Math.PI;
+        targetAngle = MathUtil.angleModulus(targetAngle);
         double currentHeading = swerveSubsystem.getGyroHeading();
 
         double rotationSpeed = rotationController.calculate(currentHeading, targetAngle);
