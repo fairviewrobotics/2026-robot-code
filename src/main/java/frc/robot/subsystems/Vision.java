@@ -85,7 +85,8 @@ public class Vision extends SubsystemBase {
 
     public void updatePose() {
 
-        getAdjustedCameraPoses();
+        // Actually assigning new Adjusted Camera Poses to cameraPoses
+        this.cameraPoses = getAdjustedCameraPoses();
 
 
         for (int cameraIndex = 0; cameraIndex < cameraPoses.length; cameraIndex++) {
@@ -115,6 +116,8 @@ public class Vision extends SubsystemBase {
 
                 List<Pose3d> tagPoses = new ArrayList<>();
 
+                double totalDistance = 0.0;
+
                 for (int id : latestResult.getMultiTagResult().get().fiducialIDsUsed) {
 
                     // remove bad tags from the map at some point
@@ -127,13 +130,22 @@ public class Vision extends SubsystemBase {
 
                     if (distance < VisionConstants.MAX_ACCEPTABLE_TAG_RANGE) {
                         tagPoses.add(tagPose);
-                    } else {
-                        return;
+                        // Combined total distance calculation with another loop to improve efficiency
+                        totalDistance += tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
                     }
                 }
 
                 if (tagPoses.isEmpty()) {
-                    return;
+                    // Made this a continue to not skip over other cameras
+                    continue;
+                }
+
+                // Moved ambiguity check to before pose estimation to prevent unneccessary calculation
+
+                if (!latestResult.targets.isEmpty()
+                        && latestResult.targets.get(0).getPoseAmbiguity() > VisionConstants.MAX_POSE_AMBIGUITY) {
+                    // Also made this to not skip over other cameras
+                    continue;
                 }
 
                 Pose2d robotPoseEstimation = cameraPoseEstimation
@@ -154,21 +166,17 @@ public class Vision extends SubsystemBase {
                     return;
                 }
 
-                if (!latestResult.targets.isEmpty()
-                        && latestResult.targets.get(0).getPoseAmbiguity() > VisionConstants.MAX_POSE_AMBIGUITY) {
-                    return;
-                }
-
-                // Calculate average distance to tags
-                double totalDistance = 0.0;
-                for (Pose3d tagPose : tagPoses) {
-                    totalDistance += tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
-                }
                 double avgDistance = totalDistance / tagPoses.size();
 
                 // Calculate dynamic standard deviations
                 double xyStdDev = (VisionConstants.BASE_VISION_XY_STD_DEV.get() * avgDistance / tagPoses.size());
                 double thetaStdDev = VisionConstants.BASE_VISION_THETA_STD_DEV.get() * avgDistance / tagPoses.size();
+
+                // Maybe better standard deviation calculations? Please check
+                /*
+                    double xyStdDev = VisionConstants.BASE_VISION_XY_STD_DEV.get() * (Math.pow(avgDistance, 2.0) / tagPoses.size());
+                    double thetaStdDev = VisionConstants.BASE_VISION_THETA_STD_DEV.get() * (Math.pow(avgDistance, 2.0) / tagPoses.size());
+                */
 
                 double baseXY = 0.005;
 
@@ -205,6 +213,10 @@ public class Vision extends SubsystemBase {
 
                 double xyStdDev = VisionConstants.SINGLE_TAG_DISTRUST_COEFFICIENT.get() * VisionConstants.BASE_VISION_XY_STD_DEV.get() * Math.pow(distance, 2.0);
                 double thetaStdDev = VisionConstants.SINGLE_TAG_DISTRUST_COEFFICIENT.get() * VisionConstants.BASE_VISION_THETA_STD_DEV.get() * Math.pow(distance, 2.0);
+
+                // Maybe better to not trust single tag theta calculation?
+                // double thetaStdDev = Double.MAX_VALUE;
+
 
                 double baseXY = 0.005;
 
