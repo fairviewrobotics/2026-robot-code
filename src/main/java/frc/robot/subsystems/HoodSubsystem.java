@@ -47,24 +47,24 @@ public class HoodSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        ChassisSpeeds speeds = swerveSubsystem.getRobotVelocity();
-
-        // 1.25s for hood to go from fully extended to retracted
-        double lookaheadTime = 1.0;
-
-        Pose2d futurePose = swerveSubsystem.getPose().exp(
-                new Twist2d(
-                        speeds.vxMetersPerSecond * lookaheadTime,
-                        speeds.vyMetersPerSecond * lookaheadTime,
-                        speeds.omegaRadiansPerSecond * lookaheadTime
-                )
-        );
-
-        boolean isInvadingZone =
-                AllianceFlipUtil.apply(FieldConstants.TRENCH_BOUNDS).contains(futurePose.getTranslation())
-                || AllianceFlipUtil.apply(FieldConstants.TRENCH_BOUNDS).contains(swerveSubsystem.getPose().getTranslation());
-
-        double finalSetpoint = isInvadingZone ? ShootingConstants.HOOD_MIN_ANGLE_DEGREES : targetAngle;
+//        ChassisSpeeds speeds = swerveSubsystem.getRobotVelocity();
+//
+//        // 1.25s for hood to go from fully extended to retracted
+//        double lookaheadTime = 1.0;
+//
+//        Pose2d futurePose = swerveSubsystem.getPose().exp(
+//                new Twist2d(
+//                        speeds.vxMetersPerSecond * lookaheadTime,
+//                        speeds.vyMetersPerSecond * lookaheadTime,
+//                        speeds.omegaRadiansPerSecond * lookaheadTime
+//                )
+//        );
+//
+//        boolean isInvadingZone =
+//                AllianceFlipUtil.apply(FieldConstants.TRENCH_BOUNDS).contains(futurePose.getTranslation())
+//                        || AllianceFlipUtil.apply(FieldConstants.TRENCH_BOUNDS).contains(swerveSubsystem.getPose().getTranslation());
+//
+//        double finalSetpoint = isInvadingZone ? ShootingConstants.HOOD_MIN_ANGLE_DEGREES : targetAngle;
 
         // setHood(finalSetpoint);
     }
@@ -72,7 +72,7 @@ public class HoodSubsystem extends SubsystemBase {
     public void setHood(double angle) {
         double percentage = (angle - ShootingConstants.HOOD_MIN_ANGLE_DEGREES) /
                 (ShootingConstants.HOOD_MAX_ANGLE_DEGREES - ShootingConstants.HOOD_MIN_ANGLE_DEGREES);
-        hoodActuator.setClampedPosition(percentage);
+        hoodActuator.setClampedPosition(angle);
     }
 
     // Delete later
@@ -81,5 +81,3 @@ public class HoodSubsystem extends SubsystemBase {
     }
 
 }
-
-

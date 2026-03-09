@@ -4,32 +4,27 @@ import frc.robot.utils.TunableNumber;
 
 public class VisionConstants {
 
-    public static TunableNumber BASE_VISION_XY_STD_DEV = new TunableNumber("base-vision-xy-std-dev", 0.02);
-    public static TunableNumber BASE_VISION_THETA_STD_DEV = new TunableNumber("base-vision-theta-std-dev", 0.06);
+    public static double BASE_VISION_XY_STD_DEV = 0.02;
+    public static double BASE_VISION_THETA_STD_DEV = 0.06;
 
-    public static TunableNumber ODOMETRY_XY_STD_DEV = new TunableNumber("odometry-xy-std-dev", 0.05);
-    public static TunableNumber ODOMETRY_THETA_STD_DEV = new TunableNumber("odometry-theta-std-dev", 0.05);
-
-    public static TunableNumber SINGLE_TAG_DISTRUST_COEFFICIENT = new TunableNumber("single-tag-distrust-coefficient", 2.0);
+    public static double SINGLE_TAG_DISTRUST_COEFFICIENT = 2.0;
 
     // Meters
     public static final double MAX_ACCEPTABLE_TAG_RANGE = 3.0;
     public static final double MAX_Z_ERROR = 0.75;
 
-    public static final double MAX_POSE_AMBIGUITY = 0.15;
+    // Percentage
+    public static final double TAG_AMBIGUITY_TOLERANCE = 0.15;
 
     // Inches
-
-    public static final double SHOOTER_CAM_POSE_X = 14;
-    public static final double SHOOTER_CAM_POSE_Y = 7.5;
-    public static final double SHOOTER_CAM_POSE_Z = 4.5;
-
+    public static final double BACK_CAM_POSE_X = -13.75;
+    public static final double BACK_CAM_POSE_Y = -9.25;
+    public static final double BACK_CAM_POSE_Z = 17.0;
 
     // Degrees
-
-    public static final double SHOOTER_CAM_POSE_ROLL = 0.0;
-    public static final double SHOOTER_CAM_POSE_PITCH = -23;
-    public static final double SHOOTER_CAM_POSE_YAW = 0.0;
+    public static final double BACK_CAM_POSE_ROLL = 0.0;
+    public static final double BACK_CAM_POSE_PITCH = -17;
+    public static final double BACK_CAM_POSE_YAW = 180.0;
 
     public static TunableNumber SHOOTER_CAM_ADJUST_X =
             new TunableNumber(
@@ -105,7 +100,5 @@ public class VisionConstants {
             new TunableNumber(
                     "ball_cam_adjust_yaw",
                     0.0);
-
-
 
 }

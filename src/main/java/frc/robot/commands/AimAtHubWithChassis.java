@@ -59,7 +59,6 @@ public class AimAtHubWithChassis extends Command {
         Pose2d currentPose = swerveSubsystem.getPose();
 
         double targetAngle = calculateTargetAngle(currentPose);
-        targetAngle += Math.PI;
         targetAngle = MathUtil.angleModulus(targetAngle);
         double currentHeading = swerveSubsystem.getGyroHeading();
 
@@ -68,7 +67,7 @@ public class AimAtHubWithChassis extends Command {
         double xSpeed = xSupplier.getAsDouble();
         double ySpeed = ySupplier.getAsDouble();
 
-        swerveSubsystem.drive(new Translation2d(xSpeed, ySpeed), rotationSpeed, true);
+        swerveSubsystem.drive(new Translation2d(0.0, 0.0), rotationSpeed, true);
     }
 
     /**
@@ -79,8 +78,8 @@ public class AimAtHubWithChassis extends Command {
     private double calculateTargetAngle(Pose2d currentPose) {
         double dx = targetPose.getX() - currentPose.getX();
         double dy = targetPose.getY() - currentPose.getY();
-
-        return Math.atan2(dy, dx);
+        double angleToTarget = Math.atan2(dy, dx);
+        return angleToTarget + Math.PI;
     }
 
     @Override

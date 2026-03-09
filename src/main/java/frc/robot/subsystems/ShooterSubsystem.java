@@ -81,6 +81,8 @@ public class ShooterSubsystem extends SubsystemBase {
         rightShooterMotor.getConfigurator().apply(rightShooterMotorConfig);
 
         updateCache();
+        createDistanceToRPMMap();
+        createDistanceToShotTimeMap();
     }
 
     private void initializePreferences() {
@@ -195,11 +197,17 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     private void createDistanceToRPMMap() {
-        DistanceToRPM.put(0.0, 0.0);
+        DistanceToRPM.put(0.0, 2000.0);
+        DistanceToRPM.put(3.0796, 2350.0);
+        DistanceToRPM.put(4.1596, 2600.0);
+        DistanceToRPM.put(5.1396, 3200.0);
     }
 
     private void createDistanceToShotTimeMap() {
         DistanceToShotTime.put(0.0, 0.0);
+        DistanceToShotTime.put(3.0796, 0.785);
+        DistanceToShotTime.put(4.1596, 0.995);
+        DistanceToShotTime.put(5.1396, 1.265);
     }
 
     public double getDistanceToRPMMap(double distance) {return DistanceToRPM.get(distance);}

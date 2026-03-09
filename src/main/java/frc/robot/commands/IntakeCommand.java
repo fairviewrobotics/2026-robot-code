@@ -18,7 +18,10 @@ public class IntakeCommand extends Command {
 
     @Override
     public void execute() {
-        intakeSubsystem.setIntakeDeployMotorVoltage(-2);
+        // Drop down intake, run roller motors
+        // 2 volts CCW
+        double voltage = -2;
+        intakeSubsystem.setIntakeDeployMotorVoltage(voltage);
         intakeSubsystem.setIntakeRollerMotorWithPreferences();
     }
 

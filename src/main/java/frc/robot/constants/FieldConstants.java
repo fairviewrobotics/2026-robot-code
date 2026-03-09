@@ -28,7 +28,7 @@ public class FieldConstants {
 
     public static final Pose2d CARPET_POINT = new Pose2d(3.8, 3.8, Rotation2d.kCCW_90deg);
     public static final Pose2d CARPET_POINT2 = new Pose2d(3.8, 3.8, Rotation2d.k180deg);
-    public static final Pose2d ODOMETRY_RESET_POINT = new Pose2d(3, 3, Rotation2d.kZero);
+    public static final Pose2d ODOMETRY_RESET_POINT = new Pose2d(3, 3, Rotation2d.kPi);
 
     public static final Bounds TRENCH_BOUNDS = new Bounds(4, 5.25, 0, 8.5);
 
