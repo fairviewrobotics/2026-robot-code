@@ -22,12 +22,19 @@ public class ShootingConstants {
     public static final double HOOD_TRENCH_ANGLE = 45.0;
     public static final double HOOD_CORNER_ANGLE = 30.0;
 
-    public static double TURRET_P = 6.0;
+    public static final double DEFAULT_KP = 0.1;
+    public static final double DEFAULT_KI = 0.0;
+    public static final double DEFAULT_KD = 0.0;
+
+    public static final double DEFAULT_KV = 0.115;
+    public static final double DEFAULT_KS = 0.2;
+
+    public static double TURRET_P = 17.0;
     public static double TURRET_D = 0.0;
     public static final TrapezoidProfile.Constraints TURRET_CONSTRAINTS = new TrapezoidProfile.Constraints(6.0 * Math.PI, 6.0 * Math.PI);
 
     public static double TURRET_KS = 0.2;
-    public static double TURRET_KV = 0.0;
+    public static double TURRET_KV = 0.88;
     public static double TURRET_KA = 0.0;
 
     public static final double TURRET_CORNER_LEFT_ANGLE_DEGREES = 60.0;

@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -156,8 +157,14 @@ public class RobotContainer
     primary_controller.cross().onTrue((Commands.runOnce(swerveSubsystem::zeroGyro)));
     primary_controller.options().onTrue(Commands.runOnce(() -> swerveSubsystem.resetOdometry(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT))));
 //
-    secondary_controller.leftTrigger().whileTrue(new AimAtHubWithChassis(swerveSubsystem, () -> 4.42 * primary_controller.getLeftX(), () -> 4.42 * primary_controller.getLeftY()));
-//    secondary_controller.rightTrigger().whileTrue(new AgainstHubCommand(hoodSubsystem, shooterSubsystem, turretSubsystem));
+    secondary_controller.leftTrigger().whileTrue(
+            new AimAtHubWithChassis(
+                    swerveSubsystem,
+                    () -> 4.42 * MathUtil.applyDeadband(primary_controller.getLeftX(), 0.2),
+                    () -> 4.42 * MathUtil.applyDeadband(primary_controller.getLeftY(), 0.2)
+            )
+    );
+    //    secondary_controller.rightTrigger().whileTrue(new AgainstHubCommand(hoodSubsystem, shooterSubsystem, turretSubsystem));
     secondary_controller.leftBumper().whileTrue(new RetractIntakeCommand(intakeSubsystem, 2.0));
     secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, 1000, 1000));
 //    secondary_controller.leftStick().onTrue(new RunCommand(intakeSubsystem::zeroIntakeDeployEncoder));

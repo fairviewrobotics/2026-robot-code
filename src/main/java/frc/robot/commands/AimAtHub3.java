@@ -30,9 +30,9 @@ public class AimAtHub3 extends Command {
         ChassisSpeeds fieldVel = swerve.getFieldVelocity();
 
         Pose2d robotAtRelease = currentPose.exp(new Twist2d(
-                swerve.getRobotVelocity().vxMetersPerSecond * 0.75,
-                swerve.getRobotVelocity().vyMetersPerSecond * 0.75,
-                swerve.getRobotVelocity().omegaRadiansPerSecond * 0.75
+                swerve.getRobotVelocity().vxMetersPerSecond * 0.1,
+                swerve.getRobotVelocity().vyMetersPerSecond * 0.1,
+                swerve.getRobotVelocity().omegaRadiansPerSecond * 0.1
         ));
 
         Logger.recordOutput("RobotAtRelease", robotAtRelease);
