@@ -22,9 +22,10 @@ public class FieldConstants {
 
 
     public static final Pose2d BLUE_TRENCH_LEFT = new Pose2d(4.511, 7.415, Rotation2d.kZero);
+    public static final Pose2d BLUE_TRENCH_LEFT_TRANSITION_CONTINUOUS = new Pose2d(6.0, 7.415, Rotation2d.kZero);
     public static final Pose2d BLUE_TRENCH_LEFT_TRANSITION_PICKUP = new Pose2d(7.657, 7.415, Rotation2d.kCW_90deg);
     public static final Pose2d BLUE_TRENCH_LEFT_PICKUP_END = new Pose2d(7.805, 4.611, Rotation2d.kCW_90deg);
-    public static final Pose2d BLUE_AUTO_SHOOT_LEFT_POINT = new Pose2d(3.064, 7.415, new Rotation2d( -Math.PI / 3 - 0.4));
+    public static final Pose2d BLUE_AUTO_SHOOT_LEFT_POINT = new Pose2d(3.064, 7.415, new Rotation2d( -Math.PI / 3));
 
     public static final Pose2d CARPET_POINT = new Pose2d(3.8, 3.8, Rotation2d.kCCW_90deg);
     public static final Pose2d CARPET_POINT2 = new Pose2d(3.8, 3.8, Rotation2d.k180deg);

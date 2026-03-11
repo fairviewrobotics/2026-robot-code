@@ -51,7 +51,7 @@ public class RobotContainer
   IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   IndexerSubsystem indexerSubsystem = new IndexerSubsystem();
 
-  SuperSecretMissileTech superSecretMissileTech = new SuperSecretMissileTech(swerveSubsystem);
+  SuperSecretMissileTech superSecretMissileTech = new SuperSecretMissileTech(swerveSubsystem, intakeSubsystem, indexerSubsystem, shooterSubsystem, hoodSubsystem);
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
