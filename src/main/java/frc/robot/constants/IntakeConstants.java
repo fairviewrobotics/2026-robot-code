@@ -14,5 +14,4 @@ public class IntakeConstants {
     public static final double INTAKE_DEPLOY_MOTOR_CONVERSION_FACTOR = (Math.PI * 2.5) / 9.0;
 
     public static final int DEPLOYED_CURRENT_LIMIT = 10;
-
 }

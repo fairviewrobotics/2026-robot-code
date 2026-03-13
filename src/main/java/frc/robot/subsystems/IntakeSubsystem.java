@@ -25,6 +25,9 @@ public class IntakeSubsystem extends SubsystemBase {
     private SparkFlexConfig intakeRollerMotorConfig = new SparkFlexConfig();
 
     private double errorThreshold = 0.5;
+
+    // TODO: properly set velocity threshold for collision detection
+    private double velocityThreshold = 0.1;
     private static final int STALL_SAMPLES_REQUIRED = 10; // ~200ms at 20ms loop
 
     double lastKP = IntakeConstants.INTAKE_DEPLOY_P;
@@ -107,6 +110,7 @@ public class IntakeSubsystem extends SubsystemBase {
             intakeDeployMotor.setVoltage(voltage);
         }
     }
+
     /**
      * Deploy the intake based on linear distance with collision detection
      * @param position linear distance (inches)
@@ -114,9 +118,10 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public void deployIntakeToPosition(double position) {
         double currentPosition = intakeDeployMotor.getEncoder().getPosition();
+        double currentVelocity = intakeDeployMotor.getEncoder().getVelocity();
         double error = position - currentPosition;
 
-        boolean atGoal = Math.abs(error) < errorThreshold;
+        boolean atGoal = Math.abs(error) < errorThreshold || Math.abs(currentVelocity) < velocityThreshold;
 
         if (!atGoal) {
             setDeployCurrentLimit(40);
