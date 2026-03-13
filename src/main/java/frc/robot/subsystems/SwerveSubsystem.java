@@ -77,6 +77,8 @@ public class SwerveSubsystem extends SubsystemBase
     SlewRateLimiter xyLimiter = new SlewRateLimiter(0);
     SlewRateLimiter omegaLimiter = new SlewRateLimiter(10);
     swerveDrive.swerveController.addSlewRateLimiters(xyLimiter, xyLimiter, omegaLimiter);
+    swerveDrive.chassisVelocityCorrection = true;
+    swerveDrive.setChassisDiscretization(true, 0.02);
     swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via angle.
     swerveDrive.setCosineCompensator(false);//!SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for simulations since it causes discrepancies not seen in real life.
     swerveDrive.setAngularVelocityCompensation(true,
@@ -130,19 +132,18 @@ public class SwerveSubsystem extends SubsystemBase
   }
 
 
-
-
   /**
    * Command to characterize the robot drive motors using SysId
    *
    * @return SysId Drive Command
    */
+
   public Command sysIdDriveMotorCommand()
   {
     return SwerveDriveTest.generateSysIdCommand(
         SwerveDriveTest.setDriveSysIdRoutine(
             new Config(),
-            this, swerveDrive, 12, true),
+            this, swerveDrive, 12, false),
         3.0, 5.0, 3.0);
   }
 
@@ -151,6 +152,7 @@ public class SwerveSubsystem extends SubsystemBase
    *
    * @return SysId Angle Command
    */
+
   public Command sysIdAngleMotorCommand()
   {
     return SwerveDriveTest.generateSysIdCommand(
@@ -165,6 +167,7 @@ public class SwerveSubsystem extends SubsystemBase
    *
    * @return a Command that centers the modules of the SwerveDrive subsystem
    */
+
   public Command centerModulesCommand()
   {
     return run(() -> Arrays.asList(swerveDrive.getModules())

@@ -8,6 +8,7 @@ import frc.robot.subsystems.HoodSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
+import org.littletonrobotics.junction.Logger;
 
 public class AimAtHub3 extends Command {
     HoodSubsystem hood;
@@ -29,12 +30,14 @@ public class AimAtHub3 extends Command {
         ChassisSpeeds fieldVel = swerve.getFieldVelocity();
 
         Pose2d robotAtRelease = currentPose.exp(new Twist2d(
-                swerve.getRobotVelocity().vxMetersPerSecond * 0.05,
-                swerve.getRobotVelocity().vyMetersPerSecond * 0.05,
-                swerve.getRobotVelocity().omegaRadiansPerSecond * 0.05
+                swerve.getRobotVelocity().vxMetersPerSecond * 0.1,
+                swerve.getRobotVelocity().vyMetersPerSecond * 0.1,
+                swerve.getRobotVelocity().omegaRadiansPerSecond * 0.1
         ));
 
-        Translation2d shooterTranslation = robotAtRelease.transformBy(ShootingConstants.TURRET_OFFSET2D).getTranslation();
+        Logger.recordOutput("RobotAtRelease", robotAtRelease);
+
+        Translation2d shooterTranslation = robotAtRelease.transformBy(ShootingConstants.TURRET_TRANSFORM_2D).getTranslation();
 
         double shooterDistance = target.getDistance(shooterTranslation);
         Translation2d virtualTarget = target;
@@ -52,21 +55,28 @@ public class AimAtHub3 extends Command {
         }
 
         double RPM = shooter.getDistanceToRPMMap(shooterDistance);
-        double hoodAngle = hood.getHoodSetpoint(shooterDistance);
+//        double hoodAngle = hood.getHoodSetpoint(shooterDistance);
 
         Rotation2d turretFieldAngle = virtualTarget.minus(shooterTranslation).getAngle();
 
         Rotation2d robotRelativeTurretAngle = turretFieldAngle.minus(currentPose.getRotation());
+        Logger.recordOutput("Shooter/ShooterDistance", shooterDistance);
+        Logger.recordOutput("Shooter/OTFTargetRPM", RPM);
 
-        hood.setHood(hoodAngle);
+        if (shooterDistance >= 2.2) {
+            hood.setHood(0.6);
+        } else {
+            hood.setHood(0.25);
+        }
+
         shooter.setMotorRPM(RPM);
-        turret.setTurret(robotRelativeTurretAngle.getRadians());
+//        turret.setTurret(robotRelativeTurretAngle.getRadians());
     }
 
     public void end(boolean interrupted) {
         // Lowest point of hood, highest exit angle
-        hood.setHood(ShootingConstants.HOOD_MAX_ANGLE_DEGREES);
-        shooter.setMotorRPM(0);
+//        hood.setHood(ShootingConstants.HOOD_MAX_ANGLE_DEGREES);
+        shooter.stopMotors();
         // turret.setTurret(0);
     }
 

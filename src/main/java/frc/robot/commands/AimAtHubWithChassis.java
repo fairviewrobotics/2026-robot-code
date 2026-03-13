@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.constants.FieldConstants;
+import frc.robot.constants.ShootingConstants;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.utils.AllianceFlipUtil;
 import frc.robot.utils.MathUtils;
@@ -22,6 +23,7 @@ import java.util.function.DoubleSupplier;
  */
 
 public class AimAtHubWithChassis extends Command {
+
     private final SwerveSubsystem swerveSubsystem;
     private final Pose3d targetPose;
     private final PIDController rotationController;
@@ -57,9 +59,9 @@ public class AimAtHubWithChassis extends Command {
     @Override
     public void execute() {
         Pose2d currentPose = swerveSubsystem.getPose();
+        Pose2d shooterPose = currentPose.transformBy(ShootingConstants.TURRET_TRANSFORM_2D);
 
-        double targetAngle = calculateTargetAngle(currentPose);
-        targetAngle += Math.PI;
+        double targetAngle = calculateTargetAngle(shooterPose);
         targetAngle = MathUtil.angleModulus(targetAngle);
         double currentHeading = swerveSubsystem.getGyroHeading();
 
@@ -79,14 +81,12 @@ public class AimAtHubWithChassis extends Command {
     private double calculateTargetAngle(Pose2d currentPose) {
         double dx = targetPose.getX() - currentPose.getX();
         double dy = targetPose.getY() - currentPose.getY();
-
-        return Math.atan2(dy, dx);
+        double angleToTarget = Math.atan2(dy, dx);
+        return angleToTarget + Math.PI;
     }
 
     @Override
     public boolean isFinished() {
-        // Command runs until interrupted or cancelled
-        // You could optionally end when on target: return rotationController.atSetpoint();
         return false;
     }
 

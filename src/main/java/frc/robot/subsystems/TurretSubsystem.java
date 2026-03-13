@@ -58,20 +58,19 @@ public class TurretSubsystem extends SubsystemBase {
         turretMotorConfig
                 .inverted(false)
                 // .apply(turretLimitSwitchConfig)
-                .idleMode(SparkBaseConfig.IdleMode.kCoast)
+                .idleMode(SparkBaseConfig.IdleMode.kBrake)
                 .encoder.positionConversionFactor(ShootingConstants.TURRET_ENCODER_TO_RADIANS_CONVERSION_FACTOR);
 
         turretSoftLimits
-                .forwardSoftLimitEnabled(false)
-                .reverseSoftLimitEnabled(false)
+                .forwardSoftLimitEnabled(true)
+                .reverseSoftLimitEnabled(true)
                 .forwardSoftLimit(Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES))
                 .reverseSoftLimit(Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES));
 
         turretMotorConfig.apply(turretSoftLimits);
         turretMotor.configure(turretMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         updateCache();
-        turretPID.setTolerance(Units.degreesToRadians(2.0));
-
+        turretPID.setTolerance(Units.degreesToRadians(0.01));
     }
 
     private void initializePreferences() {
@@ -97,9 +96,6 @@ public class TurretSubsystem extends SubsystemBase {
 
     public void zeroTurretEncoder() {
         turretMotor.getEncoder().setPosition(Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES));
-        turretSoftLimits.forwardSoftLimitEnabled(true);
-        turretSoftLimits.reverseSoftLimitEnabled(true);
-        turretMotorConfig.apply(turretSoftLimits);
         turretMotor.configure(turretMotorConfig,
                 ResetMode.kNoResetSafeParameters,
                 PersistMode.kNoPersistParameters);
@@ -131,7 +127,7 @@ public class TurretSubsystem extends SubsystemBase {
 
             double ffOutput = turretFF.calculate(setpoint.velocity);
 
-            turretMotor.setVoltage(pidOutput);
+            turretMotor.setVoltage(pidOutput + ffOutput);
        // }
     }
 

@@ -120,7 +120,7 @@ public class AimAtHub2 extends Command {
 
 
     public double turretAngle(Pose3d currentPose,Translation2d robotAceleration){
-        Translation3d turretOffset = new Translation3d(-0.0508, -0.381, 0.0); // TODO: get offset from cad
+        Translation3d turretOffset = new Translation3d(-0.127, 0.0, 0.0); // TODO: get offset from cad
         Translation2d robotVelocity = new Translation2d(
                 swerveSubsystem.getFieldVelocity().vxMetersPerSecond,
                 swerveSubsystem.getFieldVelocity().vyMetersPerSecond);

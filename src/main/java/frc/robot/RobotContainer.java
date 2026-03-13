@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -22,6 +23,7 @@ import frc.robot.autonomous.SuperSecretMissileTech;
 import frc.robot.autonomous.routines.BlueTrenchLeft;
 import frc.robot.commands.*;
 import frc.robot.constants.FieldConstants;
+import frc.robot.constants.ShootingConstants;
 import frc.robot.subsystems.*;
 
 import java.io.File;
@@ -49,16 +51,16 @@ public class RobotContainer
   IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   IndexerSubsystem indexerSubsystem = new IndexerSubsystem();
 
-  SuperSecretMissileTech superSecretMissileTech = new SuperSecretMissileTech(swerveSubsystem);
+  SuperSecretMissileTech superSecretMissileTech = new SuperSecretMissileTech(swerveSubsystem, intakeSubsystem, indexerSubsystem, shooterSubsystem, hoodSubsystem);
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
    */
 
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(swerveSubsystem.getSwerveDrive(),
-                  () -> primary_controller.getLeftY() * 1,
-                  () -> primary_controller.getLeftX() * 1)
-          .withControllerRotationAxis(() -> primary_controller.getRightX() * 1)
+                  () -> primary_controller.getLeftY() * -1,
+                  () -> primary_controller.getLeftX() * -1)
+          .withControllerRotationAxis(() -> primary_controller.getRightX() * -1)
           .deadband(OperatorConstants.DEADBAND)
           .scaleTranslation(1.0)
           .allianceRelativeControl(true);
@@ -132,13 +134,13 @@ public class RobotContainer
     secondary_controller.x().whileTrue(new IndexerCommand(indexerSubsystem));
     // primary_controller.R2().whileTrue(new ShooterCommand(shooterSubsystem, 1000, 1000));
     secondary_controller.pov(0).onTrue(new HoodTestCommand(hoodSubsystem));
-    secondary_controller.pov(180).onTrue(Commands.runOnce(() -> hoodSubsystem.setHood(15)));
+    secondary_controller.pov(180).onTrue(Commands.runOnce(() -> hoodSubsystem.setHood(0.50)));
     secondary_controller.pov(90).whileTrue(new RunCommand(() -> turretSubsystem.setVoltage(2)));
     secondary_controller.pov(270).whileTrue(new RunCommand(() -> turretSubsystem.setVoltage(-2)));
 //    secondary_controller.leftBumper().whileTrue(new RetractIntakeCommand(intakeSubsystem, 2));
-    secondary_controller.rightBumper().whileTrue(new TurretTestCommand(swerveSubsystem, turretSubsystem, FieldConstants.BLUE_HUB_POSE3D.toPose2d()));
+    secondary_controller.a().whileTrue(new AimAtHub3(hoodSubsystem, shooterSubsystem, turretSubsystem, swerveSubsystem, AllianceFlipUtil.apply(FieldConstants.BLUE_HUB_POSE3D.toPose2d()).getTranslation()));
     secondary_controller.rightStick().onTrue(Commands.runOnce(() -> turretSubsystem.zeroTurretEncoder()));
-//
+
 //    secondary_controller.b().whileFalse(new RunCommand(() -> indexerSubsystem.setHopperMotorVoltage(0)));
 //    secondary_controller.x().whileFalse(new RunCommand(() -> indexerSubsystem.setKickerMotorVoltage(0)));
     secondary_controller.pov(90).whileFalse(Commands.runOnce(() -> turretSubsystem.setVoltage(0)));
@@ -150,12 +152,19 @@ public class RobotContainer
     primary_controller.pov(90).whileTrue(swerveSubsystem.sysIdAngleMotorCommand());
 //    primary_controller.L2().whileTrue(new IntakeCommand(intakeSubsystem));
 //    primary_controller.L1().onTrue(new RunCommand(swerveSubsystem::lock));
+    primary_controller.R1().whileTrue(new FireShooterWithAgitation(intakeSubsystem));
     primary_controller.R2().whileTrue(new IndexerCommand(indexerSubsystem));
-//    primary_controller.cross().onTrue((Commands.runOnce(swerveSubsystem::zeroGyro)));
-//    primary_controller.options().onTrue(Commands.runOnce(() -> swerveSubsystem.resetOdometry(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT))));
+    primary_controller.cross().onTrue((Commands.runOnce(swerveSubsystem::zeroGyro)));
+    primary_controller.options().onTrue(Commands.runOnce(() -> swerveSubsystem.resetOdometry(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT))));
 //
-    secondary_controller.leftTrigger().whileTrue(new AimAtHubWithChassis(swerveSubsystem, () -> 4.42 * primary_controller.getLeftX(), () -> 4.42 * primary_controller.getLeftY()));
-//    secondary_controller.rightTrigger().whileTrue(new AgainstHubCommand(hoodSubsystem, shooterSubsystem, turretSubsystem));
+    secondary_controller.leftTrigger().whileTrue(
+            new AimAtHubWithChassis(
+                    swerveSubsystem,
+                    () -> 4.42 * MathUtil.applyDeadband(primary_controller.getLeftX(), 0.2),
+                    () -> 4.42 * MathUtil.applyDeadband(primary_controller.getLeftY(), 0.2)
+            )
+    );
+    //    secondary_controller.rightTrigger().whileTrue(new AgainstHubCommand(hoodSubsystem, shooterSubsystem, turretSubsystem));
     secondary_controller.leftBumper().whileTrue(new RetractIntakeCommand(intakeSubsystem, 2.0));
     secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, 1000, 1000));
 //    secondary_controller.leftStick().onTrue(new RunCommand(intakeSubsystem::zeroIntakeDeployEncoder));
