@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -19,16 +20,15 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.autonomous.SuperSecretMissileTech;
+import frc.robot.autonomous.routines.BlueTrenchLeft;
 import frc.robot.commands.*;
 import frc.robot.constants.FieldConstants;
-import frc.robot.constants.IntakeConstants;
 import frc.robot.constants.ShootingConstants;
 import frc.robot.subsystems.*;
 
 import java.io.File;
-import java.util.Optional;
 
-import org.photonvision.PhotonCamera;
+import frc.robot.utils.AllianceFlipUtil;
 import swervelib.SwerveInputStream;
 
 /**
@@ -41,35 +41,28 @@ public class RobotContainer
 
   final CommandPS5Controller primary_controller = new CommandPS5Controller(0);
   final CommandXboxController secondary_controller = new CommandXboxController(1);
-  private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
+  private final SwerveSubsystem swerveSubsystem = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
           "swerve"));
   private final Vision vision;
   TurretSubsystem turretSubsystem = new TurretSubsystem();
-  HoodSubsystem hoodSubsystem = new HoodSubsystem(drivebase);
-  BallDetection ballDetection = new BallDetection(new PhotonCamera("limelight ball cam"), drivebase);
+  HoodSubsystem hoodSubsystem = new HoodSubsystem(swerveSubsystem);
+  // BallDetection ballDetection = new BallDetection(new PhotonCamera("limelight ball cam"), drivebase);
   ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  IndexerSubsystem indexerSubsystem = new IndexerSubsystem();
 
-  SuperSecretMissileTech superSecretMissileTech = new SuperSecretMissileTech(drivebase);
+  SuperSecretMissileTech superSecretMissileTech = new SuperSecretMissileTech(swerveSubsystem, intakeSubsystem, indexerSubsystem, shooterSubsystem, hoodSubsystem);
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
    */
 
-  SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                  () -> primary_controller.getLeftY() * 1,
-                  () -> primary_controller.getLeftX() * 1)
+  SwerveInputStream driveAngularVelocity = SwerveInputStream.of(swerveSubsystem.getSwerveDrive(),
+                  () -> primary_controller.getLeftY() * -1,
+                  () -> primary_controller.getLeftX() * -1)
           .withControllerRotationAxis(() -> primary_controller.getRightX() * -1)
           .deadband(OperatorConstants.DEADBAND)
-          .scaleTranslation(0.8)
-          .allianceRelativeControl(true);
-
-  SwerveInputStream driveYAxisLock = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                  () -> primary_controller.getLeftY() * 0,
-                  () -> primary_controller.getLeftX() * -1)
-          .withControllerRotationAxis(() -> primary_controller.getRightX() * 0)
-          .deadband(OperatorConstants.DEADBAND)
-          .scaleTranslation(0.8)
+          .scaleTranslation(1.0)
           .allianceRelativeControl(true);
 
   /**
@@ -79,13 +72,7 @@ public class RobotContainer
                   primary_controller::getRightY)
           .headingWhile(true);
 
-  /**
-   * Clone's the angular velocity input stream and converts it to a robotRelative input stream.
-   */
-  SwerveInputStream driveRobotOriented = driveAngularVelocity.copy().robotRelative(true)
-          .allianceRelativeControl(false);
-
-  SwerveInputStream driveAngularVelocityKeyboard = SwerveInputStream.of(drivebase.getSwerveDrive(),
+  SwerveInputStream driveAngularVelocityKeyboard = SwerveInputStream.of(swerveSubsystem.getSwerveDrive(),
                   () -> -primary_controller.getLeftY(),
                   () -> -primary_controller.getLeftX())
           .withControllerRotationAxis(() -> primary_controller.getRawAxis(
@@ -119,7 +106,7 @@ public class RobotContainer
    */
   public RobotContainer()
   {
-    Vision.init(drivebase.getSwerveDrive());
+    Vision.init(swerveSubsystem.getSwerveDrive());
     this.vision = Vision.getInstance();
     // Configure the trigger bindings
     configureBindings();
@@ -136,51 +123,69 @@ public class RobotContainer
 
   private void configureBindings()
   {
-    Command driveFieldOrientedDirectAngle      = drivebase.driveFieldOriented(driveDirectAngle);
-    Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
+    Command driveFieldOrientedDirectAngle      = swerveSubsystem.driveFieldOriented(driveDirectAngle);
+    Command driveFieldOrientedAnglularVelocity = swerveSubsystem.driveFieldOriented(driveAngularVelocity);
     // Field Y axis, not driver POV
-    Command driveFieldOrientedYAxisLock = drivebase.driveFieldOriented(driveYAxisLock);
-    Command driveRobotOrientedAngularVelocity  = drivebase.driveFieldOriented(driveRobotOriented);
-    Command driveFieldOrientedDirectAngleKeyboard      = drivebase.driveFieldOriented(driveDirectAngleKeyboard);
-    Command driveFieldOrientedAnglularVelocityKeyboard = drivebase.driveFieldOriented(driveAngularVelocityKeyboard);
+    Command driveFieldOrientedDirectAngleKeyboard      = swerveSubsystem.driveFieldOriented(driveDirectAngleKeyboard);
 
-    primary_controller.options().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3, 3, new Rotation2d()))));
-    primary_controller.pov(0).whileTrue(drivebase.sysIdDriveMotorCommand());
-    primary_controller.pov(90).whileTrue(drivebase.sysIdAngleMotorCommand());
-    primary_controller.button(2).whileTrue(Commands.runEnd(() -> driveDirectAngleKeyboard.driveToPoseEnabled(true),
-            () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
+    // ***TEST BINDINGS***
+    primary_controller.L2().whileTrue(new IntakeCommand(intakeSubsystem));
+    // secondary_controller.b().whileTrue(new RunCommand(() -> indexerSubsystem.setHopperMotorVoltage(-12)));
+    secondary_controller.x().whileTrue(new IndexerCommand(indexerSubsystem));
+    // primary_controller.R2().whileTrue(new ShooterCommand(shooterSubsystem, 1000, 1000));
+    secondary_controller.pov(0).onTrue(new HoodTestCommand(hoodSubsystem));
+    secondary_controller.pov(180).onTrue(Commands.runOnce(() -> hoodSubsystem.setHood(0.50)));
+    secondary_controller.pov(90).whileTrue(new RunCommand(() -> turretSubsystem.setVoltage(2)));
+    secondary_controller.pov(270).whileTrue(new RunCommand(() -> turretSubsystem.setVoltage(-2)));
+//    secondary_controller.leftBumper().whileTrue(new RetractIntakeCommand(intakeSubsystem, 2));
+    secondary_controller.a().whileTrue(new AimAtHub3(hoodSubsystem, shooterSubsystem, turretSubsystem, swerveSubsystem, AllianceFlipUtil.apply(FieldConstants.BLUE_HUB_POSE3D.toPose2d()).getTranslation()));
+    secondary_controller.rightStick().onTrue(Commands.runOnce(() -> turretSubsystem.zeroTurretEncoder()));
 
+//    secondary_controller.b().whileFalse(new RunCommand(() -> indexerSubsystem.setHopperMotorVoltage(0)));
+//    secondary_controller.x().whileFalse(new RunCommand(() -> indexerSubsystem.setKickerMotorVoltage(0)));
+    secondary_controller.pov(90).whileFalse(Commands.runOnce(() -> turretSubsystem.setVoltage(0)));
+    secondary_controller.pov(270).whileFalse(Commands.runOnce(() -> turretSubsystem.setVoltage(0)));
 
-    // secondary_controller.x().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, -IntakeConstants.INTAKING_VOLTAGE));
-//    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, ShootingConstants.TOP_SHOOTER_RPM.get(), ShootingConstants.BOTTOM_SHOOTER_RPM.get()));
-//    secondary_controller.a().whileTrue(new IntakeCommand(intakeSubsystem, shooterSubsystem, IntakeConstants.INTAKING_VOLTAGE));
+    // *** ACTUAL BINDINGS ***
 
-    primary_controller.L1().whileTrue(
-            new DriveToPoint(drivebase, () -> ballDetection.getBallPose(), 0.25)
-                    .onlyIf(ballDetection::hasBall)
+    primary_controller.pov(0).whileTrue(swerveSubsystem.sysIdDriveMotorCommand());
+    primary_controller.pov(90).whileTrue(swerveSubsystem.sysIdAngleMotorCommand());
+//    primary_controller.L2().whileTrue(new IntakeCommand(intakeSubsystem));
+//    primary_controller.L1().onTrue(new RunCommand(swerveSubsystem::lock));
+    primary_controller.R1().whileTrue(new FireShooterWithAgitation(intakeSubsystem));
+    primary_controller.R2().whileTrue(new IndexerCommand(indexerSubsystem));
+    primary_controller.cross().onTrue((Commands.runOnce(swerveSubsystem::zeroGyro)));
+    primary_controller.options().onTrue(Commands.runOnce(() -> swerveSubsystem.resetOdometry(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT))));
+//
+    secondary_controller.leftTrigger().whileTrue(
+            new AimAtHubWithChassis(
+                    swerveSubsystem,
+                    () -> 4.42 * MathUtil.applyDeadband(primary_controller.getLeftX(), 0.2),
+                    () -> 4.42 * MathUtil.applyDeadband(primary_controller.getLeftY(), 0.2)
+            )
     );
+    //    secondary_controller.rightTrigger().whileTrue(new AgainstHubCommand(hoodSubsystem, shooterSubsystem, turretSubsystem));
+    secondary_controller.leftBumper().whileTrue(new RetractIntakeCommand(intakeSubsystem, 2.0));
+    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, 1000, 1000));
+//    secondary_controller.leftStick().onTrue(new RunCommand(intakeSubsystem::zeroIntakeDeployEncoder));
+//    secondary_controller.rightStick().onTrue(new RunCommand(turretSubsystem::zeroTurretEncoder));
+////    secondary_controller.pov(0).whileTrue(new TurretTestCommand(swerveSubsystem, turretSubsystem, AllianceFlipUtil.apply(FieldConstants.BLUE_HUB_POSE3D.toPose2d())));
+////    secondary_controller.pov(90).whileTrue(new TurretTestCommand(swerveSubsystem, turretSubsystem, AllianceFlipUtil.apply(FieldConstants.BLUE_PASS_LEFT_POSE)));
+////    secondary_controller.pov(270).whileTrue(new TurretTestCommand(swerveSubsystem, turretSubsystem, AllianceFlipUtil.apply(FieldConstants.BLUE_PASS_RIGHT_POSE)));
+//    secondary_controller.pov(90).onTrue(new HoodTestCommand(hoodSubsystem));
+//    secondary_controller.pov(0).onTrue(new RunCommand(() -> hoodSubsystem.setHood(15)));
+//    secondary_controller.x().whileTrue(new TrenchLeftCommand(hoodSubsystem, shooterSubsystem, turretSubsystem));
+//    secondary_controller.b().whileTrue(new TrenchRightCommand(hoodSubsystem, shooterSubsystem, turretSubsystem));
+//    secondary_controller.y().whileTrue(new CornerLeftCommand(hoodSubsystem, shooterSubsystem, turretSubsystem));
+//    secondary_controller.a().whileTrue(new CornerRightCommand(hoodSubsystem, shooterSubsystem, turretSubsystem));
 
-//    primary_controller.L1().whileTrue(new IntakeCommand(intakeSubsystem, 2.0));
-    primary_controller.R1().whileTrue(new AimAtHubWithChassis(drivebase, false, () -> -4 * primary_controller.getLeftY(),
-            () -> -4 * primary_controller.getLeftX()));
-
-   // primary_controller.R1().whileTrue(new AimAtHub2(drivebase, turretSubsystem, false, 0.0));
-//     primary_controller.circle().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(15.0)));
-//     primary_controller.triangle().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(60.0)));
-    primary_controller.cross().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-    // primary_controller.square().onTrue(Commands.runOnce(() -> hoodSubsystem.setAngle(15.0)));
-    // primary_controller.square().onTrue(Commands.runOnce(turretSubsystem::zeroTurretEncoder));
-    primary_controller.square().whileTrue(new ShooterCommand(shooterSubsystem, 1000, 1000));
-    primary_controller.options().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3.0, 3.0, Rotation2d.kZero))));
-    // primary_controller.back().whileTrue(Commands.none());
-    // primary_controller.L1().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
 
     if (RobotBase.isSimulation())
     {
-      drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
+      swerveSubsystem.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
     } else
     {
-      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+      swerveSubsystem.setDefaultCommand(driveFieldOrientedAnglularVelocity);
     }
 
     if (Robot.isSimulation())
@@ -223,7 +228,7 @@ public class RobotContainer
 
   public void setMotorBrake(boolean brake)
   {
-    drivebase.setMotorBrake(brake);
+    swerveSubsystem.setMotorBrake(brake);
   }
 
 }

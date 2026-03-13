@@ -7,12 +7,11 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.FieldConstants;
 import frc.robot.constants.VisionConstants;
 import frc.robot.utils.MathUtils;
-import frc.robot.utils.NetworkTablesUtils;
-import frc.robot.utils.TunableNumber;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
@@ -32,25 +31,25 @@ public class Vision extends SubsystemBase {
 
     private final Pose3d[] baseCameraPoses = new Pose3d[] {
             new Pose3d(
-                    Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_X),
-                    Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_Y),
-                    Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_Z),
+                    Units.inchesToMeters(VisionConstants.BACK_CAM_POSE_X),
+                    Units.inchesToMeters(VisionConstants.BACK_CAM_POSE_Y),
+                    Units.inchesToMeters(VisionConstants.BACK_CAM_POSE_Z),
                     new Rotation3d(
-                            Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_ROLL),
-                            Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_PITCH),
-                            Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_YAW))),
+                            Units.degreesToRadians(VisionConstants.BACK_CAM_POSE_ROLL),
+                            Units.degreesToRadians(VisionConstants.BACK_CAM_POSE_PITCH),
+                            Units.degreesToRadians(VisionConstants.BACK_CAM_POSE_YAW))),
     };
 
     private Pose3d[] getAdjustedCameraPoses() {
         return new Pose3d[] {
                 new Pose3d(
-                        Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_X) + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_X.get()),
-                        Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_Y) + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Y.get()),
-                        Units.inchesToMeters(VisionConstants.SHOOTER_CAM_POSE_Z) + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Z.get()),
+                        Units.inchesToMeters(VisionConstants.BACK_CAM_POSE_X) + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_X.get()),
+                        Units.inchesToMeters(VisionConstants.BACK_CAM_POSE_Y) + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Y.get()),
+                        Units.inchesToMeters(VisionConstants.BACK_CAM_POSE_Z) + Units.inchesToMeters(VisionConstants.SHOOTER_CAM_ADJUST_Z.get()),
                         new Rotation3d(
-                                Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_ROLL + VisionConstants.SHOOTER_CAM_ADJUST_ROLL.get()),
-                                Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_PITCH + VisionConstants.SHOOTER_CAM_ADJUST_PITCH.get()),
-                                Units.degreesToRadians(VisionConstants.SHOOTER_CAM_POSE_YAW + VisionConstants.SHOOTER_CAM_ADJUST_YAW.get()))),
+                                Units.degreesToRadians(VisionConstants.BACK_CAM_POSE_ROLL + VisionConstants.SHOOTER_CAM_ADJUST_ROLL.get()),
+                                Units.degreesToRadians(VisionConstants.BACK_CAM_POSE_PITCH + VisionConstants.SHOOTER_CAM_ADJUST_PITCH.get()),
+                                Units.degreesToRadians(VisionConstants.BACK_CAM_POSE_YAW + VisionConstants.SHOOTER_CAM_ADJUST_YAW.get()))),
         };
     }
 
@@ -59,8 +58,14 @@ public class Vision extends SubsystemBase {
     private Vision(SwerveDrive swerveDrive) {
         this.swerveDrive = swerveDrive;
         this.cameras = new PhotonCamera[] {
-                new PhotonCamera("rev tag cam")
+                new PhotonCamera("back_cam")
         };
+        Preferences.initDouble("Vision/BASE_XY_STD_DEV", VisionConstants.BASE_VISION_XY_STD_DEV);
+        Preferences.initDouble("Vision/BASE_THETA_STD_DEV", VisionConstants.BASE_VISION_THETA_STD_DEV);
+        Preferences.initDouble("Vision/MAX_Z_ERROR", VisionConstants.MAX_Z_ERROR);
+        Preferences.initDouble("Vision/SINGLE_TAG_DISTRUST_COEFFICIENT", VisionConstants.SINGLE_TAG_DISTRUST_COEFFICIENT);
+        Preferences.initDouble("Vision/MAX_AMBIGUITY", VisionConstants.TAG_AMBIGUITY_TOLERANCE);
+        Preferences.initDouble("Vision/MAX_ACCEPTABLE_TAG_RANGE", VisionConstants.MAX_ACCEPTABLE_TAG_RANGE);
     }
 
     public static void init(SwerveDrive swerveDrive) {
@@ -81,11 +86,10 @@ public class Vision extends SubsystemBase {
         updatePose();
     }
 
-
-
     public void updatePose() {
 
-        getAdjustedCameraPoses();
+        // Actually assigning new Adjusted Camera Poses to cameraPoses
+        this.cameraPoses = getAdjustedCameraPoses();
 
 
         for (int cameraIndex = 0; cameraIndex < cameraPoses.length; cameraIndex++) {
@@ -127,7 +131,7 @@ public class Vision extends SubsystemBase {
                     Pose3d tagPose = fieldLayout.getTagPose(id).get();
                     double distance = tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
 
-                    if (distance < VisionConstants.MAX_ACCEPTABLE_TAG_RANGE) {
+                    if (distance < Preferences.getDouble("Vision/MAX_ACCEPTABLE_TAG_RANGE", VisionConstants.MAX_ACCEPTABLE_TAG_RANGE)) {
                         tagPoses.add(tagPose);
                         totalDistance += tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
                     } else {
@@ -136,7 +140,16 @@ public class Vision extends SubsystemBase {
                 }
 
                 if (tagPoses.isEmpty()) {
-                    return;
+                    // Made this a continue to not skip over other cameras
+                    continue;
+                }
+
+                // Moved ambiguity check to before pose estimation to prevent unneccessary calculation
+
+                if (!latestResult.targets.isEmpty()
+                        && latestResult.targets.get(0).getPoseAmbiguity() > Preferences.getDouble("Vision/MAX_AMBIGUITY", VisionConstants.TAG_AMBIGUITY_TOLERANCE)) {
+                    // Also made this to not skip over other cameras
+                    continue;
                 }
 
                 Pose2d robotPoseEstimation = cameraPoseEstimation
@@ -153,7 +166,7 @@ public class Vision extends SubsystemBase {
                     return;
                 }
 
-                if (robotPoseEstimation3d.getZ() > VisionConstants.MAX_Z_ERROR) {
+                if (robotPoseEstimation3d.getZ() > Preferences.getDouble("Vision/MAX_Z_ERROR", VisionConstants.MAX_Z_ERROR)) {
                     return;
                 }
 
@@ -170,8 +183,14 @@ public class Vision extends SubsystemBase {
                 double avgDistance = totalDistance / tagPoses.size();
 
                 // Calculate dynamic standard deviations
-                double xyStdDev = (VisionConstants.BASE_VISION_XY_STD_DEV.get() * avgDistance / tagPoses.size());
-                double thetaStdDev = VisionConstants.BASE_VISION_THETA_STD_DEV.get() * avgDistance / tagPoses.size();
+                double xyStdDev = (Preferences.getDouble("Vision/BASE_XY_STD_DEV", VisionConstants.BASE_VISION_XY_STD_DEV) * avgDistance / tagPoses.size());
+                double thetaStdDev = (Preferences.getDouble("Vision/BASE_THETA_STD_DEV", VisionConstants.BASE_VISION_THETA_STD_DEV) * avgDistance / tagPoses.size());
+
+                // Maybe better standard deviation calculations? Please check
+                /*
+                    double xyStdDev = VisionConstants.BASE_VISION_XY_STD_DEV.get() * (Math.pow(avgDistance, 2.0) / tagPoses.size());
+                    double thetaStdDev = VisionConstants.BASE_VISION_THETA_STD_DEV.get() * (Math.pow(avgDistance, 2.0) / tagPoses.size());
+                */
 
                 double baseXY = 0.005;
 
@@ -195,7 +214,7 @@ public class Vision extends SubsystemBase {
                 Logger.recordOutput("Vision/Distance to tag", distance);
                 
                 boolean rejectPose =
-                        VisionConstants.MAX_ACCEPTABLE_TAG_RANGE < distance ||
+                        Preferences.getDouble("Vision/MAX_ACCEPTABLE_TAG_RANGE", VisionConstants.MAX_ACCEPTABLE_TAG_RANGE) < distance ||
                         robotPoseEstimation.getX() < -FieldConstants.FIELD_BORDER_MARGIN_METERS
                         || robotPoseEstimation.getX() > FieldConstants.FIELD_LENGTH_METERS + FieldConstants.FIELD_BORDER_MARGIN_METERS
                         || robotPoseEstimation.getY() < -FieldConstants.FIELD_BORDER_MARGIN_METERS
@@ -206,8 +225,12 @@ public class Vision extends SubsystemBase {
                     return;
                 }
 
-                double xyStdDev = VisionConstants.SINGLE_TAG_DISTRUST_COEFFICIENT.get() * VisionConstants.BASE_VISION_XY_STD_DEV.get() * Math.pow(distance, 2.0);
-                double thetaStdDev = VisionConstants.SINGLE_TAG_DISTRUST_COEFFICIENT.get() * VisionConstants.BASE_VISION_THETA_STD_DEV.get() * Math.pow(distance, 2.0);
+                double xyStdDev = Preferences.getDouble("Vision/BASE_XY_STD_DEV", VisionConstants.BASE_VISION_XY_STD_DEV) * Math.pow(distance, 2.0);
+//                double thetaStdDev = VisionConstants.SINGLE_TAG_DISTRUST_COEFFICIENT.get() * VisionConstants.BASE_VISION_THETA_STD_DEV.get() * Math.pow(distance, 2.0);
+
+//                 Maybe better to not trust single tag theta calculation?
+                 double thetaStdDev = Double.MAX_VALUE;
+
 
                 double baseXY = 0.005;
 

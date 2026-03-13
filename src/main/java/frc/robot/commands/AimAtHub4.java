@@ -91,7 +91,7 @@ public class AimAtHub4 extends Command {
     @Override
     public void execute(){
         shooter.setMotorRPM(RPM);
-        turret.setTurret(TurretAngle());
+        turret.setTurret(Math.toDegrees(TurretAngle() + swerve.getPose().getRotation().getRadians()));
         hood.setHood(HoodAngle());
     }
 

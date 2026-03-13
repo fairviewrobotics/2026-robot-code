@@ -10,14 +10,14 @@ public class MathUtils {
         return rpm * (2 * Math.PI / 60);
     }
 
-    public static double hoodEncoderToRadians(double encoderReading) {
-        return encoderReading * (2*Math.PI / ShootingConstants.HOOD_ENCODER_RATIO) * (1/ ShootingConstants.HOOD_MOTOR_GEAR_RATIO);
-    }
-
-    public static double turretEncoderToRadians(double encoderReading) {
-        return encoderReading * (2*Math.PI / ShootingConstants.TURRET_ENCODER_RATIO) * (1/ ShootingConstants.TURRET_MOTOR_GEAR_RATIO);
-        // return encoderReading * (ShootingConstants.TURRET_PINION_CIRCUMFERENCE) / (ShootingConstants.TURRET_SPUR_GEAR_RADIUS)
-    }
+//    public static double hoodEncoderToRadians(double encoderReading) {
+//        return encoderReading * (2*Math.PI / ShootingConstants.HOOD_ENCODER_RATIO) * (1/ ShootingConstants.HOOD_MOTOR_GEAR_RATIO);
+//    }
+//
+//    public static double turretEncoderToRadians(double encoderReading) {
+//        return encoderReading * (2*Math.PI / ShootingConstants.TURRET_ENCODER_RATIO) * (1/ ShootingConstants.TURRET_MOTOR_GEAR_RATIO);
+//        // return encoderReading * (ShootingConstants.TURRET_PINION_CIRCUMFERENCE) / (ShootingConstants.TURRET_SPUR_GEAR_RADIUS)
+//    }
 
     public static final Pose2d zeroPose = new Pose2d(0, 0, new Rotation2d(0));
     public static final Translation2d zeroTranslation = new Translation2d(0.0, 0.0);
