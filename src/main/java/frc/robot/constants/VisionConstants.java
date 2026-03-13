@@ -101,4 +101,9 @@ public class VisionConstants {
                     "ball_cam_adjust_yaw",
                     0.0);
 
+    public static TunableNumber BUMPER_DETECTION_RETRACT_TY_DEGREES =
+            new TunableNumber(
+                    "bumper-detection-retract-ty-degrees",
+                    0.0);
+
 }

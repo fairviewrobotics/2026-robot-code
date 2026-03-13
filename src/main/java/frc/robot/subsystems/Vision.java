@@ -133,8 +133,9 @@ public class Vision extends SubsystemBase {
 
                     if (distance < Preferences.getDouble("Vision/MAX_ACCEPTABLE_TAG_RANGE", VisionConstants.MAX_ACCEPTABLE_TAG_RANGE)) {
                         tagPoses.add(tagPose);
-                        // Combined total distance calculation with another loop to improve efficiency
                         totalDistance += tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
+                    } else {
+                        return;
                     }
                 }
 
@@ -169,6 +170,16 @@ public class Vision extends SubsystemBase {
                     return;
                 }
 
+                if (!latestResult.targets.isEmpty()
+                        && latestResult.targets.get(0).getPoseAmbiguity() > VisionConstants.MAX_POSE_AMBIGUITY) {
+                    return;
+                }
+
+                // Calculate average distance to tags
+//                double totalDistance = 0.0;
+//                for (Pose3d tagPose : tagPoses) {
+//                    totalDistance += tagPose.getTranslation().getDistance(cameraPoseEstimation.getTranslation());
+//                }
                 double avgDistance = totalDistance / tagPoses.size();
 
                 // Calculate dynamic standard deviations

@@ -42,8 +42,7 @@ public class TurretSubsystem extends SubsystemBase {
     private double lastKS = ShootingConstants.TURRET_KS;
     private double lastKV = ShootingConstants.TURRET_KV;
 
-    SparkFlexConfig turretMotorConfig = new SparkFlexConfig();
-    SoftLimitConfig turretSoftLimits = new SoftLimitConfig();
+    private boolean snappingBack = false;
 
     public TurretSubsystem() {
 
@@ -127,22 +126,34 @@ public class TurretSubsystem extends SubsystemBase {
 
             double ffOutput = turretFF.calculate(setpoint.velocity);
 
-            turretMotor.setVoltage(pidOutput + ffOutput);
-       // }
+        if (turretPID.getPositionError() < Units.degreesToRadians(5)) snappingBack = false;
+
+        turretMotor.setVoltage(pidOutput + ffOutput);
     }
 
-    public static double getTurretSetpoint(double targetAngle, double currentAngle) {
+    public double getTurretSetpoint(double targetAngle, double currentAngle) {
+        snappingBack = false;
         double delta = MathUtil.angleModulus(targetAngle - currentAngle);
 
         double setpointRadians = currentAngle + delta;
 
         if (setpointRadians > Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES)) {
             setpointRadians -= 2 * Math.PI;
-        } else if (setpointRadians < Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES)) {
+            snappingBack = true;
+        } else if (setpointRadians < Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES + 0.5)) {
             setpointRadians += 2 * Math.PI;
+            snappingBack = true;
         }
 
         return setpointRadians;
+    }
+
+    public void setSnapBackState(boolean state) {
+        snappingBack = state;
+    }
+
+    public boolean  getSnapBackState() {
+        return snappingBack;
     }
 
     public void setVoltage(double voltage) {
