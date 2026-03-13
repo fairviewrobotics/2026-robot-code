@@ -21,7 +21,17 @@ public class IntakeSubsystem extends SubsystemBase {
     private SparkFlexConfig intakeDeployMotorConfig = new SparkFlexConfig();
     private SparkFlexConfig intakeRollerMotorConfig = new SparkFlexConfig();
 
+    // could be a boolean but might want to add more states later
+    public enum IntakeState {
+        DEPLOYED,
+        RETRACTED
+    }
+
+    private IntakeState intakeState = IntakeState.RETRACTED;
+
 //    private double errorThreshold = 0.5;
+    // TODO: set proper velocity threshold for intake deployment
+    private double velocityThreshold = 0.1;
 
 //    double lastKP = IntakeConstants.INTAKE_DEPLOY_P;
 //    double lastKD = IntakeConstants.INTAKE_DEPLOY_D;
@@ -96,7 +106,29 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeRollerMotor.setVoltage(voltage);
     }
 
-//    public void setIntakeDeployMotor(double speed) {
+    // Intake State enum logic
+    public void setIntakeState(IntakeState state) {
+        intakeState = state;
+    }
+
+    public IntakeState getIntakeState() {
+        return intakeState;
+    }
+
+    // Swaps intake state when at velocity threshold for both deploy and retraction collision detection
+    public void swapIntakeState() {
+        double currentVelocity = intakeDeployMotor.getEncoder().getVelocity();
+
+        if (velocityThreshold > currentVelocity) {
+            if (intakeState == IntakeState.RETRACTED) {
+                intakeState = IntakeState.DEPLOYED;
+            }  else {
+                intakeState = IntakeState.RETRACTED;
+            }
+        }
+    }
+
+    //    public void setIntakeDeployMotor(double speed) {
 //        intakeDeployMotor.set(speed);
 //    }
 
