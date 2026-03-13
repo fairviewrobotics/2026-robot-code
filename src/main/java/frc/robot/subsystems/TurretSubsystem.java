@@ -43,6 +43,8 @@ public class TurretSubsystem extends SubsystemBase {
     private double lastKS = ShootingConstants.TURRET_KS;
     private double lastKV = ShootingConstants.TURRET_KV;
 
+    private boolean snappingBack = false;
+
     public TurretSubsystem() {
 
         initializePreferences();
@@ -115,21 +117,33 @@ public class TurretSubsystem extends SubsystemBase {
 
         double ffOutput = turretFF.calculate(setpoint.velocity);
 
+        if (turretPID.getPositionError() < Units.degreesToRadians(5)) snappingBack = false;
+
         turretMotor.setVoltage(pidOutput + ffOutput);
     }
 
-    public static double getTurretSetpoint(double targetAngle, double currentAngle) {
-
+    public double getTurretSetpoint(double targetAngle, double currentAngle) {
+        snappingBack = false;
         double delta = MathUtil.angleModulus(targetAngle - currentAngle);
         double setpointRadians = currentAngle + delta;
 
         if (setpointRadians > Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES - 0.5)) {
             setpointRadians -= 2 * Math.PI;
+            snappingBack = true;
         } else if (setpointRadians < Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES + 0.5)) {
             setpointRadians += 2 * Math.PI;
+            snappingBack = true;
         }
 
         return setpointRadians;
+    }
+
+    public void setSnapBackState(boolean state) {
+        snappingBack = state;
+    }
+
+    public boolean  getSnapBackState() {
+        return snappingBack;
     }
 
     public void setVoltage(double voltage) {
