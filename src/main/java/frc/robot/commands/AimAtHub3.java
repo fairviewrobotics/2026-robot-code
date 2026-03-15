@@ -1,52 +1,66 @@
 package frc.robot.commands;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.constants.ShootingConstants;
 import frc.robot.subsystems.HoodSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
+import frc.robot.utils.AllianceFlipUtil;
 import org.littletonrobotics.junction.Logger;
+import edu.wpi.first.math.filter.LinearFilter;
+
+
+import java.util.function.Supplier;
 
 public class AimAtHub3 extends Command {
     HoodSubsystem hood;
     ShooterSubsystem shooter;
     TurretSubsystem turret;
     SwerveSubsystem swerve;
-    Translation2d target;
+    Supplier<Translation2d> target;
 
-    public AimAtHub3(HoodSubsystem hood, ShooterSubsystem shooter, TurretSubsystem turret, SwerveSubsystem swerve, Translation2d target){
+    public AimAtHub3(HoodSubsystem hood, ShooterSubsystem shooter, TurretSubsystem turret, SwerveSubsystem swerve, Supplier<Translation2d> target){
         this.hood = hood;
         this.shooter = shooter;
         this.turret = turret;
         this.swerve = swerve;
         this.target = target;
+        addRequirements(hood, shooter, turret);
+        Preferences.initDouble("AimAtHub/SHOOTER_RPM_SCALAR", 1.0);
+        Preferences.initDouble("AimAtHub/UNIVERSAL_SCALAR", 1.0);
+        Preferences.initDouble("AimAtHub/PHASE_DELAY", 0.1);
     }
+
+
     @Override
     public void execute() {
+
         Pose2d currentPose = swerve.getPose();
         ChassisSpeeds fieldVel = swerve.getFieldVelocity();
 
         Pose2d robotAtRelease = currentPose.exp(new Twist2d(
-                swerve.getRobotVelocity().vxMetersPerSecond * 0.1,
-                swerve.getRobotVelocity().vyMetersPerSecond * 0.1,
-                swerve.getRobotVelocity().omegaRadiansPerSecond * 0.1
+                swerve.getRobotVelocity().vxMetersPerSecond * Preferences.getDouble("AimAtHub/PHASE_DELAY", 0.1),
+                swerve.getRobotVelocity().vyMetersPerSecond * Preferences.getDouble("AimAtHub/PHASE_DELAY", 0.1),
+                swerve.getRobotVelocity().omegaRadiansPerSecond * Preferences.getDouble("AimAtHub/PHASE_DELAY", 0.1)
         ));
 
         Logger.recordOutput("RobotAtRelease", robotAtRelease);
 
         Translation2d shooterTranslation = robotAtRelease.transformBy(ShootingConstants.TURRET_TRANSFORM_2D).getTranslation();
-
-        double shooterDistance = target.getDistance(shooterTranslation);
-        Translation2d virtualTarget = target;
+        Translation2d targetTranslation = AllianceFlipUtil.apply(target.get());
+        double shooterDistance = targetTranslation.getDistance(shooterTranslation);
+        Translation2d virtualTarget = targetTranslation;
         double timeOfFlight;
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 20; i++) {
             timeOfFlight = shooter.getDistanceToShotTime(shooterDistance);
 
-            virtualTarget = target.plus(new Translation2d(
+            virtualTarget = targetTranslation.plus(new Translation2d(
                     fieldVel.vxMetersPerSecond * timeOfFlight,
                     fieldVel.vyMetersPerSecond * timeOfFlight
             ));
@@ -60,24 +74,34 @@ public class AimAtHub3 extends Command {
         Rotation2d turretFieldAngle = virtualTarget.minus(shooterTranslation).getAngle();
 
         Rotation2d robotRelativeTurretAngle = turretFieldAngle.minus(currentPose.getRotation());
+        double adjustedAngle = MathUtil.inputModulus(robotRelativeTurretAngle.plus(Rotation2d.fromDegrees(180)).getRadians(), 0, 2 * Math.PI);
+        adjustedAngle = Math.abs(adjustedAngle);
+        Logger.recordOutput("Turret/RobotTurretAngle", robotRelativeTurretAngle);
+        Logger.recordOutput("Turret/AdjustedAngle", adjustedAngle);
         Logger.recordOutput("Shooter/ShooterDistance", shooterDistance);
         Logger.recordOutput("Shooter/OTFTargetRPM", RPM);
 
-        if (shooterDistance >= 2.2) {
+        if (shooterDistance >= 5.6) {
+            hood.setHood(0.9);
+        } else if (shooterDistance >= 2.4) {
             hood.setHood(0.6);
+        } else if (shooterDistance >= 2.2) {
+            hood.setHood(0.4);
         } else {
-            hood.setHood(0.25);
+            hood.setHood(0.3);
         }
 
-        shooter.setMotorRPM(RPM);
-//        turret.setTurret(robotRelativeTurretAngle.getRadians());
+        double TURRET_ADJUSTED_RPM = RPM * turret.getAngleRPMToScalarMap(adjustedAngle);
+        double UNIVERSALLY_ADJUSTED_RPM = RPM * Preferences.getDouble("AimAtHub/UNIVERSAL_SCALAR", 1.0);
+        shooter.setMotorRPM(UNIVERSALLY_ADJUSTED_RPM);
+        turret.setTurret(adjustedAngle);
     }
 
+    @Override
     public void end(boolean interrupted) {
-        // Lowest point of hood, highest exit angle
-//        hood.setHood(ShootingConstants.HOOD_MAX_ANGLE_DEGREES);
+        hood.setHood(0.05);
         shooter.stopMotors();
-        // turret.setTurret(0);
+        turret.setVoltage(0.0);
     }
 
 }

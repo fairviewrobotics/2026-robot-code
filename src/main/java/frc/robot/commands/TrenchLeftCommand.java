@@ -11,25 +11,22 @@ public class TrenchLeftCommand extends Command {
 
     HoodSubsystem hoodSubsystem;
     ShooterSubsystem shooterSubsystem;
-    TurretSubsystem turretSubsystem;
 
-    public TrenchLeftCommand(HoodSubsystem hoodSubsystem, ShooterSubsystem shooterSubsystem, TurretSubsystem turretSubsystem) {
+    public TrenchLeftCommand(HoodSubsystem hoodSubsystem, ShooterSubsystem shooterSubsystem) {
         this.hoodSubsystem = hoodSubsystem;
         this.shooterSubsystem = shooterSubsystem;
-        this.turretSubsystem = turretSubsystem;
+        addRequirements(hoodSubsystem, shooterSubsystem);
     }
 
     @Override
     public void execute() {
-        turretSubsystem.setTurret(Units.degreesToRadians(ShootingConstants.TURRET_TRENCH_LEFT_ANGLE_DEGREES));
         hoodSubsystem.setHood(ShootingConstants.HOOD_TRENCH_ANGLE);
         shooterSubsystem.setMotorRPM(ShootingConstants.SHOOTER_TRENCH_RPM);
     }
 
     public void end() {
-        hoodSubsystem.setHood(ShootingConstants.HOOD_MAX_ANGLE_DEGREES);
+        hoodSubsystem.setHood(0.05);
         shooterSubsystem.stopMotors();
-        turretSubsystem.setVoltage(0.0);
     }
 
 

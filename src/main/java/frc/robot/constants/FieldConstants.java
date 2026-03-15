@@ -22,11 +22,19 @@ public class FieldConstants {
 
 
     public static final Pose2d BLUE_TRENCH_LEFT = new Pose2d(4.511, 7.415, Rotation2d.kZero);
+    public static final Pose2d BLUE_TRENCH_RIGHT = new Pose2d(4.511, 0.640, Rotation2d.kZero);
     public static final Pose2d BLUE_TRENCH_LEFT_TRANSITION_CONTINUOUS = new Pose2d(6.0, 7.415, Rotation2d.kZero);
     public static final Pose2d BLUE_TRENCH_LEFT_TRANSITION_PICKUP = new Pose2d(7.657, 7.415, Rotation2d.kCW_90deg);
     public static final Pose2d BLUE_TRENCH_LEFT_PICKUP_END = new Pose2d(7.805, 4.611, Rotation2d.kCW_90deg);
-    public static final Pose2d BLUE_AUTO_SHOOT_LEFT_POINT = new Pose2d(3.064, 7.415, new Rotation2d( -Math.PI / 3));
+    public static final Pose2d BLUE_AUTO_SHOOT_LEFT_POINT = new Pose2d(3.064, 6.5, Rotation2d.fromDegrees(-240.0));
+    public static final Pose2d BLUE_TRENCH_LEFT_TO_SHOOT_TRANSITION = new Pose2d(3.5, 7.415, Rotation2d.kZero);
+    public static final Pose2d BLUE_TRENCH_RIGHT_TO_SHOOT_TRANSITION = new Pose2d(3.5, 0.640, Rotation2d.kZero);
+    public static final Pose2d BLUE_AUTO_SHOOT_RIGHT_POINT = new Pose2d(3.064, 1.55, Rotation2d.fromDegrees(-125));
 
+    public static final Pose2d START_POINT = new Pose2d(0.783, 1.79, Rotation2d.kZero);
+    public static final Pose2d TOP_RIGHT_POINT = new Pose2d(1.783,1.79, Rotation2d.kZero);
+    public static final Pose2d BOTTOM_RIGHT_POINT = new Pose2d(1.783,0.79, Rotation2d.kZero);
+    public static final Pose2d BOTTOM_LEFT_POINT = new Pose2d(0.783,0.79, Rotation2d.kZero);
     public static final Pose2d CARPET_POINT = new Pose2d(3.8, 3.8, Rotation2d.kCCW_90deg);
     public static final Pose2d CARPET_POINT2 = new Pose2d(3.8, 3.8, Rotation2d.k180deg);
     public static final Pose2d ODOMETRY_RESET_POINT = new Pose2d(3, 3, Rotation2d.kPi);

@@ -46,7 +46,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
         intakeDeployMotorConfig
                 .smartCurrentLimit(INTAKE_DEPLOY_MAX_CURRENT_AMPS)
-                .idleMode(SparkBaseConfig.IdleMode.kCoast)
+                .idleMode(SparkBaseConfig.IdleMode.kBrake)
                 .inverted(true);
 
         intakeRollerMotorConfig
@@ -187,6 +187,14 @@ public class IntakeSubsystem extends SubsystemBase {
 
     public void setIntakeDeployMotorVoltage(double voltage) {
         intakeDeployMotor.setVoltage(voltage);
+    }
+
+    public void setIntakeDeployMotorCoast() {
+        intakeDeployMotorConfig
+                .smartCurrentLimit(INTAKE_DEPLOY_MAX_CURRENT_AMPS)
+                .idleMode(SparkBaseConfig.IdleMode.kBrake)
+                .inverted(true);
+        intakeDeployMotor.configure(intakeDeployMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
     }
 
 //    private void updateValues() {

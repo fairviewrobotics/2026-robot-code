@@ -8,25 +8,22 @@ public class AgainstHubCommand extends Command {
 
     HoodSubsystem hoodSubsystem;
     ShooterSubsystem shooterSubsystem;
-    TurretSubsystem turretSubsystem;
 
-    public AgainstHubCommand(HoodSubsystem hoodSubsystem, ShooterSubsystem shooterSubsystem, TurretSubsystem turretSubsystem) {
+    public AgainstHubCommand(HoodSubsystem hoodSubsystem, ShooterSubsystem shooterSubsystem) {
         this.hoodSubsystem = hoodSubsystem;
         this.shooterSubsystem = shooterSubsystem;
-        this.turretSubsystem = turretSubsystem;
+        addRequirements(hoodSubsystem, shooterSubsystem);
     }
 
     @Override
     public void execute() {
-        turretSubsystem.setTurret(0.0);
         hoodSubsystem.setHood(ShootingConstants.HOOD_AGAINST_THE_HUB_ANGLE_DEGREES);
         shooterSubsystem.setMotorRPM(ShootingConstants.SHOOTER_AGAINST_THE_HUB_RPM);
     }
 
     public void end() {
-        hoodSubsystem.setHood(ShootingConstants.HOOD_MAX_ANGLE_DEGREES);
+        hoodSubsystem.setHood(0.05);
         shooterSubsystem.stopMotors();
-        turretSubsystem.setVoltage(0.0);
     }
 
 }

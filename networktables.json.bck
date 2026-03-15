@@ -146,7 +146,7 @@
   {
     "name": "/Preferences/DriveToPoint/AutoRotationP",
     "type": "double",
-    "value": 6.0,
+    "value": 2.0,
     "properties": {
       "persistent": true
     }
@@ -219,6 +219,54 @@
     "name": "/Preferences/Kicker/kV",
     "type": "double",
     "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Vision/BASE_XY_STD_DEV",
+    "type": "double",
+    "value": 0.02,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Vision/BASE_THETA_STD_DEV",
+    "type": "double",
+    "value": 0.06,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Vision/MAX_Z_ERROR",
+    "type": "double",
+    "value": 0.75,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Vision/SINGLE_TAG_DISTRUST_COEFFICIENT",
+    "type": "double",
+    "value": 2.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Vision/MAX_AMBIGUITY",
+    "type": "double",
+    "value": 0.15,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Vision/MAX_ACCEPTABLE_TAG_RANGE",
+    "type": "double",
+    "value": 3.0,
     "properties": {
       "persistent": true
     }

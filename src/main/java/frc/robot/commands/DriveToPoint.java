@@ -112,9 +112,9 @@ public class DriveToPoint extends Command {
         thetaController.reset(
                 currentPose.getRotation().getRadians(),
                 swerveSubsystem.getFieldVelocity().omegaRadiansPerSecond);
-        thetaController.setTolerance(Units.degreesToRadians(2.0));
+        thetaController.setTolerance(Units.degreesToRadians(5.0));
 
-        driveController.setTolerance(0.01);
+        driveController.setTolerance(0.2);
     }
 
     @Override

@@ -171,7 +171,7 @@ public class Vision extends SubsystemBase {
                 }
 
                 if (!latestResult.targets.isEmpty()
-                        && latestResult.targets.get(0).getPoseAmbiguity() > VisionConstants.MAX_POSE_AMBIGUITY) {
+                        && latestResult.targets.get(0).getPoseAmbiguity() > VisionConstants.TAG_AMBIGUITY_TOLERANCE) {
                     return;
                 }
 
@@ -183,14 +183,14 @@ public class Vision extends SubsystemBase {
                 double avgDistance = totalDistance / tagPoses.size();
 
                 // Calculate dynamic standard deviations
-                double xyStdDev = (Preferences.getDouble("Vision/BASE_XY_STD_DEV", VisionConstants.BASE_VISION_XY_STD_DEV) * avgDistance / tagPoses.size());
-                double thetaStdDev = (Preferences.getDouble("Vision/BASE_THETA_STD_DEV", VisionConstants.BASE_VISION_THETA_STD_DEV) * avgDistance / tagPoses.size());
+//                double xyStdDev = (Preferences.getDouble("Vision/BASE_XY_STD_DEV", VisionConstants.BASE_VISION_XY_STD_DEV) * avgDistance / tagPoses.size());
+//                double thetaStdDev = (Preferences.getDouble("Vision/BASE_THETA_STD_DEV", VisionConstants.BASE_VISION_THETA_STD_DEV) * avgDistance / tagPoses.size());
 
                 // Maybe better standard deviation calculations? Please check
-                /*
-                    double xyStdDev = VisionConstants.BASE_VISION_XY_STD_DEV.get() * (Math.pow(avgDistance, 2.0) / tagPoses.size());
-                    double thetaStdDev = VisionConstants.BASE_VISION_THETA_STD_DEV.get() * (Math.pow(avgDistance, 2.0) / tagPoses.size());
-                */
+
+                    double xyStdDev = VisionConstants.BASE_VISION_XY_STD_DEV * (Math.pow(avgDistance, 2.0) / tagPoses.size());
+                    double thetaStdDev = VisionConstants.BASE_VISION_THETA_STD_DEV * (Math.pow(avgDistance, 2.0) / tagPoses.size());
+
 
                 double baseXY = 0.005;
 
@@ -226,10 +226,10 @@ public class Vision extends SubsystemBase {
                 }
 
                 double xyStdDev = Preferences.getDouble("Vision/BASE_XY_STD_DEV", VisionConstants.BASE_VISION_XY_STD_DEV) * Math.pow(distance, 2.0);
-//                double thetaStdDev = VisionConstants.SINGLE_TAG_DISTRUST_COEFFICIENT.get() * VisionConstants.BASE_VISION_THETA_STD_DEV.get() * Math.pow(distance, 2.0);
+                double thetaStdDev = VisionConstants.SINGLE_TAG_DISTRUST_COEFFICIENT * VisionConstants.BASE_VISION_THETA_STD_DEV * Math.pow(distance, 2.0);
 
 //                 Maybe better to not trust single tag theta calculation?
-                 double thetaStdDev = Double.MAX_VALUE;
+                 // double thetaStdDev = Double.MAX_VALUE;
 
 
                 double baseXY = 0.005;

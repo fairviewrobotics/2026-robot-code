@@ -18,7 +18,7 @@ public class RetractIntakeCommand extends Command {
     @Override
     public void execute() {
         intakeSubsystem.setIntakeDeployMotorVoltage(voltage);
-        intakeSubsystem.setIntakeRollerMotorWithPreferences();
+        intakeSubsystem.setIntakeRollerMotorVoltage(-voltage);
     }
 
     @Override

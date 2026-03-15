@@ -12,7 +12,9 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.ShootingConstants;
@@ -27,13 +29,18 @@ public class TurretSubsystem extends SubsystemBase {
             ShootingConstants.TURRET_CONSTRAINTS);
 
     private final SparkFlex turretMotor = new SparkFlex(ShootingConstants.TURRET_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
-    // private final SparkLimitSwitch turretSwitch = turretMotor.getForwardLimitSwitch();
+    private final SparkFlexConfig turretMotorConfig = new SparkFlexConfig();
+    private final SoftLimitConfig turretSoftLimits = new SoftLimitConfig();
+    private final DigitalInput turretSwitch = new DigitalInput(0);
 
     private final SimpleMotorFeedforward turretFF = new SimpleMotorFeedforward(
             ShootingConstants.TURRET_KS,
             ShootingConstants.TURRET_KV,
             ShootingConstants.TURRET_KA
     );
+
+    private final InterpolatingDoubleTreeMap AngleToRPMScalarMap =
+            new InterpolatingDoubleTreeMap();
 
     private boolean isZeroed = false;
 
@@ -44,6 +51,7 @@ public class TurretSubsystem extends SubsystemBase {
 
     private boolean snappingBack = false;
 
+
     public TurretSubsystem() {
 
         initializePreferences();
@@ -53,6 +61,11 @@ public class TurretSubsystem extends SubsystemBase {
 //        turretLimitSwitchConfig
 //                .forwardLimitSwitchTriggerBehavior(LimitSwitchConfig.Behavior.kStopMovingMotorAndSetPosition)
 //                .forwardLimitSwitchType(LimitSwitchConfig.Type.kNormallyOpen);
+        turretSoftLimits
+                .forwardSoftLimitEnabled(true)
+                .reverseSoftLimitEnabled(true)
+                .forwardSoftLimit(Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES))
+                .reverseSoftLimit(Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES));
 
         turretMotorConfig
                 .inverted(false)
@@ -60,16 +73,10 @@ public class TurretSubsystem extends SubsystemBase {
                 .idleMode(SparkBaseConfig.IdleMode.kBrake)
                 .encoder.positionConversionFactor(ShootingConstants.TURRET_ENCODER_TO_RADIANS_CONVERSION_FACTOR);
 
-        turretSoftLimits
-                .forwardSoftLimitEnabled(true)
-                .reverseSoftLimitEnabled(true)
-                .forwardSoftLimit(Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES))
-                .reverseSoftLimit(Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES));
-
-        turretMotorConfig.apply(turretSoftLimits);
         turretMotor.configure(turretMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         updateCache();
-        turretPID.setTolerance(Units.degreesToRadians(0.01));
+        turretPID.setTolerance(Units.degreesToRadians(0.05));
+        createAngleRPMToScalarMap();
     }
 
     private void initializePreferences() {
@@ -100,19 +107,17 @@ public class TurretSubsystem extends SubsystemBase {
                 PersistMode.kNoPersistParameters);
     }
 
-//    public void zeroTurret() {
-//        if (!turretSwitch.isPressed()) {
-//            this.setVoltage(-1.0);
-//        } else {
-//            turretMotor.setVoltage(0.0);
-//            turretMotor.getEncoder().setPosition(Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES)
-//            );
-//            turretPID.reset(Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES));
-//            turretMotorConfig.apply(turretSoftLimits);
-//            turretMotor.configure(turretMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-//            isZeroed = true;
-//        }
-//    }
+    public void zeroTurret() {
+        turretMotor.getEncoder().setPosition(ShootingConstants.TURRET_ZERO_OFFSET_RADIANS);
+        turretPID.reset(Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES));
+        turretMotorConfig.apply(turretSoftLimits);
+        turretMotor.configure(turretMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        isZeroed = true;
+    }
+
+    public boolean getLimitSwitch() {
+        return turretSwitch.get();
+    }
 
     public void setTurret(double angle) {
 //        if (!isZeroed) {
@@ -128,16 +133,15 @@ public class TurretSubsystem extends SubsystemBase {
 
         if (turretPID.getPositionError() < Units.degreesToRadians(5)) snappingBack = false;
 
-        turretMotor.setVoltage(pidOutput + ffOutput);
+        turretMotor.setVoltage(pidOutput);
     }
 
     public double getTurretSetpoint(double targetAngle, double currentAngle) {
-        snappingBack = false;
         double delta = MathUtil.angleModulus(targetAngle - currentAngle);
 
         double setpointRadians = currentAngle + delta;
 
-        if (setpointRadians > Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES)) {
+        if (setpointRadians > Units.degreesToRadians(ShootingConstants.TURRET_FORWARD_LIMIT_DEGREES - 0.5)) {
             setpointRadians -= 2 * Math.PI;
             snappingBack = true;
         } else if (setpointRadians < Units.degreesToRadians(ShootingConstants.TURRET_REVERSE_LIMIT_DEGREES + 0.5)) {
@@ -152,7 +156,7 @@ public class TurretSubsystem extends SubsystemBase {
         snappingBack = state;
     }
 
-    public boolean  getSnapBackState() {
+    public boolean getSnapBackState() {
         return snappingBack;
     }
 
@@ -175,6 +179,8 @@ public class TurretSubsystem extends SubsystemBase {
         turretFF.setKv(Preferences.getDouble("Turret/kV", ShootingConstants.TURRET_KV));
     }
 
+
+
     @Override
     public void periodic() {
 
@@ -186,7 +192,18 @@ public class TurretSubsystem extends SubsystemBase {
         Logger.recordOutput("Turret/turret error", turretPID.getPositionError());
         Logger.recordOutput("Turret/setpoint", turretPID.getSetpoint());
         Logger.recordOutput("Turret/turret velocity", turretMotor.getEncoder().getVelocity());
+        Logger.recordOutput("Turret/limit switch", turretSwitch.get());
 
+    }
+
+    private void createAngleRPMToScalarMap() {
+        AngleToRPMScalarMap.put(Units.degreesToRadians(-45.0), 0.938);
+        AngleToRPMScalarMap.put(Units.degreesToRadians(0.0), 1.0);
+        AngleToRPMScalarMap.put(Units.degreesToRadians(45.0), 0.938);
+    }
+
+    public double getAngleRPMToScalarMap(double angle) {
+        return AngleToRPMScalarMap.get(angle);
     }
 
 }

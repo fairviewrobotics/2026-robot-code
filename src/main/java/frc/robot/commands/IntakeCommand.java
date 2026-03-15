@@ -13,7 +13,7 @@ public class IntakeCommand extends Command {
 
     @Override
     public void initialize() {
-
+        intakeSubsystem.setIntakeDeployMotorCoast();
     }
 
     @Override
@@ -28,6 +28,7 @@ public class IntakeCommand extends Command {
         if (intakeSubsystem.getIntakeState() == IntakeSubsystem.IntakeState.RETRACTED) {
             intakeSubsystem.setIntakeDeployMotorVoltage(voltage);
         }
+
         intakeSubsystem.setIntakeRollerMotorWithPreferences();
     }
 

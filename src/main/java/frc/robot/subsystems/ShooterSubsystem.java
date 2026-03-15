@@ -26,6 +26,11 @@ public class ShooterSubsystem extends SubsystemBase {
     private double lastKS = ShootingConstants.DEFAULT_KS;
     private double lastLRPM = ShootingConstants.LEFT_SHOOTER_RPM;
     private double lastRRPM = ShootingConstants.RIGHT_SHOOTER_RPM;
+    private double lastMap1 = 2000.0;
+    private double lastMap2 = 2350.0;
+    private double lastMap3 = 3000.0;
+    private double lastMap4 = 3450.0;
+    private double lastMap5 = 4500.0;
 
     private final InterpolatingDoubleTreeMap DistanceToRPM =
             new InterpolatingDoubleTreeMap();
@@ -86,6 +91,11 @@ public class ShooterSubsystem extends SubsystemBase {
         Preferences.initDouble("Shooter/kS", ShootingConstants.DEFAULT_KS);
         Preferences.initDouble("Shooter/LEFT_RPM_SETPOINT", ShootingConstants.LEFT_SHOOTER_RPM);
         Preferences.initDouble("Shooter/RIGHT_RPM_SETPOINT", ShootingConstants.RIGHT_SHOOTER_RPM);
+        Preferences.initDouble("Shooter_Map/RPM_MAP_ONE", 2000.0);
+        Preferences.initDouble("Shooter_Map/RPM_MAP_TWO", 2350.0);
+        Preferences.initDouble("Shooter_Map/RPM_MAP_THREE", 3000.0);
+        Preferences.initDouble("Shooter_Map/RPM_MAP_FOUR", 3450.0);
+        Preferences.initDouble("Shooter_Map/RPM_MAP_FIVE", 4500.0);
     }
 
     private void updateCache() {
@@ -96,6 +106,11 @@ public class ShooterSubsystem extends SubsystemBase {
         lastKS = Preferences.getDouble("Shooter/kS", ShootingConstants.DEFAULT_KS);
         lastLRPM = Preferences.getDouble("Shooter/LEFT_RPM_SETPOINT", ShootingConstants.LEFT_SHOOTER_RPM);
         lastRRPM = Preferences.getDouble("Shooter/RIGHT_RPM_SETPOINT", ShootingConstants.RIGHT_SHOOTER_RPM);
+        lastMap1 = Preferences.getDouble("Shooter_Map/RPM_MAP_ONE", 2000.0);
+        lastMap2 = Preferences.getDouble("Shooter_Map/RPM_MAP_TWO", 2350.0);
+        lastMap3 = Preferences.getDouble("Shooter_Map/RPM_MAP_THREE", 3000.0);
+        lastMap4 = Preferences.getDouble("Shooter_Map/RPM_MAP_FOUR", 3450.0);
+        lastMap5 = Preferences.getDouble("Shooter_Map/RPM_MAP_FIVE", 4500.0);
     }
 
     private boolean preferencesChanged() {
@@ -105,7 +120,12 @@ public class ShooterSubsystem extends SubsystemBase {
                 || lastKV != Preferences.getDouble("Shooter/kV", ShootingConstants.DEFAULT_KV)
                 || lastKS != Preferences.getDouble("Shooter/kS", ShootingConstants.DEFAULT_KS)
                 || lastLRPM != Preferences.getDouble("Shooter/LEFT_RPM_SETPOINT", ShootingConstants.LEFT_SHOOTER_RPM)
-                || lastRRPM != Preferences.getDouble("Shooter/RIGHT_RPM_SETPOINT", ShootingConstants.RIGHT_SHOOTER_RPM);
+                || lastRRPM != Preferences.getDouble("Shooter/RIGHT_RPM_SETPOINT", ShootingConstants.RIGHT_SHOOTER_RPM)
+                || lastMap1 != Preferences.getDouble("Shooter_Map/RPM_MAP_ONE", 2000.0)
+                || lastMap2 != Preferences.getDouble("Shooter_Map/RPM_MAP_TWO", 2350.0)
+                || lastMap3 != Preferences.getDouble("Shooter_Map/RPM_MAP_THREE", 3000.0)
+                || lastMap4 != Preferences.getDouble("Shooter_Map/RPM_MAP_FOUR", 3450.0)
+                || lastMap5 != Preferences.getDouble("Shooter_Map/RPM_MAP_FIVE", 4500.0);
     }
 
     private void updateHardwareConfigs() {
@@ -138,11 +158,16 @@ public class ShooterSubsystem extends SubsystemBase {
         this.setMotorRPMBangBang(Preferences.getDouble("Shooter/LEFT_RPM_SETPOINT", ShootingConstants.LEFT_SHOOTER_RPM));
     }
 
+    public boolean shooterAtSetpoint() {
+        return leftShooterMotor.getClosedLoopError().getValueAsDouble() < (ShootingConstants.SHOOTER_TOLERANCE_RPM/60);
+    }
+
     @Override
     public void periodic() {
 
         if (preferencesChanged()) {
             updateHardwareConfigs();
+            createDistanceToRPMMap();
         }
 
         Logger.recordOutput("Shooter/left motor rpm", leftShooterMotor.getVelocity().getValueAsDouble() * 60);
@@ -178,11 +203,11 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     private void createDistanceToRPMMap() {
-        DistanceToRPM.put(0.0, 2000.0);
-        DistanceToRPM.put(3.0796, 2350.0);
-        DistanceToRPM.put(4.1596, 2600.0);
-        DistanceToRPM.put(5.1396, 3200.0);
-        DistanceToRPM.put(8.0, 4500.0);
+        DistanceToRPM.put(0.0, Preferences.getDouble("Shooter_Map/RPM_MAP_ONE", 2000.0));
+        DistanceToRPM.put(3.0796, Preferences.getDouble("Shooter_Map/RPM_MAP_TWO", 2350.0));
+        DistanceToRPM.put(4.1596, Preferences.getDouble("Shooter_Map/RPM_MAP_THREE", 3000.0));
+        DistanceToRPM.put(5.1396, Preferences.getDouble("Shooter_Map/RPM_MAP_FOUR", 3450.0));
+        DistanceToRPM.put(6.0, Preferences.getDouble("Shooter_Map/RPM_MAP_FIVE", 4500.0));
     }
 
     private void createDistanceToShotTimeMap() {

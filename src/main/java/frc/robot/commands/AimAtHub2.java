@@ -55,11 +55,13 @@ public class AimAtHub2 extends Command {
             oldVelocity = velOptional.get();
         }
         Translation2d acceleration = new Translation2d(swerveSubsystem.getFieldVelocity().vxMetersPerSecond - oldVelocity.getX(), swerveSubsystem.getFieldVelocity().vyMetersPerSecond - oldVelocity.getY());
+
         turretSubsystem.setTurret(turretAngle(new Pose3d(swerveSubsystem.getPose().getX(),
                         swerveSubsystem.getPose().getY(),
                         0.0,
                         new Rotation3d(swerveSubsystem.getPose().getRotation())),
                 acceleration));
+
         acceleration = new Translation2d(0,0);
         Logger.recordOutput("Turret/Target Pose", targetPose);
         Translation2d ballVelocity =
