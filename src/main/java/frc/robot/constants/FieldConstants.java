@@ -11,7 +11,7 @@ public class FieldConstants {
 
     public static final double FIELD_BORDER_MARGIN_METERS = 0.5;
     public static final double FIELD_LENGTH_METERS = 16.54;
-    public static final double FIELD_WIDTH_METERS = 8.00;
+    public static final double FIELD_WIDTH_METERS = 8.069326;
 
     public static final double BALL_HEIGHT_METERS = Units.inchesToMeters(6.0);
 
