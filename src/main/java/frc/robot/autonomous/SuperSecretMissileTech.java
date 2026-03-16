@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.autonomous.routines.BlueTrenchLeft;
+import frc.robot.autonomous.routines.BlueTrenchLeftWithPreload;
 import frc.robot.autonomous.routines.PreloadDump;
 import frc.robot.autonomous.routines.PreloadDumpRight;
 import frc.robot.autonomous.routines.TestAuto;
@@ -17,6 +18,7 @@ public class SuperSecretMissileTech {
         superSecretMissileTech.setDefaultOption("NOTHING", new SequentialCommandGroup());
         superSecretMissileTech.addOption("TEST AUTO", new TestAuto(swerveSubsystem));
         superSecretMissileTech.addOption("BLUE TRENCH LEFT", new BlueTrenchLeft(swerveSubsystem, intakeSubsystem, turretSubsystem, shooterSubsystem, hoodSubsystem, indexerSubsystem));
+        superSecretMissileTech.addOption("BLUE TRENCH LEFT WITH PRELOAD", new BlueTrenchLeftWithPreload(swerveSubsystem, intakeSubsystem, turretSubsystem, shooterSubsystem, hoodSubsystem, indexerSubsystem));
         superSecretMissileTech.addOption("PRELOAD DUMP", new PreloadDump(swerveSubsystem, intakeSubsystem, turretSubsystem, shooterSubsystem, hoodSubsystem, indexerSubsystem));
         superSecretMissileTech.addOption("PRELOAD DUMP RIGHT", new PreloadDumpRight(swerveSubsystem, intakeSubsystem, turretSubsystem, shooterSubsystem, hoodSubsystem, indexerSubsystem));
         SmartDashboard.putData("Autonomous Selector", superSecretMissileTech);

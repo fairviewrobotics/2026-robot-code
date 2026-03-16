@@ -131,7 +131,7 @@ public class RobotContainer
 
 
     primary_controller.L2().whileTrue(new IntakeCommand(intakeSubsystem));
-    primary_controller.R1().whileTrue(new AgitateWithIntake(intakeSubsystem));
+    primary_controller.L1().whileTrue(new AgitateWithIntake(intakeSubsystem));
     primary_controller.R2().whileTrue(new FireShooterCommand(shooterSubsystem, indexerSubsystem, turretSubsystem));
     primary_controller.R3().whileTrue(new RunCommand(swerveSubsystem::centerModulesCommand));
     primary_controller.cross().onTrue(new InstantCommand(swerveSubsystem::zeroGyro));
@@ -158,25 +158,21 @@ public class RobotContainer
     secondary_controller.y().whileTrue(new CornerLeftCommand(hoodSubsystem, shooterSubsystem));
     secondary_controller.a().whileTrue(new CornerRightCommand(hoodSubsystem, shooterSubsystem));
 
-    primary_controller.L1().whileTrue(
-            new ParallelCommandGroup(
-                    // 1. The Aiming Math (Flywheels, Hood, Turret)
-                    new AimAtHub3(hoodSubsystem, shooterSubsystem, turretSubsystem, swerveSubsystem, () -> activeTarget),
-
-                    // 2. The Drivetrain (Manual control but with a speed cap)
-                    new RunCommand(() -> {
-                      // Cap the translation to 50% of max speed
-                      double speedCap = 0.5;
-
-                      // Get joystick inputs, apply deadband, and multiply by cap
-                      double x = MathUtil.applyDeadband(primary_controller.getLeftY(), OperatorConstants.DEADBAND) * speedCap;
-                      double y = MathUtil.applyDeadband(primary_controller.getLeftX(), OperatorConstants.DEADBAND) * speedCap;
-                      double rot = MathUtil.applyDeadband(-primary_controller.getRightX(), OperatorConstants.DEADBAND) * speedCap;
-
-                      swerveSubsystem.drive(new Translation2d(x, y), rot, true);
-                    }, swerveSubsystem)
-            )
+    primary_controller.R1().whileTrue(
+        new AimAtHub3(hoodSubsystem, shooterSubsystem, turretSubsystem, swerveSubsystem, () -> activeTarget)
     );
+
+    primary_controller.L3().whileTrue(
+            new RunCommand(() -> {
+              double speedCap = 0.15;
+              double x = MathUtil.applyDeadband(primary_controller.getLeftY(), OperatorConstants.DEADBAND) * speedCap;
+              double y = MathUtil.applyDeadband(primary_controller.getLeftX(), OperatorConstants.DEADBAND) * speedCap;
+              double rot = MathUtil.applyDeadband(-primary_controller.getRightX(), OperatorConstants.DEADBAND) * speedCap;
+
+              swerveSubsystem.drive(new Translation2d(4.42 * x, 4.42 * y), rot, true);
+            }, swerveSubsystem)
+    );
+
     secondary_controller.pov(90).whileTrue(new RunCommand(() -> turretSubsystem.setVoltage(-2)));
     secondary_controller.pov(270).whileTrue(new RunCommand(() -> turretSubsystem.setVoltage(2)));
     secondary_controller.pov(90).whileFalse(new RunCommand(() -> turretSubsystem.setVoltage(0)));

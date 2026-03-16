@@ -270,5 +270,101 @@
     "properties": {
       "persistent": true
     }
+  },
+  {
+    "name": "/Preferences/Auto/AUTO_SCALAR",
+    "type": "double",
+    "value": 1.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Shooter_Map/RPM_MAP_ONE",
+    "type": "double",
+    "value": 2000.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Shooter_Map/RPM_MAP_TWO",
+    "type": "double",
+    "value": 2350.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Shooter_Map/RPM_MAP_THREE",
+    "type": "double",
+    "value": 3000.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Shooter_Map/RPM_MAP_FOUR",
+    "type": "double",
+    "value": 3450.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Shooter_Map/RPM_MAP_FIVE",
+    "type": "double",
+    "value": 4500.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Agitation/Frequency",
+    "type": "double",
+    "value": 0.5,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Agitation/Amplitude",
+    "type": "double",
+    "value": 4.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Agitation/Power",
+    "type": "double",
+    "value": 0.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/AimAtHub/SHOOTER_RPM_SCALAR",
+    "type": "double",
+    "value": 1.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/AimAtHub/PHASE_DELAY",
+    "type": "double",
+    "value": 0.1,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/AimAtHub/UNIVERSAL_SCALAR",
+    "type": "double",
+    "value": 1.0,
+    "properties": {
+      "persistent": true
+    }
   }
 ]

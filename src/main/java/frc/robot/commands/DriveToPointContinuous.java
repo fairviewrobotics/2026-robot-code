@@ -30,11 +30,26 @@ public class DriveToPointContinuous extends Command {
         this.thetaController = new ProfiledPIDController(
                 Preferences.getDouble("DriveToPoint/AutoRotationP", Constants.DrivebaseConstants.AUTO_ROTATION_P),
                 0.0, 0.0,
-                new TrapezoidProfile.Constraints(Constants.MAX_ANGULAR_SPEED, Constants.MAX_ANGULAR_SPEED*2)
+                new TrapezoidProfile.Constraints(Constants.MAX_ANGULAR_SPEED/2, Constants.MAX_ANGULAR_SPEED)
         );
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
         thetaController.setTolerance(Units.degreesToRadians(2.0));
         addRequirements(swerveSubsystem);
+    }
+
+    @Override
+    public void initialize() {
+        // Capture the target location at initialization time
+        Pose2d currentPose = swerveSubsystem.getPose();
+
+        // Update PID values from preferences
+        thetaController.setP(Preferences.getDouble("DriveToPoint/AutoRotationP", Constants.DrivebaseConstants.AUTO_ROTATION_P));
+
+        thetaController.reset(
+                currentPose.getRotation().getRadians(),
+                swerveSubsystem.getFieldVelocity().omegaRadiansPerSecond);
+        thetaController.setTolerance(Units.degreesToRadians(5.0));
+
     }
 
     @Override

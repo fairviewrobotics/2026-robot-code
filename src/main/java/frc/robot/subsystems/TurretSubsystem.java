@@ -193,12 +193,12 @@ public class TurretSubsystem extends SubsystemBase {
         Logger.recordOutput("Turret/setpoint", turretPID.getSetpoint());
         Logger.recordOutput("Turret/turret velocity", turretMotor.getEncoder().getVelocity());
         Logger.recordOutput("Turret/limit switch", turretSwitch.get());
-
     }
 
     private void createAngleRPMToScalarMap() {
         AngleToRPMScalarMap.put(Units.degreesToRadians(-45.0), 0.938);
         AngleToRPMScalarMap.put(Units.degreesToRadians(0.0), 1.0);
+        AngleToRPMScalarMap.put(Units.degreesToRadians(22.5), 1.0);
         AngleToRPMScalarMap.put(Units.degreesToRadians(45.0), 0.938);
     }
 
