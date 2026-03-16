@@ -1,0 +1,66 @@
+package frc.robot.autonomous.routines;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.Preferences;
+import edu.wpi.first.wpilibj2.command.*;
+import frc.robot.commands.AgitateWithIntake;
+import frc.robot.commands.AimAtHub3NoTurret;
+import frc.robot.commands.AimAtHubWithChassis;
+import frc.robot.commands.DriveToPoint;
+import frc.robot.commands.DriveToPointContinuous;
+import frc.robot.commands.FireShooterCommand;
+import frc.robot.commands.IndexerCommand;
+import frc.robot.commands.IntakeCommand;
+import frc.robot.commands.ShooterCommand;
+import frc.robot.constants.FieldConstants;
+import frc.robot.subsystems.*;
+import frc.robot.utils.AllianceFlipUtil;
+import frc.robot.utils.FlipOverYUtil;
+
+import java.util.Set;
+
+/**
+ * Left relative to driver
+ */
+public class BlueTrenchRight extends SequentialCommandGroup {
+    public BlueTrenchRight(SwerveSubsystem swerveSubsystem, IntakeSubsystem intakeSubsystem, TurretSubsystem turretSubsystem, ShooterSubsystem shooterSubsystem, HoodSubsystem hoodSubsystem, IndexerSubsystem indexerSubsystem) {
+        setName("BLUE TRENCH LEFT");
+        addRequirements(swerveSubsystem);
+
+        addCommands(
+                Commands.defer(() -> {
+                    // The return statement is required because of the curly braces
+                    double AUTO_SCALAR = Preferences.getDouble("Auto/AUTO_SCALAR", 0.2);
+
+                    return new SequentialCommandGroup(
+                            new InstantCommand(() -> {
+                                Pose2d startPose = FlipOverYUtil.apply(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT));
+                                swerveSubsystem.resetOdometry(startPose);
+                            }),
+
+
+                            new SequentialCommandGroup(
+                                    new DriveToPointContinuous(swerveSubsystem, FlipOverYUtil.apply(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT_TRANSITION_CONTINUOUS)), 0.5 * AUTO_SCALAR),
+                                    new DriveToPointContinuous(swerveSubsystem, FlipOverYUtil.apply(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT_TRANSITION_PICKUP)), 0.5 * AUTO_SCALAR),
+                                    new ParallelDeadlineGroup(
+                                            new DriveToPoint(swerveSubsystem, FlipOverYUtil.apply(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT_PICKUP_END)), 1.0 * AUTO_SCALAR),
+                                            new IntakeCommand(intakeSubsystem)
+                                    ),
+                                    new DriveToPoint(swerveSubsystem, FlipOverYUtil.apply(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT_TRANSITION_DROPOFF)), 1.0 * AUTO_SCALAR),
+                                    new DriveToPointContinuous(swerveSubsystem, FlipOverYUtil.apply(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT)), 0.5 * AUTO_SCALAR),
+                                    new DriveToPointContinuous(swerveSubsystem, FlipOverYUtil.apply(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT_TO_SHOOT_TRANSITION)), 0.5 * AUTO_SCALAR),
+                                    new DriveToPoint(swerveSubsystem, FlipOverYUtil.apply(AllianceFlipUtil.apply(FieldConstants.BLUE_AUTO_SHOOT_LEFT_POINT)), 1.0 * AUTO_SCALAR),
+                                    new ParallelDeadlineGroup(
+                                            new FireShooterCommand(shooterSubsystem, indexerSubsystem, turretSubsystem).withTimeout(5.0),
+                                            // Do not flip this one, it does it in the command
+                                            new AimAtHub3NoTurret(hoodSubsystem, shooterSubsystem, swerveSubsystem, () -> FieldConstants.BLUE_HUB_POSE3D.toPose2d().getTranslation()),
+                                            new AimAtHubWithChassis(swerveSubsystem, () -> 0.0, () -> 0.0),
+                                            new AgitateWithIntake(intakeSubsystem)
+                                    )
+                            )
+
+                    );
+                }, Set.of(swerveSubsystem, intakeSubsystem, shooterSubsystem, indexerSubsystem))
+        );
+    }
+}
