@@ -24,11 +24,11 @@ public class AimAtHubWithChassis extends Command {
     private final DoubleSupplier ySupplier;
 
     // Tuning constants - might need adjustment based on robot weight/traction
-    private static final double kP = 0.5;
+    private static final double kP = 3.0;
     private static final double kI = 0.0;
     private static final double kD = 0.1;
 
-    private static final double ANGLE_TOLERANCE = Units.degreesToRadians(0.5);
+    private static final double ANGLE_TOLERANCE = Units.degreesToRadians(2.0);
 
     public AimAtHubWithChassis(SwerveSubsystem swerveSubsystem, DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
         this.swerveSubsystem = swerveSubsystem;

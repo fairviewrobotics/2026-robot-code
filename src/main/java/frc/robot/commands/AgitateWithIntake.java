@@ -9,9 +9,9 @@ public class AgitateWithIntake extends Command {
 
     IntakeSubsystem intakeSubsystem;
     Timer timer = new Timer();
-    double amplitude = 4.0; // Max voltage
-    double frequency = 0.5; // Oscillations per second (Hz)
-
+    double amplitude = 4.5; // Max voltage
+    double frequency = 3.0; // Oscillations per second (Hz)
+    double power = 4;
 
     public AgitateWithIntake(IntakeSubsystem intakeSubsystem) {
         this.intakeSubsystem = intakeSubsystem;
@@ -27,7 +27,7 @@ public class AgitateWithIntake extends Command {
     public void execute() {
         double freq = Preferences.getDouble("Agitation/Frequency", frequency);
         double amp = Preferences.getDouble("Agitation/Amplitude", amplitude);
-        double pow = Preferences.getDouble("Agitation/Power", 0);
+        double pow = Preferences.getDouble("Agitation/Power", power);
 
 //        double wave = Math.sin(2 * Math.PI * freq * timer.get());
 

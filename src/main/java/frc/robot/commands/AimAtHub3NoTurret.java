@@ -56,8 +56,8 @@ public void execute() {
     Translation2d virtualTarget = targetTranslation;
     double timeOfFlight;
 
-    for (int i = 0; i < 20; i++) {
-        timeOfFlight = shooter.getDistanceToShotTime(shooterDistance);
+    for (int i = 0; i < 10; i++) {
+        timeOfFlight = shooter.getDistanceToShotTimeLeft(shooterDistance);
 
         virtualTarget = targetTranslation.plus(new Translation2d(
                 fieldVel.vxMetersPerSecond * timeOfFlight,
@@ -67,7 +67,7 @@ public void execute() {
         shooterDistance = shooterTranslation.getDistance(virtualTarget);
     }
 
-    double RPM = shooter.getDistanceToRPMMap(shooterDistance);
+    double RPM = shooter.getDistanceToRPMMapLeft(shooterDistance);
 //        double hoodAngle = hood.getHoodSetpoint(shooterDistance);
 
     Rotation2d turretFieldAngle = virtualTarget.minus(shooterTranslation).getAngle();

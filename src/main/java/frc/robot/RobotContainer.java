@@ -13,6 +13,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.*;
 import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
@@ -129,9 +130,7 @@ public class RobotContainer
     // Field Y axis, not driver POV
     Command driveFieldOrientedDirectAngleKeyboard      = swerveSubsystem.driveFieldOriented(driveDirectAngleKeyboard);
 
-
     primary_controller.L2().whileTrue(new IntakeCommand(intakeSubsystem));
-    primary_controller.L1().whileTrue(new AgitateWithIntake(intakeSubsystem));
     primary_controller.R2().whileTrue(new FireShooterCommand(shooterSubsystem, indexerSubsystem, turretSubsystem));
     primary_controller.R3().whileTrue(new RunCommand(swerveSubsystem::centerModulesCommand));
     primary_controller.cross().onTrue(new InstantCommand(swerveSubsystem::zeroGyro));
@@ -150,33 +149,35 @@ public class RobotContainer
     secondary_controller.rightStick().onTrue(new ZeroTurretCommand(turretSubsystem));
 
     secondary_controller.pov(0).onTrue(new InstantCommand(() -> activeTarget = FieldConstants.BLUE_HUB_POSE3D.toPose2d().getTranslation()));
-//    secondary_controller.pov(90).onTrue(new InstantCommand(() -> activeTarget = FieldConstants.BLUE_PASS_LEFT_POSE.getTranslation()));
-//    secondary_controller.pov(270).onTrue(new InstantCommand(() -> activeTarget = FieldConstants.BLUE_PASS_RIGHT_POSE.getTranslation()));
+    secondary_controller.pov(90).onTrue(new InstantCommand(() -> activeTarget = FieldConstants.BLUE_PASS_LEFT_POSE.getTranslation()));
+    secondary_controller.pov(270).onTrue(new InstantCommand(() -> activeTarget = FieldConstants.BLUE_PASS_RIGHT_POSE.getTranslation()));
     secondary_controller.pov(180).onTrue(new HoodTestCommand(hoodSubsystem));
     secondary_controller.x().whileTrue(new TrenchLeftCommand(hoodSubsystem, shooterSubsystem));
     secondary_controller.b().whileTrue(new TrenchRightCommand(hoodSubsystem, shooterSubsystem));
     secondary_controller.y().whileTrue(new CornerLeftCommand(hoodSubsystem, shooterSubsystem));
-    secondary_controller.a().whileTrue(new CornerRightCommand(hoodSubsystem, shooterSubsystem));
+    secondary_controller.a().whileTrue(new AgitateWithIntake(intakeSubsystem));
 
     primary_controller.R1().whileTrue(
         new AimAtHub3(hoodSubsystem, shooterSubsystem, turretSubsystem, swerveSubsystem, () -> activeTarget)
     );
 
-    primary_controller.L3().whileTrue(
+    primary_controller.L1().whileTrue(
             new RunCommand(() -> {
-              double speedCap = 0.15;
+              double speedCap = Preferences.getDouble("Swerve/SLOWDOWN_SCALAR", 0.25);
               double x = MathUtil.applyDeadband(primary_controller.getLeftY(), OperatorConstants.DEADBAND) * speedCap;
               double y = MathUtil.applyDeadband(primary_controller.getLeftX(), OperatorConstants.DEADBAND) * speedCap;
               double rot = MathUtil.applyDeadband(-primary_controller.getRightX(), OperatorConstants.DEADBAND) * speedCap;
 
-              swerveSubsystem.drive(new Translation2d(4.42 * x, 4.42 * y), rot, true);
+              swerveSubsystem.drive(new Translation2d(4.42 * x, 4.42 * y), 6.38 * rot, true);
             }, swerveSubsystem)
     );
 
-    secondary_controller.pov(90).whileTrue(new RunCommand(() -> turretSubsystem.setVoltage(-2)));
-    secondary_controller.pov(270).whileTrue(new RunCommand(() -> turretSubsystem.setVoltage(2)));
-    secondary_controller.pov(90).whileFalse(new RunCommand(() -> turretSubsystem.setVoltage(0)));
-    secondary_controller.pov(270).whileFalse(new RunCommand(() -> turretSubsystem.setVoltage(0)));
+    turretSubsystem.setDefaultCommand(
+            new RunCommand(() -> turretSubsystem.setVoltage(0), turretSubsystem)
+    );
+
+    primary_controller.pov(90).whileTrue(new RunCommand(() -> turretSubsystem.setVoltage(-2), turretSubsystem));
+    primary_controller.pov(270).whileTrue(new RunCommand(() -> turretSubsystem.setVoltage(2), turretSubsystem));
 
     if (RobotBase.isSimulation())
     {

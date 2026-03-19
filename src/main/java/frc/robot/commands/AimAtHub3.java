@@ -70,8 +70,12 @@ public class AimAtHub3 extends Command {
         Translation2d virtualTarget = targetTranslation;
 
         for (int i = 0; i < 10; i++) {
-            double timeOfFlight = shooter.getDistanceToShotTime(shooterDistance);
-
+            double timeOfFlight;
+            if (turret.isLeftOfKicker()) {
+                timeOfFlight = shooter.getDistanceToShotTimeLeft(shooterDistance);
+            } else {
+                timeOfFlight = shooter.getDistanceToShotTimeRight(shooterDistance);
+            }
             virtualTarget = targetTranslation.minus(new Translation2d(
                     shooterFieldVelX * timeOfFlight,
                     shooterFieldVelY * timeOfFlight
@@ -80,7 +84,14 @@ public class AimAtHub3 extends Command {
             shooterDistance = shooterTranslation.getDistance(virtualTarget);
         }
 
-        double baseRPM = shooter.getDistanceToRPMMap(shooterDistance);
+        double baseRPM;
+
+        if (turret.isLeftOfKicker()) {
+            baseRPM = shooter.getDistanceToRPMMapLeft(shooterDistance);
+        } else {
+            baseRPM = shooter.getDistanceToRPMMapRight(shooterDistance);
+        }
+
         Rotation2d turretFieldAngle = virtualTarget.minus(shooterTranslation).getAngle();
         Rotation2d robotRelativeTurretAngle = turretFieldAngle.minus(currentPose.getRotation());
 

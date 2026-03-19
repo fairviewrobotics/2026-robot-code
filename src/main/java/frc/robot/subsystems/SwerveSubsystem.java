@@ -88,6 +88,7 @@ public class SwerveSubsystem extends SubsystemBase
     swerveDrive.setModuleEncoderAutoSynchronize(false,
                                                 1); // Enable if you want to resynchronize your absolute encoders and motor encoders periodically when they are not moving.
     Preferences.initDouble("Auto/AUTO_SCALAR", 0.2);
+    Preferences.initDouble("Swerve/SLOWDOWN_SCALAR", 0.25);
     // swerveDrive.pushOffsetsToEncoders(); // Set the absolute encoder to be used over the internal encoder and push the offsets onto it. Throws warning if not possible
     if (visionDriveTest)
     {

@@ -5,7 +5,7 @@ public class IntakeConstants {
     public static final int INTAKE_ROLLER_MOTOR_ID = 21;
 
     // Empirically determined
-    public static final double INTAKE_TUNED_RPM = 3400;
+    public static final double INTAKE_TUNED_RPM = 3200;
 
     public static final double INTAKE_DEPLOY_MOTOR_VOLTAGE = 2.0;
 

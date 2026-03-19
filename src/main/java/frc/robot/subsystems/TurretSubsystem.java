@@ -50,7 +50,7 @@ public class TurretSubsystem extends SubsystemBase {
     private double lastKV = ShootingConstants.TURRET_KV;
 
     private boolean snappingBack = false;
-
+    private boolean leftOfKicker = false;
 
     public TurretSubsystem() {
 
@@ -119,10 +119,15 @@ public class TurretSubsystem extends SubsystemBase {
         return turretSwitch.get();
     }
 
+    public boolean isLeftOfKicker() {
+        leftOfKicker = !(turretMotor.getEncoder().getPosition() > Units.degreesToRadians(157.25));
+        return leftOfKicker;
+    }
+
     public void setTurret(double angle) {
-//        if (!isZeroed) {
-//            zeroTurret();
-//        } else {
+        if (!isZeroed) {
+            this.setVoltage(0.0);
+        } else {
             double currentAngle = turretMotor.getEncoder().getPosition();
 
             double pidOutput = turretPID.calculate(currentAngle, getTurretSetpoint(angle, currentAngle));
@@ -131,9 +136,10 @@ public class TurretSubsystem extends SubsystemBase {
 
             double ffOutput = turretFF.calculate(setpoint.velocity);
 
-        if (turretPID.getPositionError() < Units.degreesToRadians(5)) snappingBack = false;
+            turretMotor.setVoltage(pidOutput + ffOutput);
+        }
 
-        turretMotor.setVoltage(pidOutput);
+        if (turretPID.getPositionError() < Units.degreesToRadians(0.5)) snappingBack = false;
     }
 
     public double getTurretSetpoint(double targetAngle, double currentAngle) {

@@ -30,13 +30,12 @@ public class ShootingConstants {
     public static final double DEFAULT_KV = 0.115;
     public static final double DEFAULT_KS = 0.2;
 
-    public static double TURRET_P = 4.0;
+    public static double TURRET_P = 8.0;
     public static double TURRET_D = 0.0;
     public static final TrapezoidProfile.Constraints TURRET_CONSTRAINTS = new TrapezoidProfile.Constraints(4.0 * Math.PI, 4.0 * Math.PI);
 
-    public static double TURRET_KS = 0.3;
-//    public static double TURRET_KV = 0.88;
-    public static double TURRET_KV = 0.735;
+    public static double TURRET_KS = 0.25;
+    public static double TURRET_KV = 0.63;
     public static double TURRET_KA = 0.0;
 
     public static final double TURRET_CORNER_LEFT_ANGLE_DEGREES = 60.0;
@@ -53,7 +52,7 @@ public class ShootingConstants {
     public static final double SHOOTER_AGAINST_THE_HUB_RPM = 1875;
     public static final double SHOOTER_TRENCH_RPM = 3000;
     public static final double SHOOTER_CORNER_RPM = 4000;
-    public static final double SHOOTER_TOLERANCE_RPM = 200;
+    public static final double SHOOTER_TOLERANCE_RPM = 400;
 
     // Just make it spun up the entire time unc
     public static final double AUTO_SHOOTER_TIMEOUT_SECONDS = 2.0;

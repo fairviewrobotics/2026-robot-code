@@ -26,7 +26,7 @@ public class FireShooterCommand extends Command {
             indexerSubsystem.setHopperWithPreferences();
             indexerSubsystem.setKickerWithPreferences();
         } else {
-            indexerSubsystem.stopMotors();
+            indexerSubsystem.setKickerMotorVoltage(0.0);
         }
     }
 

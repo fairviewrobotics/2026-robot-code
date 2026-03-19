@@ -7,6 +7,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.controller.BangBangController;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -32,11 +33,20 @@ public class ShooterSubsystem extends SubsystemBase {
     private double lastMap4 = 3450.0;
     private double lastMap5 = 4500.0;
 
-    private final InterpolatingDoubleTreeMap DistanceToRPM =
+    private final InterpolatingDoubleTreeMap DistanceToRPMLeft =
             new InterpolatingDoubleTreeMap();
 
-    private final InterpolatingDoubleTreeMap DistanceToShotTime =
+    private final InterpolatingDoubleTreeMap DistanceToShotTimeLeft =
             new InterpolatingDoubleTreeMap();
+
+    private final InterpolatingDoubleTreeMap DistanceToRPMRight =
+            new InterpolatingDoubleTreeMap();
+
+    private final InterpolatingDoubleTreeMap DistanceToShotTimeRight =
+            new InterpolatingDoubleTreeMap();
+
+    private final LinearFilter errorFilter = LinearFilter.movingAverage(5);
+    private double filteredError = 0;
 
     private final BangBangController shooterBangController = new BangBangController();
 
@@ -79,8 +89,10 @@ public class ShooterSubsystem extends SubsystemBase {
         rightShooterMotor.getConfigurator().apply(rightShooterMotorConfig);
 
         updateCache();
-        createDistanceToRPMMap();
-        createDistanceToShotTimeMap();
+        createDistanceToRPMMapLeft();
+        createDistanceToShotTimeMapLeft();
+        createDistanceToRPMMapRight();
+        createDistanceToShotTimeMapRight();
     }
 
     private void initializePreferences() {
@@ -159,7 +171,7 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public boolean shooterAtSetpoint() {
-        return leftShooterMotor.getClosedLoopError().getValueAsDouble() < (ShootingConstants.SHOOTER_TOLERANCE_RPM/60);
+        return filteredError < (ShootingConstants.SHOOTER_TOLERANCE_RPM / 60);
     }
 
     @Override
@@ -167,11 +179,16 @@ public class ShooterSubsystem extends SubsystemBase {
 
         if (preferencesChanged()) {
             updateHardwareConfigs();
-            createDistanceToRPMMap();
         }
+
+        filteredError = errorFilter.calculate(
+                Math.abs(leftShooterMotor.getClosedLoopError().getValueAsDouble())
+        );
 
         Logger.recordOutput("Shooter/left motor rpm", leftShooterMotor.getVelocity().getValueAsDouble() * 60);
         Logger.recordOutput("Shooter/right motor rpm", rightShooterMotor.getVelocity().getValueAsDouble() * 60);
+
+
 
         Logger.recordOutput("Shooter/Current kP", lastKP);
         Logger.recordOutput("Shooter/Current kI", lastKI);
@@ -202,23 +219,41 @@ public class ShooterSubsystem extends SubsystemBase {
         setRightShooterMotor(Preferences.getDouble("Shooter/RIGHT_RPM_SETPOINT", ShootingConstants.RIGHT_SHOOTER_RPM));
     }
 
-    private void createDistanceToRPMMap() {
-        DistanceToRPM.put(0.0, Preferences.getDouble("Shooter_Map/RPM_MAP_ONE", 2000.0));
-        DistanceToRPM.put(3.0796, Preferences.getDouble("Shooter_Map/RPM_MAP_TWO", 2350.0));
-        DistanceToRPM.put(4.1596, Preferences.getDouble("Shooter_Map/RPM_MAP_THREE", 3000.0));
-        DistanceToRPM.put(5.1396, Preferences.getDouble("Shooter_Map/RPM_MAP_FOUR", 3450.0));
-        DistanceToRPM.put(6.0, Preferences.getDouble("Shooter_Map/RPM_MAP_FIVE", 4500.0));
+    private void createDistanceToRPMMapLeft() {
+        DistanceToRPMLeft.put(0.0, 2000.0);
+        DistanceToRPMLeft.put(3.0796, 2350.0);
+        DistanceToRPMLeft.put(4.1596, 3000.0);
+        DistanceToRPMLeft.put(5.1396, 3450.0);
+        DistanceToRPMLeft.put(6.0, 4500.0);
     }
 
-    private void createDistanceToShotTimeMap() {
-        DistanceToShotTime.put(0.0, 0.3);
-        DistanceToShotTime.put(3.0796, 0.785);
-        DistanceToShotTime.put(4.1596, 0.995);
-        DistanceToShotTime.put(5.1396, 1.265);
-        DistanceToShotTime.put(8.0, 2.0);
+    private void createDistanceToShotTimeMapLeft() {
+        DistanceToShotTimeLeft.put(0.0, 0.3);
+        DistanceToShotTimeLeft.put(3.0796, 0.785);
+        DistanceToShotTimeLeft.put(4.1596, 0.995);
+        DistanceToShotTimeLeft.put(5.1396, 1.265);
+        DistanceToShotTimeLeft.put(8.0, 2.0);
     }
 
-    public double getDistanceToRPMMap(double distance) {return DistanceToRPM.get(distance);}
-    public double getDistanceToShotTime(double distance) {return DistanceToShotTime.get(distance);}
+    private void createDistanceToRPMMapRight() {
+        DistanceToRPMRight.put(0.0, 2000.0);
+        DistanceToRPMRight.put(3.0796, 2350.0);
+        DistanceToRPMRight.put(4.1596, 3000.0);
+        DistanceToRPMRight.put(5.1396, 3450.0);
+        DistanceToRPMRight.put(6.0, 4500.0);
+    }
+
+    private void createDistanceToShotTimeMapRight() {
+        DistanceToShotTimeRight.put(0.0, 0.3);
+        DistanceToShotTimeRight.put(3.0796, 0.785);
+        DistanceToShotTimeRight.put(4.1596, 0.995);
+        DistanceToShotTimeRight.put(5.1396, 1.265);
+        DistanceToShotTimeRight.put(8.0, 2.0);
+    }
+
+    public double getDistanceToRPMMapLeft(double distance) {return DistanceToRPMLeft.get(distance);}
+    public double getDistanceToShotTimeLeft(double distance) {return DistanceToShotTimeLeft.get(distance);}
+    public double getDistanceToRPMMapRight(double distance) {return DistanceToRPMRight.get(distance);}
+    public double getDistanceToShotTimeRight(double distance) {return DistanceToShotTimeRight.get(distance);}
 
 }

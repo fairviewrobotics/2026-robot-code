@@ -146,7 +146,7 @@
   {
     "name": "/Preferences/DriveToPoint/AutoRotationP",
     "type": "double",
-    "value": 2.0,
+    "value": 3.0,
     "properties": {
       "persistent": true
     }
@@ -363,6 +363,14 @@
     "name": "/Preferences/AimAtHub/UNIVERSAL_SCALAR",
     "type": "double",
     "value": 1.0,
+    "properties": {
+      "persistent": true
+    }
+  },
+  {
+    "name": "/Preferences/Swerve/SLOWDOWN_SCALAR",
+    "type": "double",
+    "value": 0.25,
     "properties": {
       "persistent": true
     }
