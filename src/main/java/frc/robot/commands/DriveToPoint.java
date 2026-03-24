@@ -51,7 +51,7 @@ public class DriveToPoint extends Command {
                         0.0,
                         new TrapezoidProfile.Constraints(
                                 Constants.MAX_SPEED * constraintFactor,
-                                Constants.MAX_SPEED/2 * constraintFactor),
+                                Constants.MAX_SPEED * 0.5 * constraintFactor),
                         0.02);
 
         this.thetaController =
@@ -61,7 +61,7 @@ public class DriveToPoint extends Command {
                         0.0,
                         new TrapezoidProfile.Constraints(
                                 Constants.MAX_ANGULAR_SPEED,
-                                Constants.MAX_ANGULAR_SPEED*2),
+                                Constants.MAX_ANGULAR_SPEED * 0.5),
                         0.02);
 
         thetaController.enableContinuousInput(-Math.PI, Math.PI);

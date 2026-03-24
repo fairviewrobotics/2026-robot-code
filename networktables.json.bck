@@ -146,7 +146,7 @@
   {
     "name": "/Preferences/DriveToPoint/AutoRotationP",
     "type": "double",
-    "value": 3.0,
+    "value": 5.0,
     "properties": {
       "persistent": true
     }
@@ -154,7 +154,7 @@
   {
     "name": "/Preferences/DriveToPoint/DecelerationP",
     "type": "double",
-    "value": 6.0,
+    "value": 5.0,
     "properties": {
       "persistent": true
     }

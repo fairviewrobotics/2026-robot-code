@@ -21,7 +21,6 @@ public class DriveToPointContinuous extends Command {
     private final Pose2d targetPose;
     private final double constraintFactor;
 
-    // Added swerveSubsystem to constructor
     public DriveToPointContinuous(SwerveSubsystem swerveSubsystem, Pose2d targetPose, double constraintFactor) {
         this.swerveSubsystem = swerveSubsystem;
         this.targetPose = targetPose;
@@ -30,10 +29,10 @@ public class DriveToPointContinuous extends Command {
         this.thetaController = new ProfiledPIDController(
                 Preferences.getDouble("DriveToPoint/AutoRotationP", Constants.DrivebaseConstants.AUTO_ROTATION_P),
                 0.0, 0.0,
-                new TrapezoidProfile.Constraints(Constants.MAX_ANGULAR_SPEED/2, Constants.MAX_ANGULAR_SPEED)
+                new TrapezoidProfile.Constraints(Constants.MAX_ANGULAR_SPEED, Constants.MAX_ANGULAR_SPEED * 4)
         );
         thetaController.enableContinuousInput(-Math.PI, Math.PI);
-        thetaController.setTolerance(Units.degreesToRadians(2.0));
+        thetaController.setTolerance(Units.degreesToRadians(10.0));
         addRequirements(swerveSubsystem);
     }
 
@@ -48,7 +47,7 @@ public class DriveToPointContinuous extends Command {
         thetaController.reset(
                 currentPose.getRotation().getRadians(),
                 swerveSubsystem.getFieldVelocity().omegaRadiansPerSecond);
-        thetaController.setTolerance(Units.degreesToRadians(5.0));
+        thetaController.setTolerance(Units.degreesToRadians(15.0));
 
     }
 
@@ -72,7 +71,7 @@ public class DriveToPointContinuous extends Command {
 
     @Override
     public boolean isFinished() {
-        return swerveSubsystem.getPose().getTranslation().getDistance(targetPose.getTranslation()) < 0.2;
+        return swerveSubsystem.getPose().getTranslation().getDistance(targetPose.getTranslation()) < 0.5 && thetaController.atGoal();
     }
 
     @Override

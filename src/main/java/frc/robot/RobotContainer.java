@@ -131,7 +131,20 @@ public class RobotContainer
     Command driveFieldOrientedDirectAngleKeyboard      = swerveSubsystem.driveFieldOriented(driveDirectAngleKeyboard);
 
     primary_controller.L2().whileTrue(new IntakeCommand(intakeSubsystem));
-    primary_controller.R2().whileTrue(new FireShooterCommand(shooterSubsystem, indexerSubsystem, turretSubsystem));
+    primary_controller.R2().whileTrue(
+        new ParallelCommandGroup(
+                new FireShooterCommand(shooterSubsystem, indexerSubsystem, turretSubsystem),
+                new AimAtHub3(hoodSubsystem, shooterSubsystem, turretSubsystem, swerveSubsystem, () -> activeTarget),
+                new RunCommand(() -> {
+                double speedCap = Preferences.getDouble("Swerve/SLOWDOWN_SCALAR", 0.25);
+                double x = MathUtil.applyDeadband(primary_controller.getLeftY(), OperatorConstants.DEADBAND) * speedCap;
+                double y = MathUtil.applyDeadband(primary_controller.getLeftX(), OperatorConstants.DEADBAND) * speedCap;
+                double rot = MathUtil.applyDeadband(-primary_controller.getRightX(), OperatorConstants.DEADBAND) * speedCap;
+
+                swerveSubsystem.drive(new Translation2d(4.42 * x, 4.42 * y), 6.38 * rot, true);
+                }, swerveSubsystem)
+        )
+);
     primary_controller.R3().whileTrue(new RunCommand(swerveSubsystem::centerModulesCommand));
     primary_controller.cross().onTrue(new InstantCommand(swerveSubsystem::zeroGyro));
     primary_controller.options().onTrue(new InstantCommand(() -> swerveSubsystem.resetOdometry(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT))));
@@ -156,21 +169,6 @@ public class RobotContainer
     secondary_controller.b().whileTrue(new TrenchRightCommand(hoodSubsystem, shooterSubsystem));
     secondary_controller.y().whileTrue(new CornerLeftCommand(hoodSubsystem, shooterSubsystem));
     secondary_controller.a().whileTrue(new AgitateWithIntake(intakeSubsystem));
-
-    primary_controller.R1().whileTrue(
-        new AimAtHub3(hoodSubsystem, shooterSubsystem, turretSubsystem, swerveSubsystem, () -> activeTarget)
-    );
-
-    primary_controller.L1().whileTrue(
-            new RunCommand(() -> {
-              double speedCap = Preferences.getDouble("Swerve/SLOWDOWN_SCALAR", 0.25);
-              double x = MathUtil.applyDeadband(primary_controller.getLeftY(), OperatorConstants.DEADBAND) * speedCap;
-              double y = MathUtil.applyDeadband(primary_controller.getLeftX(), OperatorConstants.DEADBAND) * speedCap;
-              double rot = MathUtil.applyDeadband(-primary_controller.getRightX(), OperatorConstants.DEADBAND) * speedCap;
-
-              swerveSubsystem.drive(new Translation2d(4.42 * x, 4.42 * y), 6.38 * rot, true);
-            }, swerveSubsystem)
-    );
 
     turretSubsystem.setDefaultCommand(
             new RunCommand(() -> turretSubsystem.setVoltage(0), turretSubsystem)
