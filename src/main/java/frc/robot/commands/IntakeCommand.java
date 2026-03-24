@@ -5,7 +5,9 @@ import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 
 public class IntakeCommand extends Command {
+
     private final IntakeSubsystem intakeSubsystem;
+
     public IntakeCommand(IntakeSubsystem intakeSubsystem) {
         this.intakeSubsystem = intakeSubsystem;
         addRequirements(intakeSubsystem);
@@ -14,6 +16,7 @@ public class IntakeCommand extends Command {
     @Override
     public void initialize() {
         intakeSubsystem.setIntakeDeployMotorCoast();
+        intakeSubsystem.setIntakeDeployMotorVoltage(-2);
     }
 
     @Override
@@ -25,9 +28,11 @@ public class IntakeCommand extends Command {
         // Added hard stop calculation logic
         intakeSubsystem.swapIntakeState();
 
-        if (intakeSubsystem.getIntakeState() == IntakeSubsystem.IntakeState.RETRACTED) {
-            intakeSubsystem.setIntakeDeployMotorVoltage(voltage);
-        }
+        // Should be able to just coast out?
+
+//        if (intakeSubsystem.getIntakeState() == IntakeSubsystem.IntakeState.RETRACTED) {
+//            intakeSubsystem.setIntakeDeployMotorVoltage(voltage);
+//        }
 
         intakeSubsystem.setIntakeRollerMotorWithPreferences();
     }
