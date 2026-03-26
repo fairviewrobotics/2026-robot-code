@@ -274,7 +274,7 @@
   {
     "name": "/Preferences/Auto/AUTO_SCALAR",
     "type": "double",
-    "value": 1.0,
+    "value": 0.5,
     "properties": {
       "persistent": true
     }

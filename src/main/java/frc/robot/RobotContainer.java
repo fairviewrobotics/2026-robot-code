@@ -131,25 +131,26 @@ public class RobotContainer
     Command driveFieldOrientedDirectAngleKeyboard      = swerveSubsystem.driveFieldOriented(driveDirectAngleKeyboard);
 
     primary_controller.L2().whileTrue(new IntakeCommand(intakeSubsystem));
-    primary_controller.R2().whileTrue(
-        new ParallelCommandGroup(
-                new FireShooterCommand(shooterSubsystem, indexerSubsystem, turretSubsystem),
-                new AimAtHub3(hoodSubsystem, shooterSubsystem, turretSubsystem, swerveSubsystem, () -> activeTarget),
-                new RunCommand(() -> {
-                double speedCap = Preferences.getDouble("Swerve/SLOWDOWN_SCALAR", 0.25);
-                double x = MathUtil.applyDeadband(primary_controller.getLeftY(), OperatorConstants.DEADBAND) * speedCap;
-                double y = MathUtil.applyDeadband(primary_controller.getLeftX(), OperatorConstants.DEADBAND) * speedCap;
-                double rot = MathUtil.applyDeadband(-primary_controller.getRightX(), OperatorConstants.DEADBAND) * speedCap;
+//    secondary_controller.rightTrigger().whileTrue(
+//        new ParallelCommandGroup(
+//                new FireShooterCommand(shooterSubsystem, indexerSubsystem, turretSubsystem),
+//                new AimAtHub3(hoodSubsystem, shooterSubsystem, turretSubsystem, swerveSubsystem, () -> activeTarget),
+//                new RunCommand(() -> {
+//                double speedCap = Preferences.getDouble("Swerve/SLOWDOWN_SCALAR", 0.25);
+//                double x = MathUtil.applyDeadband(primary_controller.getLeftY(), OperatorConstants.DEADBAND) * speedCap;
+//                double y = MathUtil.applyDeadband(primary_controller.getLeftX(), OperatorConstants.DEADBAND) * speedCap;
+//                double rot = MathUtil.applyDeadband(-primary_controller.getRightX(), OperatorConstants.DEADBAND) * speedCap;
+//
+//                swerveSubsystem.drive(new Translation2d(4.42 * x, 4.42 * y), 6.38 * rot, true);
+//                }, swerveSubsystem)
+//        )
+//    );
 
-                swerveSubsystem.drive(new Translation2d(4.42 * x, 4.42 * y), 6.38 * rot, true);
-                }, swerveSubsystem)
-        )
-);
     primary_controller.R3().whileTrue(new RunCommand(swerveSubsystem::centerModulesCommand));
     primary_controller.cross().onTrue(new InstantCommand(swerveSubsystem::zeroGyro));
     primary_controller.options().onTrue(new InstantCommand(() -> swerveSubsystem.resetOdometry(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT))));
 
-    secondary_controller.leftTrigger().whileTrue(
+    secondary_controller.rightStick().whileTrue(
             new AimAtHubWithChassis(
                     swerveSubsystem,
                     () -> 4.42 * MathUtil.applyDeadband(primary_controller.getLeftX(), 0.2),
@@ -159,6 +160,7 @@ public class RobotContainer
 
     secondary_controller.leftBumper().whileTrue(new RetractIntakeCommand(intakeSubsystem, 3.0));
     secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, turretSubsystem, 1000, 1000));
+    secondary_controller.rightTrigger().whileTrue(new IndexerCommand(indexerSubsystem));
     secondary_controller.rightStick().onTrue(new ZeroTurretCommand(turretSubsystem));
 
     secondary_controller.pov(0).onTrue(new InstantCommand(() -> activeTarget = FieldConstants.BLUE_HUB_POSE3D.toPose2d().getTranslation()));

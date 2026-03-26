@@ -31,7 +31,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
 //    private double errorThreshold = 0.5;
     // TODO: set proper velocity threshold for intake deployment
-    private double velocityThreshold = 0.1;
+    private double velocityThreshold = 1.0;
 
 //    double lastKP = IntakeConstants.INTAKE_DEPLOY_P;
 //    double lastKD = IntakeConstants.INTAKE_DEPLOY_D;

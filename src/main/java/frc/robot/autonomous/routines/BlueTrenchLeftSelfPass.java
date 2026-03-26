@@ -44,7 +44,7 @@ public class BlueTrenchLeftSelfPass extends SequentialCommandGroup {
                                     new AimAtHub3(hoodSubsystem, shooterSubsystem, turretSubsystem, swerveSubsystem, () -> FieldConstants.BLUE_HUB_POSE3D.toPose2d().getTranslation()),
                                     new AgitateWithIntake(intakeSubsystem)
                             ),
-                            new DriveToPointContinuous(swerveSubsystem, AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT_TRANSITION_CONTINUOUS), 1.0 * AUTO_SCALAR),
+
                             new DriveToPointContinuous(swerveSubsystem, AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT_TRANSITION_PICKUP_2), 1.0 * AUTO_SCALAR),
                             new ParallelDeadlineGroup(
                                     new SequentialCommandGroup(
