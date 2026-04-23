@@ -62,7 +62,7 @@ public class RobotContainer
                   () -> primary_controller.getLeftX() * -1)
           .withControllerRotationAxis(() -> primary_controller.getRightX() * -1)
           .deadband(OperatorConstants.DEADBAND)
-          .scaleTranslation(1.0)
+          .scaleTranslation(0.5)
           .allianceRelativeControl(true);
 
   /**
@@ -78,7 +78,7 @@ public class RobotContainer
           .withControllerRotationAxis(() -> primary_controller.getRawAxis(
                   2))
           .deadband(OperatorConstants.DEADBAND)
-          .scaleTranslation(0.8)
+          .scaleTranslation(0.5)
           .allianceRelativeControl(true);
   // Derive the heading axis with math!
   SwerveInputStream driveDirectAngleKeyboard     = driveAngularVelocityKeyboard.copy()

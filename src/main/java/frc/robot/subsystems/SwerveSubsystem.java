@@ -75,7 +75,7 @@ public class SwerveSubsystem extends SubsystemBase
     {
       throw new RuntimeException(e);
     }
-    SlewRateLimiter xyLimiter = new SlewRateLimiter(0);
+    SlewRateLimiter xyLimiter = new SlewRateLimiter(50);
     SlewRateLimiter omegaLimiter = new SlewRateLimiter(30);
     swerveDrive.swerveController.addSlewRateLimiters(xyLimiter, xyLimiter, omegaLimiter);
     swerveDrive.chassisVelocityCorrection = true;

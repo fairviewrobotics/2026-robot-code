@@ -101,6 +101,10 @@ public class AimAtHub3 extends Command {
         double universalScalar = Preferences.getDouble("AimAtHub/UNIVERSAL_SCALAR", 1.0);
         double finalRPM = baseRPM * universalScalar;
 
+        if(finalRPM > 700){
+            finalRPM = 700;
+        }
+        /*
         if (shooterDistance >= 5.6) {
             hood.setHood(0.9);
         } else if (shooterDistance >= 2.4) {
@@ -110,7 +114,8 @@ public class AimAtHub3 extends Command {
         } else {
             hood.setHood(0.3);
         }
-
+        */
+        hood.setHood(0.3);
         shooter.setMotorRPM(finalRPM);
         turret.setTurret(adjustedAngle);
 
