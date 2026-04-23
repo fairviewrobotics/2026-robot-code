@@ -98,13 +98,9 @@ public class AimAtHub3 extends Command {
         double adjustedAngle = MathUtil.inputModulus(robotRelativeTurretAngle.plus(Rotation2d.fromDegrees(180)).getRadians(), 0, 2 * Math.PI);
         adjustedAngle = Math.abs(adjustedAngle);
 
-        double universalScalar = Preferences.getDouble("AimAtHub/UNIVERSAL_SCALAR", 1.0);
+        double universalScalar = 0.15
         double finalRPM = baseRPM * universalScalar;
 
-        if(finalRPM > 700){
-            finalRPM = 700;
-        }
-        /*
         if (shooterDistance >= 5.6) {
             hood.setHood(0.9);
         } else if (shooterDistance >= 2.4) {
@@ -114,8 +110,6 @@ public class AimAtHub3 extends Command {
         } else {
             hood.setHood(0.3);
         }
-        */
-        hood.setHood(0.3);
         shooter.setMotorRPM(finalRPM);
         turret.setTurret(adjustedAngle);
 
