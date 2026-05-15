@@ -33,7 +33,7 @@ public class IndexerSubsystem extends SubsystemBase {
         hopperMotorConfig
                 .smartCurrentLimit(HOPPER_MAX_CURRENT_AMPS)
                 .idleMode(SparkBaseConfig.IdleMode.kCoast)
-                .inverted(false);
+                .inverted(true);
 
         kickerMotor.configure(kickerMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         hopperMotor.configure(hopperMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);

@@ -62,7 +62,7 @@ public class RobotContainer
                   () -> primary_controller.getLeftX() * -1)
           .withControllerRotationAxis(() -> primary_controller.getRightX() * -1)
           .deadband(OperatorConstants.DEADBAND)
-          .scaleTranslation(0.5)
+          .scaleTranslation(0.15)
           .allianceRelativeControl(true);
 
   /**
@@ -150,26 +150,26 @@ public class RobotContainer
     primary_controller.cross().onTrue(new InstantCommand(swerveSubsystem::zeroGyro));
     primary_controller.options().onTrue(new InstantCommand(() -> swerveSubsystem.resetOdometry(AllianceFlipUtil.apply(FieldConstants.BLUE_TRENCH_LEFT))));
 
-    secondary_controller.rightStick().whileTrue(
-            new AimAtHubWithChassis(
-                    swerveSubsystem,
-                    () -> 4.42 * MathUtil.applyDeadband(primary_controller.getLeftX(), 0.2),
-                    () -> 4.42 * MathUtil.applyDeadband(primary_controller.getLeftY(), 0.2)
-            )
-    );
+//    secondary_controller.rightStick().whileTrue(
+//            new AimAtHubWithChassis(
+//                    swerveSubsystem,
+//                    () -> 4.42 * MathUtil.applyDeadband(primary_controller.getLeftX(), 0.2),
+//                    () -> 4.42 * MathUtil.applyDeadband(primary_controller.getLeftY(), 0.2)
+//            )
+//    );
 
     secondary_controller.leftBumper().whileTrue(new RetractIntakeCommand(intakeSubsystem, 3.0));
-    secondary_controller.rightBumper().whileTrue(new ShooterCommand(shooterSubsystem, turretSubsystem, 1000, 1000));
+    secondary_controller.rightBumper().whileTrue(new AimAtHub3(hoodSubsystem, shooterSubsystem, turretSubsystem, swerveSubsystem, () -> FieldConstants.BLUE_HUB_POSE3D.toPose2d().getTranslation()));
     secondary_controller.rightTrigger().whileTrue(new IndexerCommand(indexerSubsystem));
-    secondary_controller.rightStick().onTrue(new ZeroTurretCommand(turretSubsystem));
+    secondary_controller.rightStick().onTrue(new InstantCommand(()-> turretSubsystem.zeroTurret()));
 
     secondary_controller.pov(0).onTrue(new InstantCommand(() -> activeTarget = FieldConstants.BLUE_HUB_POSE3D.toPose2d().getTranslation()));
     secondary_controller.pov(90).onTrue(new InstantCommand(() -> activeTarget = FieldConstants.BLUE_PASS_LEFT_POSE.getTranslation()));
     secondary_controller.pov(270).onTrue(new InstantCommand(() -> activeTarget = FieldConstants.BLUE_PASS_RIGHT_POSE.getTranslation()));
     secondary_controller.pov(180).onTrue(new HoodTestCommand(hoodSubsystem));
-    secondary_controller.x().whileTrue(new TrenchLeftCommand(hoodSubsystem, shooterSubsystem));
-    secondary_controller.b().whileTrue(new TrenchRightCommand(hoodSubsystem, shooterSubsystem));
-    secondary_controller.y().whileTrue(new CornerLeftCommand(hoodSubsystem, shooterSubsystem));
+    //secondary_controller.x().whileTrue(new TrenchLeftCommand(hoodSubsystem, shooterSubsystem));
+    //secondary_controller.b().whileTrue(new TrenchRightCommand(hoodSubsystem, shooterSubsystem));
+    //secondary_controller.y().whileTrue(new CornerLeftCommand(hoodSubsystem, shooterSubsystem));
     secondary_controller.a().whileTrue(new AgitateWithIntake(intakeSubsystem));
 
     turretSubsystem.setDefaultCommand(
